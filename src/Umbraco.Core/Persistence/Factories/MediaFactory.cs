@@ -7,7 +7,7 @@ using Umbraco.Core.Models.Rdbms;
 
 namespace Umbraco.Core.Persistence.Factories
 {
-    internal class MediaFactory 
+    internal class MediaFactory
     {
         private readonly IMediaType _contentType;
         private readonly Guid _nodeObjectTypeId;
@@ -73,15 +73,11 @@ namespace Umbraco.Core.Persistence.Factories
                 ContentDto = BuildContentDto(entity)
             };
 
-            //Extract the media path for storage
-            string mediaPath;
-            TryMatch(entity.GetValue<string>("umbracoFile"), out mediaPath);
-
             var dto = new MediaDto()
             {
                 NodeId = entity.Id,
                 ContentVersionDto = versionDto,
-                MediaPath = mediaPath,
+                MediaPath = GetMediaPath(entity),
                 VersionId = entity.Version
             };
             return dto;
@@ -131,32 +127,32 @@ namespace Umbraco.Core.Persistence.Factories
             return nodeDto;
         }
 
-        private static readonly Regex MediaPathPattern = new Regex($@"({SystemDirectories.Media.TrimStart("~")}/.+?)(?:['""]|$)", RegexOptions.Compiled);
+        private static readonly Regex SrcPathPattern = new Regex(@"['""{, ]src['""]?:\s*['""](.+?)['""]", RegexOptions.Compiled);
 
-        /// <summary>
-        /// Try getting a media path out of the string being stored for media
-        /// </summary>
-        /// <param name="text"></param>
-        /// <param name="mediaPath"></param>
-        /// <returns></returns>
-        internal static bool TryMatch(string text, out string mediaPath)
+        private static string GetMediaPath(IMedia entity)
         {
-            //TODO: In v8 we should allow exposing this via the property editor in a much nicer way so that the property editor
-            // can tell us directly what any URL is for a given property if it contains an asset
+            foreach( var property in entity.Properties)
+            {
+                switch (property.PropertyType.PropertyEditorAlias)
+                {
+                    case Constants.PropertyEditors.UploadFieldAlias:
+                        return entity.GetValue<string>(property.Alias);
+                    case Constants.PropertyEditors.ImageCropperAlias:
+                    {
+                        var value = entity.GetValue<string>(property.Alias);
+                        if (string.IsNullOrWhiteSpace(value) == false)
+                        {
+                            var match = SrcPathPattern.Match(value);
+                            if (match.Success)
+                                return match.Groups[1].Value;
+                        }
 
-            mediaPath = null;
+                        return string.Empty;
+                    }
+                }
+            }
 
-            if (string.IsNullOrWhiteSpace(text))
-                return false;
-
-            var match = MediaPathPattern.Match(text);
-            if (match.Success == false || match.Groups.Count != 2)
-                return false;
-
-            
-            var url = match.Groups[1].Value;
-            mediaPath = url;
-            return true;
+            return null;
         }
     }
 }
