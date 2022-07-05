@@ -2,36 +2,37 @@
 // See LICENSE for more details.
 
 using System;
+using System.Reflection;
 using Umbraco.Cms.Core.Models;
 
-namespace Umbraco.Cms.Tests.Common.Extensions;
-
-public static class ContentBaseExtensions
+namespace Umbraco.Cms.Tests.Common.Extensions
 {
-    /// <summary>
-    ///     Set property values by alias with an anonymous object.
-    /// </summary>
-    /// <remarks>Does not support variants.</remarks>
-    public static void PropertyValues(this IContentBase content, object value, string? culture = null, string? segment = null)
+    public static class ContentBaseExtensions
     {
-        if (value == null)
+        /// <summary>
+        /// Set property values by alias with an anonymous object.
+        /// </summary>
+        /// <remarks>Does not support variants.</remarks>
+        public static void PropertyValues(this IContentBase content, object value, string? culture = null, string? segment = null)
         {
-            throw new Exception("No properties has been passed in");
-        }
-
-        var propertyInfos = value.GetType().GetProperties();
-        foreach (var propertyInfo in propertyInfos)
-        {
-            if (!content.Properties.TryGetValue(propertyInfo.Name, out var property))
+            if (value == null)
             {
-                throw new Exception(
-                    $"The property alias {propertyInfo.Name} is not valid, because no PropertyType with this alias exists");
+                throw new Exception("No properties has been passed in");
             }
 
-            property.SetValue(propertyInfo.GetValue(value, null), culture, segment);
+            PropertyInfo[] propertyInfos = value.GetType().GetProperties();
+            foreach (PropertyInfo propertyInfo in propertyInfos)
+            {
+                if (!content.Properties.TryGetValue(propertyInfo.Name, out var property))
+                {
+                    throw new Exception($"The property alias {propertyInfo.Name} is not valid, because no PropertyType with this alias exists");
+                }
 
-            // Update item with newly added value
-            content.Properties.Add(property);
+                property.SetValue(propertyInfo.GetValue(value, null), culture, segment);
+
+                // Update item with newly added value
+                content.Properties.Add(property);
+            }
         }
     }
 }

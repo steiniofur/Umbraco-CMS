@@ -3,13 +3,14 @@
 
 using Umbraco.Cms.Core.Models.PublishedContent;
 
-namespace Umbraco.Cms.Tests.Common;
-
-/// <summary>
-///     Provides an implementation of <see cref="IVariationContextAccessor" /> for tests.
-/// </summary>
-public class TestVariationContextAccessor : IVariationContextAccessor
+namespace Umbraco.Cms.Tests.Common
 {
-    /// <inheritdoc />
-    public VariationContext VariationContext { get; set; }
+    /// <summary>
+    /// Provides an implementation of <see cref="IVariationContextAccessor"/> for tests.
+    /// </summary>
+    public class TestVariationContextAccessor : IVariationContextAccessor
+    {
+        /// <inheritdoc />
+        public VariationContext VariationContext { get; set; }
+    }
 }

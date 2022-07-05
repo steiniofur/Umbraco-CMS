@@ -3,9 +3,10 @@
 
 using System;
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithLastLoginDateBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    DateTime? LastLoginDate { get; set; }
+    public interface IWithLastLoginDateBuilder
+    {
+        DateTime? LastLoginDate { get; set; }
+    }
 }

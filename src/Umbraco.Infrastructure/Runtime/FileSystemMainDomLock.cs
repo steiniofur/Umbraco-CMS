@@ -10,7 +10,6 @@ namespace Umbraco.Cms.Infrastructure.Runtime;
 internal class FileSystemMainDomLock : IMainDomLock
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly IHostingEnvironment _hostingEnvironment;
     private readonly IOptionsMonitor<GlobalSettings> _globalSettings;
     private readonly string _lockFilePath;
     private readonly ILogger<FileSystemMainDomLock> _logger;
@@ -26,7 +25,6 @@ internal class FileSystemMainDomLock : IMainDomLock
         IOptionsMonitor<GlobalSettings> globalSettings)
     {
         _logger = logger;
-        _hostingEnvironment = hostingEnvironment;
         _globalSettings = globalSettings;
 
         var lockFileName = $"MainDom_{mainDomKeyGenerator.GenerateKey()}.lock";
@@ -43,7 +41,7 @@ internal class FileSystemMainDomLock : IMainDomLock
         {
             try
             {
-                Directory.CreateDirectory(_hostingEnvironment.LocalTempPath);
+
                 _logger.LogDebug("Attempting to obtain MainDom lock file handle {lockFilePath}", _lockFilePath);
                 _lockFileStream = File.Open(_lockFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
                 DeleteLockReleaseSignalFile();

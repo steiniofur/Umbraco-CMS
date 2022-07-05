@@ -10,25 +10,26 @@ using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Tests.UnitTests.AutoFixture;
 using Umbraco.Cms.Web.BackOffice.Controllers;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.BackOffice.Controllers;
-
-[TestFixture]
-public class UsersControllerTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.BackOffice.Controllers
 {
-    [Test]
-    [AutoMoqData]
-    public void PostUnlockUsers_When_User_Lockout_Update_Fails_Expect_Failure_Response(
-        [Frozen] IBackOfficeUserManager backOfficeUserManager,
-        UsersController sut,
-        BackOfficeIdentityUser user,
-        int[] userIds,
-        string expectedMessage)
+    [TestFixture]
+    public class UsersControllerTests
     {
-        Mock.Get(backOfficeUserManager)
-            .Setup(x => x.FindByIdAsync(It.IsAny<string>()))
-            .ReturnsAsync(user);
+        [Test]
+        [AutoMoqData]
+        public void PostUnlockUsers_When_User_Lockout_Update_Fails_Expect_Failure_Response(
+            [Frozen] IBackOfficeUserManager backOfficeUserManager,
+            UsersController sut,
+            BackOfficeIdentityUser user,
+            int[] userIds,
+            string expectedMessage)
+        {
+            Mock.Get(backOfficeUserManager)
+                .Setup(x => x.FindByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(user);
 
-        var result = sut.PostUnlockUsers(userIds).Result as ObjectResult;
-        Assert.AreEqual(StatusCodes.Status400BadRequest, result.StatusCode);
+            var result = sut.PostUnlockUsers(userIds).Result as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status400BadRequest, result.StatusCode);
+        }
     }
 }

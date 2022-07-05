@@ -4,101 +4,59 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using NUnit.Framework;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.Implement;
 using Umbraco.Cms.Tests.Common.Builders;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Services;
-
-[TestFixture]
-[UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest, PublishedRepositoryEvents = true)]
-public class MediaTypeServiceTests : UmbracoIntegrationTest
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Services
 {
-    private MediaService MediaService => (MediaService)GetRequiredService<IMediaService>();
-
-    private IMediaTypeService MediaTypeService => GetRequiredService<IMediaTypeService>();
-
-    protected override void CustomTestSetup(IUmbracoBuilder builder) => builder
-        .AddNotificationHandler<MediaMovedToRecycleBinNotification, ContentNotificationHandler>();
-
-    [Test]
-    public void Get_With_Missing_Guid()
+    [TestFixture]
+    [UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest, PublishedRepositoryEvents = true)]
+    public class MediaTypeServiceTests : UmbracoIntegrationTest
     {
-        // Arrange
-        // Act
-        var result = MediaTypeService.Get(Guid.NewGuid());
+        private MediaService MediaService => (MediaService)GetRequiredService<IMediaService>();
 
-        // Assert
-        Assert.IsNull(result);
-    }
+        private IMediaTypeService MediaTypeService => GetRequiredService<IMediaTypeService>();
 
-    [Test]
-    public void Empty_Description_Is_Always_Null_After_Saving_Media_Type()
-    {
-        var mediaType = MediaTypeBuilder.CreateSimpleMediaType("mediaType", "Media Type");
-        mediaType.Description = null;
-        MediaTypeService.Save(mediaType);
+        protected override void CustomTestSetup(IUmbracoBuilder builder) => builder
+            .AddNotificationHandler<MediaMovedToRecycleBinNotification, ContentNotificationHandler>();
 
-        var mediaType2 = MediaTypeBuilder.CreateSimpleMediaType("mediaType2", "Media Type 2");
-        mediaType2.Description = string.Empty;
-        MediaTypeService.Save(mediaType2);
-
-        Assert.IsNull(mediaType.Description);
-        Assert.IsNull(mediaType2.Description);
-    }
-
-    [Test]
-    public void Deleting_Media_Type_With_Hierarchy_Of_Media_Items_Moves_Orphaned_Media_To_Recycle_Bin()
-    {
-        IMediaType contentType1 = MediaTypeBuilder.CreateSimpleMediaType("test1", "Test1");
-        MediaTypeService.Save(contentType1);
-        IMediaType contentType2 = MediaTypeBuilder.CreateSimpleMediaType("test2", "Test2");
-        MediaTypeService.Save(contentType2);
-        IMediaType contentType3 = MediaTypeBuilder.CreateSimpleMediaType("test3", "Test3");
-        MediaTypeService.Save(contentType3);
-
-        IMediaType[] contentTypes = { contentType1, contentType2, contentType3 };
-        var parentId = -1;
-
-        var ids = new List<int>();
-
-        for (var i = 0; i < 2; i++)
+        [Test]
+        public void Get_With_Missing_Guid()
         {
-            for (var index = 0; index < contentTypes.Length; index++)
-            {
-                var contentType = contentTypes[index];
-                var contentItem = MediaBuilder.CreateSimpleMedia(contentType, "MyName_" + index + "_" + i, parentId);
-                MediaService.Save(contentItem);
-                parentId = contentItem.Id;
+            // Arrange
+            // Act
+            IMediaType result = MediaTypeService.Get(Guid.NewGuid());
 
-                ids.Add(contentItem.Id);
-            }
+            // Assert
+            Assert.IsNull(result);
         }
 
-        // delete the first content type, all other content of different content types should be in the recycle bin
-        MediaTypeService.Delete(contentTypes[0]);
-
-        var found = MediaService.GetByIds(ids);
-
-        Assert.AreEqual(4, found.Count());
-        foreach (var content in found)
+        [Test]
+        public void Empty_Description_Is_Always_Null_After_Saving_Media_Type()
         {
-            Assert.IsTrue(content.Trashed);
+            MediaType mediaType = MediaTypeBuilder.CreateSimpleMediaType("mediaType", "Media Type");
+            mediaType.Description = null;
+            MediaTypeService.Save(mediaType);
+
+            MediaType mediaType2 = MediaTypeBuilder.CreateSimpleMediaType("mediaType2", "Media Type 2");
+            mediaType2.Description = string.Empty;
+            MediaTypeService.Save(mediaType2);
+
+            Assert.IsNull(mediaType.Description);
+            Assert.IsNull(mediaType2.Description);
         }
-    }
 
-    [Test]
-    public void Deleting_Media_Types_With_Hierarchy_Of_Media_Items_Doesnt_Raise_Trashed_Event_For_Deleted_Items()
-    {
-        ContentNotificationHandler.MovedMediaToRecycleBin = MovedMediaToRecycleBin;
-
-        try
+        [Test]
+        public void Deleting_Media_Type_With_Hierarchy_Of_Media_Items_Moves_Orphaned_Media_To_Recycle_Bin()
         {
             IMediaType contentType1 = MediaTypeBuilder.CreateSimpleMediaType("test1", "Test1");
             MediaTypeService.Save(contentType1);
@@ -107,18 +65,17 @@ public class MediaTypeServiceTests : UmbracoIntegrationTest
             IMediaType contentType3 = MediaTypeBuilder.CreateSimpleMediaType("test3", "Test3");
             MediaTypeService.Save(contentType3);
 
-            IMediaType[] contentTypes = { contentType1, contentType2, contentType3 };
-            var parentId = -1;
+            IMediaType[] contentTypes = new[] { contentType1, contentType2, contentType3 };
+            int parentId = -1;
 
             var ids = new List<int>();
 
-            for (var i = 0; i < 2; i++)
+            for (int i = 0; i < 2; i++)
             {
-                for (var index = 0; index < contentTypes.Length; index++)
+                for (int index = 0; index < contentTypes.Length; index++)
                 {
-                    var contentType = contentTypes[index];
-                    var contentItem =
-                        MediaBuilder.CreateSimpleMedia(contentType, "MyName_" + index + "_" + i, parentId);
+                    IMediaType contentType = contentTypes[index];
+                    Media contentItem = MediaBuilder.CreateSimpleMedia(contentType, "MyName_" + index + "_" + i, parentId);
                     MediaService.Save(contentItem);
                     parentId = contentItem.Id;
 
@@ -126,107 +83,147 @@ public class MediaTypeServiceTests : UmbracoIntegrationTest
                 }
             }
 
-            foreach (var contentType in contentTypes.Reverse())
+            // delete the first content type, all other content of different content types should be in the recycle bin
+            MediaTypeService.Delete(contentTypes[0]);
+
+            IEnumerable<IMedia> found = MediaService.GetByIds(ids);
+
+            Assert.AreEqual(4, found.Count());
+            foreach (IMedia content in found)
             {
-                MediaTypeService.Delete(contentType);
+                Assert.IsTrue(content.Trashed);
             }
         }
-        finally
-        {
-            ContentNotificationHandler.MovedMediaToRecycleBin = null;
-        }
-    }
 
-    private void MovedMediaToRecycleBin(MediaMovedToRecycleBinNotification notification)
-    {
-        foreach (var item in notification.MoveInfoCollection)
+        [Test]
+        public void Deleting_Media_Types_With_Hierarchy_Of_Media_Items_Doesnt_Raise_Trashed_Event_For_Deleted_Items()
         {
-            // if this item doesn't exist then Fail!
-            var exists = MediaService.GetById(item.Entity.Id);
-            if (exists == null)
+            ContentNotificationHandler.MovedMediaToRecycleBin = MovedMediaToRecycleBin;
+
+            try
             {
-                Assert.Fail("The item doesn't exist");
+                IMediaType contentType1 = MediaTypeBuilder.CreateSimpleMediaType("test1", "Test1");
+                MediaTypeService.Save(contentType1);
+                IMediaType contentType2 = MediaTypeBuilder.CreateSimpleMediaType("test2", "Test2");
+                MediaTypeService.Save(contentType2);
+                IMediaType contentType3 = MediaTypeBuilder.CreateSimpleMediaType("test3", "Test3");
+                MediaTypeService.Save(contentType3);
+
+                IMediaType[] contentTypes = new[] { contentType1, contentType2, contentType3 };
+                int parentId = -1;
+
+                var ids = new List<int>();
+
+                for (int i = 0; i < 2; i++)
+                {
+                    for (int index = 0; index < contentTypes.Length; index++)
+                    {
+                        IMediaType contentType = contentTypes[index];
+                        Media contentItem = MediaBuilder.CreateSimpleMedia(contentType, "MyName_" + index + "_" + i, parentId);
+                        MediaService.Save(contentItem);
+                        parentId = contentItem.Id;
+
+                        ids.Add(contentItem.Id);
+                    }
+                }
+
+                foreach (IMediaType contentType in contentTypes.Reverse())
+                {
+                    MediaTypeService.Delete(contentType);
+                }
+            }
+            finally
+            {
+                ContentNotificationHandler.MovedMediaToRecycleBin = null;
             }
         }
-    }
 
-    [Test]
-    public void Can_Copy_MediaType_By_Performing_Clone()
-    {
-        // Arrange
-        var mediaType = MediaTypeBuilder.CreateImageMediaType("Image2") as IMediaType;
-        MediaTypeService.Save(mediaType);
+        private void MovedMediaToRecycleBin(MediaMovedToRecycleBinNotification notification)
+        {
+            foreach (MoveEventInfo<IMedia> item in notification.MoveInfoCollection)
+            {
+                // if this item doesn't exist then Fail!
+                IMedia exists = MediaService.GetById(item.Entity.Id);
+                if (exists == null)
+                {
+                    Assert.Fail("The item doesn't exist");
+                }
+            }
+        }
 
-        // Act
-        var sut = mediaType.DeepCloneWithResetIdentities("Image2_2");
-        Assert.IsNotNull(sut);
-        MediaTypeService.Save(sut);
+        [Test]
+        public void Can_Copy_MediaType_By_Performing_Clone()
+        {
+            // Arrange
+            var mediaType = MediaTypeBuilder.CreateImageMediaType("Image2") as IMediaType;
+            MediaTypeService.Save(mediaType);
 
-        // Assert
-        Assert.That(sut.HasIdentity, Is.True);
-        Assert.AreEqual(mediaType.ParentId, sut.ParentId);
-        Assert.AreEqual(mediaType.Level, sut.Level);
-        Assert.AreEqual(mediaType.PropertyTypes.Count(), sut.PropertyTypes.Count());
-        Assert.AreNotEqual(mediaType.Id, sut.Id);
-        Assert.AreNotEqual(mediaType.Key, sut.Key);
-        Assert.AreNotEqual(mediaType.Path, sut.Path);
-        Assert.AreNotEqual(mediaType.SortOrder, sut.SortOrder);
-        Assert.AreNotEqual(mediaType.PropertyTypes.First(x => x.Alias.Equals("umbracoFile")).Id,
-            sut.PropertyTypes.First(x => x.Alias.Equals("umbracoFile")).Id);
-        Assert.AreNotEqual(mediaType.PropertyGroups.First(x => x.Name.Equals("Media")).Id,
-            sut.PropertyGroups.First(x => x.Name.Equals("Media")).Id);
-    }
+            // Act
+            IMediaType sut = mediaType.DeepCloneWithResetIdentities("Image2_2");
+            Assert.IsNotNull(sut);
+            MediaTypeService.Save(sut);
 
-    [Test]
-    public void Can_Copy_MediaType_To_New_Parent_By_Performing_Clone()
-    {
-        // Arrange
-        var parentMediaType1 = MediaTypeBuilder.CreateSimpleMediaType("parent1", "Parent1");
-        MediaTypeService.Save(parentMediaType1);
-        var parentMediaType2 = MediaTypeBuilder.CreateSimpleMediaType("parent2", "Parent2", null, true);
-        MediaTypeService.Save(parentMediaType2);
-        var mediaType = MediaTypeBuilder.CreateImageMediaType("Image2") as IMediaType;
-        MediaTypeService.Save(mediaType);
+            // Assert
+            Assert.That(sut.HasIdentity, Is.True);
+            Assert.AreEqual(mediaType.ParentId, sut.ParentId);
+            Assert.AreEqual(mediaType.Level, sut.Level);
+            Assert.AreEqual(mediaType.PropertyTypes.Count(), sut.PropertyTypes.Count());
+            Assert.AreNotEqual(mediaType.Id, sut.Id);
+            Assert.AreNotEqual(mediaType.Key, sut.Key);
+            Assert.AreNotEqual(mediaType.Path, sut.Path);
+            Assert.AreNotEqual(mediaType.SortOrder, sut.SortOrder);
+            Assert.AreNotEqual(mediaType.PropertyTypes.First(x => x.Alias.Equals("umbracoFile")).Id, sut.PropertyTypes.First(x => x.Alias.Equals("umbracoFile")).Id);
+            Assert.AreNotEqual(mediaType.PropertyGroups.First(x => x.Name.Equals("Media")).Id, sut.PropertyGroups.First(x => x.Name.Equals("Media")).Id);
+        }
 
-        // Act
-        var clone = mediaType.DeepCloneWithResetIdentities("newcategory");
-        Assert.IsNotNull(clone);
-        clone.RemoveContentType("parent1");
-        clone.AddContentType(parentMediaType2);
-        clone.ParentId = parentMediaType2.Id;
-        MediaTypeService.Save(clone);
+        [Test]
+        public void Can_Copy_MediaType_To_New_Parent_By_Performing_Clone()
+        {
+            // Arrange
+            MediaType parentMediaType1 = MediaTypeBuilder.CreateSimpleMediaType("parent1", "Parent1");
+            MediaTypeService.Save(parentMediaType1);
+            MediaType parentMediaType2 = MediaTypeBuilder.CreateSimpleMediaType("parent2", "Parent2", null, true);
+            MediaTypeService.Save(parentMediaType2);
+            var mediaType = MediaTypeBuilder.CreateImageMediaType("Image2") as IMediaType;
+            MediaTypeService.Save(mediaType);
 
-        // Assert
-        Assert.That(clone.HasIdentity, Is.True);
+            // Act
+            IMediaType clone = mediaType.DeepCloneWithResetIdentities("newcategory");
+            Assert.IsNotNull(clone);
+            clone.RemoveContentType("parent1");
+            clone.AddContentType(parentMediaType2);
+            clone.ParentId = parentMediaType2.Id;
+            MediaTypeService.Save(clone);
 
-        var clonedMediaType = MediaTypeService.Get(clone.Id);
-        var originalMediaType = MediaTypeService.Get(mediaType.Id);
+            // Assert
+            Assert.That(clone.HasIdentity, Is.True);
 
-        Assert.That(clonedMediaType.CompositionAliases().Any(x => x.Equals("parent2")), Is.True);
-        Assert.That(clonedMediaType.CompositionAliases().Any(x => x.Equals("parent1")), Is.False);
+            IMediaType clonedMediaType = MediaTypeService.Get(clone.Id);
+            IMediaType originalMediaType = MediaTypeService.Get(mediaType.Id);
 
-        Assert.AreEqual(clonedMediaType.Path, "-1," + parentMediaType2.Id + "," + clonedMediaType.Id);
-        Assert.AreEqual(clonedMediaType.PropertyTypes.Count(), originalMediaType.PropertyTypes.Count());
+            Assert.That(clonedMediaType.CompositionAliases().Any(x => x.Equals("parent2")), Is.True);
+            Assert.That(clonedMediaType.CompositionAliases().Any(x => x.Equals("parent1")), Is.False);
 
-        Assert.AreNotEqual(clonedMediaType.ParentId, originalMediaType.ParentId);
-        Assert.AreEqual(clonedMediaType.ParentId, parentMediaType2.Id);
+            Assert.AreEqual(clonedMediaType.Path, "-1," + parentMediaType2.Id + "," + clonedMediaType.Id);
+            Assert.AreEqual(clonedMediaType.PropertyTypes.Count(), originalMediaType.PropertyTypes.Count());
 
-        Assert.AreNotEqual(clonedMediaType.Id, originalMediaType.Id);
-        Assert.AreNotEqual(clonedMediaType.Key, originalMediaType.Key);
-        Assert.AreNotEqual(clonedMediaType.Path, originalMediaType.Path);
+            Assert.AreNotEqual(clonedMediaType.ParentId, originalMediaType.ParentId);
+            Assert.AreEqual(clonedMediaType.ParentId, parentMediaType2.Id);
 
-        Assert.AreNotEqual(clonedMediaType.PropertyTypes.First(x => x.Alias.StartsWith("umbracoFile")).Id,
-            originalMediaType.PropertyTypes.First(x => x.Alias.StartsWith("umbracoFile")).Id);
-        Assert.AreNotEqual(clonedMediaType.PropertyGroups.First(x => x.Name.StartsWith("Media")).Id,
-            originalMediaType.PropertyGroups.First(x => x.Name.StartsWith("Media")).Id);
-    }
+            Assert.AreNotEqual(clonedMediaType.Id, originalMediaType.Id);
+            Assert.AreNotEqual(clonedMediaType.Key, originalMediaType.Key);
+            Assert.AreNotEqual(clonedMediaType.Path, originalMediaType.Path);
 
-    public class ContentNotificationHandler :
-        INotificationHandler<MediaMovedToRecycleBinNotification>
-    {
-        public static Action<MediaMovedToRecycleBinNotification> MovedMediaToRecycleBin { get; set; }
+            Assert.AreNotEqual(clonedMediaType.PropertyTypes.First(x => x.Alias.StartsWith("umbracoFile")).Id, originalMediaType.PropertyTypes.First(x => x.Alias.StartsWith("umbracoFile")).Id);
+            Assert.AreNotEqual(clonedMediaType.PropertyGroups.First(x => x.Name.StartsWith("Media")).Id, originalMediaType.PropertyGroups.First(x => x.Name.StartsWith("Media")).Id);
+        }
 
-        public void Handle(MediaMovedToRecycleBinNotification notification) =>
-            MovedMediaToRecycleBin?.Invoke(notification);
+        public class ContentNotificationHandler :
+            INotificationHandler<MediaMovedToRecycleBinNotification>
+        {
+            public void Handle(MediaMovedToRecycleBinNotification notification) => MovedMediaToRecycleBin?.Invoke(notification);
+
+            public static Action<MediaMovedToRecycleBinNotification> MovedMediaToRecycleBin { get; set; }
+        }
     }
 }

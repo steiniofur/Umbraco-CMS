@@ -11,117 +11,121 @@ using Microsoft.Extensions.Logging;
 using Umbraco.Cms.Infrastructure.Persistence;
 
 // ReSharper disable ConvertToUsingDeclaration
-namespace Umbraco.Cms.Tests.Integration.Testing;
-
-/// <remarks>
-///     It's not meant to be pretty, rushed port of LocalDb.cs + LocalDbTestDatabase.cs
-/// </remarks>
-public class SqlServerTestDatabase : SqlServerBaseTestDatabase, ITestDatabase
+namespace Umbraco.Cms.Tests.Integration.Testing
 {
-    public const string DatabaseName = "UmbracoTests";
-    private readonly TestDatabaseSettings _settings;
-
-    public SqlServerTestDatabase(TestDatabaseSettings settings, ILoggerFactory loggerFactory, IUmbracoDatabaseFactory databaseFactory)
+    /// <remarks>
+    /// It's not meant to be pretty, rushed port of LocalDb.cs + LocalDbTestDatabase.cs
+    /// </remarks>
+    public class SqlServerTestDatabase : SqlServerBaseTestDatabase, ITestDatabase
     {
-        _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-        _databaseFactory = databaseFactory ?? throw new ArgumentNullException(nameof(databaseFactory));
+        private readonly TestDatabaseSettings _settings;
+        public const string DatabaseName = "UmbracoTests";
 
-        _settings = settings;
-
-        var counter = 0;
-
-        var schema = Enumerable.Range(0, _settings.SchemaDatabaseCount)
-            .Select(x => TestDbMeta.CreateWithMasterConnectionString($"{DatabaseName}-{++counter}", false, _settings.SQLServerMasterConnectionString));
-
-        var empty = Enumerable.Range(0, _settings.EmptyDatabasesCount)
-            .Select(x => TestDbMeta.CreateWithMasterConnectionString($"{DatabaseName}-{++counter}", true, _settings.SQLServerMasterConnectionString));
-
-        _testDatabases = schema.Concat(empty).ToList();
-    }
-
-    protected override void Initialize()
-    {
-        _prepareQueue = new BlockingCollection<TestDbMeta>();
-        _readySchemaQueue = new BlockingCollection<TestDbMeta>();
-        _readyEmptyQueue = new BlockingCollection<TestDbMeta>();
-
-        foreach (var meta in _testDatabases)
+        public SqlServerTestDatabase(TestDatabaseSettings settings, ILoggerFactory loggerFactory,
+            IUmbracoDatabaseFactory databaseFactory)
         {
-            CreateDatabase(meta);
-            _prepareQueue.Add(meta);
+            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            _databaseFactory = databaseFactory ?? throw new ArgumentNullException(nameof(databaseFactory));
+
+            _settings = settings;
+
+            var counter = 0;
+
+            var schema = Enumerable.Range(0, _settings.SchemaDatabaseCount)
+                .Select(x => TestDbMeta.CreateWithMasterConnectionString($"{DatabaseName}-{++counter}", false,
+                    _settings.SQLServerMasterConnectionString));
+
+            var empty = Enumerable.Range(0, _settings.EmptyDatabasesCount)
+                .Select(x => TestDbMeta.CreateWithMasterConnectionString($"{DatabaseName}-{++counter}", true,
+                    _settings.SQLServerMasterConnectionString));
+
+            _testDatabases = schema.Concat(empty).ToList();
         }
 
-        for (var i = 0; i < _settings.PrepareThreadCount; i++)
+        protected override void Initialize()
         {
-            var thread = new Thread(PrepareDatabase);
-            thread.Start();
-        }
-    }
+            _prepareQueue = new BlockingCollection<TestDbMeta>();
+            _readySchemaQueue = new BlockingCollection<TestDbMeta>();
+            _readyEmptyQueue = new BlockingCollection<TestDbMeta>();
 
-    private void CreateDatabase(TestDbMeta meta)
-    {
-        Drop(meta);
-
-        using (var connection = new SqlConnection(_settings.SQLServerMasterConnectionString))
-        {
-            connection.Open();
-            using (var command = connection.CreateCommand())
+            foreach (TestDbMeta meta in _testDatabases)
             {
-                SetCommand(command, $@"CREATE DATABASE {LocalDb.QuotedName(meta.Name)}");
-                command.ExecuteNonQuery();
+                CreateDatabase(meta);
+                _prepareQueue.Add(meta);
+            }
+
+            for (int i = 0; i < _settings.PrepareThreadCount; i++)
+            {
+                var thread = new Thread(PrepareDatabase);
+                thread.Start();
             }
         }
-    }
 
-    private void Drop(TestDbMeta meta)
-    {
-        using (var connection = new SqlConnection(_settings.SQLServerMasterConnectionString))
+        private void CreateDatabase(TestDbMeta meta)
         {
-            connection.Open();
-            using (var command = connection.CreateCommand())
-            {
-                SetCommand(command, "select count(1) from sys.databases where name = @0", meta.Name);
-                var records = (int)command.ExecuteScalar();
-                if (records == 0)
-                {
-                    return;
-                }
+            Drop(meta);
 
-                var sql = $@"
+            using (var connection = new SqlConnection(_settings.SQLServerMasterConnectionString))
+            {
+                connection.Open();
+                using (SqlCommand command = connection.CreateCommand())
+                {
+                    SetCommand(command, $@"CREATE DATABASE {LocalDb.QuotedName(meta.Name)}");
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private void Drop(TestDbMeta meta)
+        {
+            using (var connection = new SqlConnection(_settings.SQLServerMasterConnectionString))
+            {
+                connection.Open();
+                using (SqlCommand command = connection.CreateCommand())
+                {
+                    SetCommand(command, "select count(1) from sys.databases where name = @0", meta.Name);
+                    var records = (int)command.ExecuteScalar();
+                    if (records == 0)
+                    {
+                        return;
+                    }
+
+                    string sql = $@"
                         ALTER DATABASE {LocalDb.QuotedName(meta.Name)}
                         SET SINGLE_USER 
                         WITH ROLLBACK IMMEDIATE";
-                SetCommand(command, sql);
-                command.ExecuteNonQuery();
+                    SetCommand(command, sql);
+                    command.ExecuteNonQuery();
 
-                SetCommand(command, $@"DROP DATABASE {LocalDb.QuotedName(meta.Name)}");
-                command.ExecuteNonQuery();
+                    SetCommand(command, $@"DROP DATABASE {LocalDb.QuotedName(meta.Name)}");
+                    command.ExecuteNonQuery();
+                }
             }
         }
-    }
 
-    public override void TearDown()
-    {
-        if (_prepareQueue == null)
+        public override void TearDown()
         {
-            return;
-        }
+            if (_prepareQueue == null)
+            {
+                return;
+            }
 
-        _prepareQueue.CompleteAdding();
-        while (_prepareQueue.TryTake(out _))
-        {
-        }
+            _prepareQueue.CompleteAdding();
+            while (_prepareQueue.TryTake(out _))
+            {
+            }
 
-        _readyEmptyQueue.CompleteAdding();
-        while (_readyEmptyQueue.TryTake(out _))
-        {
-        }
+            _readyEmptyQueue.CompleteAdding();
+            while (_readyEmptyQueue.TryTake(out _))
+            {
+            }
 
-        _readySchemaQueue.CompleteAdding();
-        while (_readySchemaQueue.TryTake(out _))
-        {
-        }
+            _readySchemaQueue.CompleteAdding();
+            while (_readySchemaQueue.TryTake(out _))
+            {
+            }
 
-        Parallel.ForEach(_testDatabases, Drop);
+            Parallel.ForEach(_testDatabases, Drop);
+        }
     }
 }

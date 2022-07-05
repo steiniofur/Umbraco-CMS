@@ -3,15 +3,16 @@
 
 using Umbraco.Cms.Core.PublishedCache;
 
-namespace Umbraco.Cms.Tests.Common;
-
-public class TestDefaultCultureAccessor : IDefaultCultureAccessor
+namespace Umbraco.Cms.Tests.Common
 {
-    private string _defaultCulture = string.Empty;
-
-    public string DefaultCulture
+    public class TestDefaultCultureAccessor : IDefaultCultureAccessor
     {
-        get => _defaultCulture;
-        set => _defaultCulture = value ?? string.Empty;
+        private string _defaultCulture = string.Empty;
+
+        public string DefaultCulture
+        {
+            get => _defaultCulture;
+            set => _defaultCulture = value ?? string.Empty;
+        }
     }
 }

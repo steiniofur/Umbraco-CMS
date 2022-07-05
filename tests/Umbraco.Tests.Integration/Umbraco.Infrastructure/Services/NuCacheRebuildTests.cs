@@ -1,5 +1,6 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
@@ -7,80 +8,80 @@ using Umbraco.Cms.Tests.Common.Builders;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Services;
-
-[TestFixture]
-[UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest, PublishedRepositoryEvents = true,
-    WithApplication = true)]
-public class NuCacheRebuildTests : UmbracoIntegrationTest
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Services
 {
-    private IFileService FileService => GetRequiredService<IFileService>();
-
-    private IContentService ContentService => GetRequiredService<IContentService>();
-
-    private IContentTypeService ContentTypeService => GetRequiredService<IContentTypeService>();
-
-    private IPublishedSnapshotService PublishedSnapshotService => GetRequiredService<IPublishedSnapshotService>();
-
-    [Test]
-    public void UnpublishedNameChanges()
+    [TestFixture]
+    [UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest, PublishedRepositoryEvents = true, WithApplication = true)]
+    public class NuCacheRebuildTests : UmbracoIntegrationTest
     {
-        var urlSegmentProvider = new DefaultUrlSegmentProvider(ShortStringHelper);
+        private IFileService FileService => GetRequiredService<IFileService>();
 
-        var template = TemplateBuilder.CreateTextPageTemplate();
-        FileService.SaveTemplate(template);
+        private IContentService ContentService => GetRequiredService<IContentService>();
 
-        var contentType = ContentTypeBuilder.CreateTextPageContentType(defaultTemplateId: template.Id);
-        ContentTypeService.Save(contentType);
+        private IContentTypeService ContentTypeService => GetRequiredService<IContentTypeService>();
 
-        var content = ContentBuilder.CreateTextpageContent(contentType, "hello", Constants.System.Root);
+        private IPublishedSnapshotService PublishedSnapshotService => GetRequiredService<IPublishedSnapshotService>();
 
-        ContentService.SaveAndPublish(content);
-        var cachedContent = ContentService.GetById(content.Id);
-        var segment = urlSegmentProvider.GetUrlSegment(cachedContent);
+        [Test]
+        public void UnpublishedNameChanges()
+        {
+            var urlSegmentProvider = new DefaultUrlSegmentProvider(ShortStringHelper);
 
-        // Does a new node work?
+            Template template = TemplateBuilder.CreateTextPageTemplate();
+            FileService.SaveTemplate(template);
 
-        Assert.AreEqual("hello", segment);
+            ContentType contentType = ContentTypeBuilder.CreateTextPageContentType(defaultTemplateId: template.Id);
+            ContentTypeService.Save(contentType);
 
-        content.Name = "goodbye";
-        cachedContent = ContentService.GetById(content.Id);
-        segment = urlSegmentProvider.GetUrlSegment(cachedContent);
+            Content content = ContentBuilder.CreateTextpageContent(contentType, "hello", Constants.System.Root);
 
-        // We didn't save anything, so all should still be the same
+            ContentService.SaveAndPublish(content);
+            IContent cachedContent = ContentService.GetById(content.Id);
+            var segment = urlSegmentProvider.GetUrlSegment(cachedContent);
 
-        Assert.AreEqual("hello", segment);
+            // Does a new node work?
 
-        ContentService.Save(content);
-        cachedContent = ContentService.GetById(content.Id);
-        segment = urlSegmentProvider.GetUrlSegment(cachedContent);
+            Assert.AreEqual("hello", segment);
 
-        // At this point we have saved the new name, but not published. The url should still be the previous name
+            content.Name = "goodbye";
+            cachedContent = ContentService.GetById(content.Id);
+            segment = urlSegmentProvider.GetUrlSegment(cachedContent);
 
-        Assert.AreEqual("hello", segment);
+            // We didn't save anything, so all should still be the same
 
-        PublishedSnapshotService.Rebuild();
+            Assert.AreEqual("hello", segment);
 
-        cachedContent = ContentService.GetById(content.Id);
-        segment = urlSegmentProvider.GetUrlSegment(cachedContent);
+            ContentService.Save(content);
+            cachedContent = ContentService.GetById(content.Id);
+            segment = urlSegmentProvider.GetUrlSegment(cachedContent);
 
-        // After a rebuild, the unpublished name should still not be the url.
-        // This was previously incorrect, per #11074
+            // At this point we have saved the new name, but not published. The url should still be the previous name
 
-        Assert.AreEqual("hello", segment);
+            Assert.AreEqual("hello", segment);
 
-        ContentService.SaveAndPublish(content);
-        cachedContent = ContentService.GetById(content.Id);
-        segment = urlSegmentProvider.GetUrlSegment(cachedContent);
+            PublishedSnapshotService.Rebuild();
 
-        // The page has now been published, so we should see the new url segment
-        Assert.AreEqual("goodbye", segment);
+            cachedContent = ContentService.GetById(content.Id);
+            segment = urlSegmentProvider.GetUrlSegment(cachedContent);
 
-        PublishedSnapshotService.Rebuild();
-        cachedContent = ContentService.GetById(content.Id);
-        segment = urlSegmentProvider.GetUrlSegment(cachedContent);
+            // After a rebuild, the unpublished name should still not be the url.
+            // This was previously incorrect, per #11074
 
-        // Just double checking that things remain after a rebuild
-        Assert.AreEqual("goodbye", segment);
+            Assert.AreEqual("hello", segment);
+
+            ContentService.SaveAndPublish(content);
+            cachedContent = ContentService.GetById(content.Id);
+            segment = urlSegmentProvider.GetUrlSegment(cachedContent);
+
+            // The page has now been published, so we should see the new url segment
+            Assert.AreEqual("goodbye", segment);
+
+            PublishedSnapshotService.Rebuild();
+            cachedContent = ContentService.GetById(content.Id);
+            segment = urlSegmentProvider.GetUrlSegment(cachedContent);
+
+            // Just double checking that things remain after a rebuild
+            Assert.AreEqual("goodbye", segment);
+        }
     }
 }

@@ -1,12 +1,14 @@
+using System;
 using Umbraco.Cms.Core.Services;
 
-namespace Umbraco.Cms.Tests.Integration.Testing;
-
-public class TestConflictingRouteService : IConflictingRouteService
+namespace Umbraco.Cms.Tests.Integration.Testing
 {
-    public bool HasConflictingRoutes(out string controllername)
+    public class TestConflictingRouteService : IConflictingRouteService
     {
-        controllername = string.Empty;
-        return false;
+        public bool HasConflictingRoutes(out string controllername)
+        {
+            controllername = string.Empty;
+            return false;
+        }
     }
 }

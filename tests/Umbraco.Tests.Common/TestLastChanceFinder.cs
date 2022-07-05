@@ -4,9 +4,10 @@
 using System.Threading.Tasks;
 using Umbraco.Cms.Core.Routing;
 
-namespace Umbraco.Cms.Tests.Common;
-
-public class TestLastChanceFinder : IContentLastChanceFinder
+namespace Umbraco.Cms.Tests.Common
 {
-    public async Task<bool> TryFindContent(IPublishedRequestBuilder frequest) => false;
+    public class TestLastChanceFinder : IContentLastChanceFinder
+    {
+        public async Task<bool> TryFindContent(IPublishedRequestBuilder frequest) => false;
+    }
 }

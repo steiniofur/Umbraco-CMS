@@ -11,196 +11,181 @@ using NUnit.Framework;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Extensions;
+using Constants = Umbraco.Cms.Core.Constants;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.PropertyEditors;
-
-[TestFixture]
-public class BlockEditorComponentTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.PropertyEditors
 {
-    private readonly JsonSerializerSettings _serializerSettings = new()
+    [TestFixture]
+    public class BlockEditorComponentTests
     {
-        Formatting = Formatting.None,
-        NullValueHandling = NullValueHandling.Ignore,
-    };
-
-    private const string ContentGuid1 = "036ce82586a64dfba2d523a99ed80f58";
-    private const string ContentGuid2 = "48288c21a38a40ef82deb3eda90a58f6";
-    private const string SettingsGuid1 = "ffd35c4e2eea4900abfa5611b67b2492";
-    private const string SubContentGuid1 = "4c44ce6b3a5c4f5f8f15e3dc24819a9e";
-    private const string SubContentGuid2 = "a062c06d6b0b44ac892b35d90309c7f8";
-    private const string SubSettingsGuid1 = "4d998d980ffa4eee8afdc23c4abd6d29";
-
-    private static readonly ILogger<BlockEditorPropertyHandler> s_logger =
-        Mock.Of<ILogger<BlockEditorPropertyHandler>>();
-
-    [Test]
-    public void Cannot_Have_Null_Udi()
-    {
-        var component = new BlockEditorPropertyHandler(s_logger);
-        var json = GetBlockListJson(null, string.Empty);
-        Assert.Throws<FormatException>(() => component.ReplaceBlockListUdis(json));
-    }
-
-    [Test]
-    public void No_Nesting()
-    {
-        var guids = Enumerable.Range(0, 3).Select(x => Guid.NewGuid()).ToList();
-        var guidCounter = 0;
-
-        Guid GuidFactory()
+        private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
         {
-            return guids[guidCounter++];
+            Formatting = Formatting.None,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        private const string ContentGuid1 = "036ce82586a64dfba2d523a99ed80f58";
+        private const string ContentGuid2 = "48288c21a38a40ef82deb3eda90a58f6";
+        private const string SettingsGuid1 = "ffd35c4e2eea4900abfa5611b67b2492";
+        private const string SubContentGuid1 = "4c44ce6b3a5c4f5f8f15e3dc24819a9e";
+        private const string SubContentGuid2 = "a062c06d6b0b44ac892b35d90309c7f8";
+        private const string SubSettingsGuid1 = "4d998d980ffa4eee8afdc23c4abd6d29";
+        private static readonly ILogger<BlockEditorPropertyHandler> s_logger = Mock.Of<ILogger<BlockEditorPropertyHandler>>();
+
+
+
+
+        [Test]
+        public void Cannot_Have_Null_Udi()
+        {
+            var component = new BlockEditorPropertyHandler(s_logger);
+            var json = GetBlockListJson(null, string.Empty);
+            Assert.Throws<FormatException>(() => component.ReplaceBlockListUdis(json));
         }
 
-        var json = GetBlockListJson(null);
-
-        var expected = ReplaceGuids(json, guids, ContentGuid1, ContentGuid2, SettingsGuid1);
-
-        var component = new BlockEditorPropertyHandler(s_logger);
-        var result = component.ReplaceBlockListUdis(json, GuidFactory);
-
-        var expectedJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(expected, _serializerSettings), _serializerSettings);
-        var resultJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result, _serializerSettings), _serializerSettings);
-        Console.WriteLine(expectedJson);
-        Console.WriteLine(resultJson);
-        Assert.AreEqual(expectedJson, resultJson);
-    }
-
-    [Test]
-    public void One_Level_Nesting_Escaped()
-    {
-        var guids = Enumerable.Range(0, 6).Select(x => Guid.NewGuid()).ToList();
-
-        var guidCounter = 0;
-
-        Guid GuidFactory()
+        [Test]
+        public void No_Nesting()
         {
-            return guids[guidCounter++];
+            var guids = Enumerable.Range(0, 3).Select(x => Guid.NewGuid()).ToList();
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            var json = GetBlockListJson(null);
+
+            var expected = ReplaceGuids(json, guids, ContentGuid1, ContentGuid2, SettingsGuid1);
+
+            var component = new BlockEditorPropertyHandler(s_logger);
+            var result = component.ReplaceBlockListUdis(json, GuidFactory);
+
+            var expectedJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(expected, _serializerSettings), _serializerSettings);
+            var resultJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result, _serializerSettings), _serializerSettings);
+            Console.WriteLine(expectedJson);
+            Console.WriteLine(resultJson);
+            Assert.AreEqual(expectedJson, resultJson);
         }
 
-        var innerJson = GetBlockListJson(null, SubContentGuid1, SubContentGuid2, SubSettingsGuid1);
-
-        // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
-        // and this is how to do that, the result will also include quotes around it.
-        var innerJsonEscaped = JsonConvert.ToString(innerJson);
-
-        // get the json with the subFeatures as escaped
-        var json = GetBlockListJson(innerJsonEscaped);
-
-        var component = new BlockEditorPropertyHandler(s_logger);
-        var result = component.ReplaceBlockListUdis(json, GuidFactory);
-
-        // the expected result is that the subFeatures data is no longer escaped
-        var expected = ReplaceGuids(
-            GetBlockListJson(innerJson),
-            guids,
-            ContentGuid1,
-            ContentGuid2,
-            SettingsGuid1,
-            SubContentGuid1,
-            SubContentGuid2,
-            SubSettingsGuid1);
-
-        var expectedJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(expected, _serializerSettings), _serializerSettings);
-        var resultJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result, _serializerSettings), _serializerSettings);
-        Console.WriteLine(expectedJson);
-        Console.WriteLine(resultJson);
-        Assert.AreEqual(expectedJson, resultJson);
-    }
-
-    [Test]
-    public void One_Level_Nesting_Unescaped()
-    {
-        var guids = Enumerable.Range(0, 6).Select(x => Guid.NewGuid()).ToList();
-        var guidCounter = 0;
-
-        Guid GuidFactory()
+        [Test]
+        public void One_Level_Nesting_Escaped()
         {
-            return guids[guidCounter++];
+            var guids = Enumerable.Range(0, 6).Select(x => Guid.NewGuid()).ToList();
+
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            var innerJson = GetBlockListJson(null, SubContentGuid1, SubContentGuid2, SubSettingsGuid1);
+
+            // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
+            // and this is how to do that, the result will also include quotes around it.
+            var innerJsonEscaped = JsonConvert.ToString(innerJson);
+
+            // get the json with the subFeatures as escaped
+            var json = GetBlockListJson(innerJsonEscaped);
+
+            var component = new BlockEditorPropertyHandler(s_logger);
+            var result = component.ReplaceBlockListUdis(json, GuidFactory);
+
+            // the expected result is that the subFeatures data is no longer escaped
+            var expected = ReplaceGuids(
+                GetBlockListJson(innerJson),
+                guids,
+                ContentGuid1,
+                ContentGuid2,
+                SettingsGuid1,
+                SubContentGuid1,
+                SubContentGuid2,
+                SubSettingsGuid1);
+
+            var expectedJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(expected, _serializerSettings), _serializerSettings);
+            var resultJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result, _serializerSettings), _serializerSettings);
+            Console.WriteLine(expectedJson);
+            Console.WriteLine(resultJson);
+            Assert.AreEqual(expectedJson, resultJson);
         }
 
-        // nested blocks without property value escaping used in the conversion
-        var innerJson = GetBlockListJson(null, SubContentGuid1, SubContentGuid2, SubSettingsGuid1);
-
-        // get the json with the subFeatures as unescaped
-        var json = GetBlockListJson(innerJson);
-
-        var expected = ReplaceGuids(
-            GetBlockListJson(innerJson),
-            guids,
-            ContentGuid1,
-            ContentGuid2,
-            SettingsGuid1,
-            SubContentGuid1,
-            SubContentGuid2,
-            SubSettingsGuid1);
-
-        var component = new BlockEditorPropertyHandler(s_logger);
-        var result = component.ReplaceBlockListUdis(json, GuidFactory);
-
-        var expectedJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(expected, _serializerSettings), _serializerSettings);
-        var resultJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result, _serializerSettings), _serializerSettings);
-        Console.WriteLine(expectedJson);
-        Console.WriteLine(resultJson);
-        Assert.AreEqual(expectedJson, resultJson);
-    }
-
-    [Test]
-    public void Nested_In_Complex_Editor_Escaped()
-    {
-        var guids = Enumerable.Range(0, 6).Select(x => Guid.NewGuid()).ToList();
-        var guidCounter = 0;
-
-        Guid GuidFactory()
+        [Test]
+        public void One_Level_Nesting_Unescaped()
         {
-            return guids[guidCounter++];
+            var guids = Enumerable.Range(0, 6).Select(x => Guid.NewGuid()).ToList();
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            // nested blocks without property value escaping used in the conversion
+            var innerJson = GetBlockListJson(null, SubContentGuid1, SubContentGuid2, SubSettingsGuid1);
+
+            // get the json with the subFeatures as unescaped
+            var json = GetBlockListJson(innerJson);
+
+            var expected = ReplaceGuids(
+                GetBlockListJson(innerJson),
+                guids,
+                ContentGuid1,
+                ContentGuid2,
+                SettingsGuid1,
+                SubContentGuid1,
+                SubContentGuid2,
+                SubSettingsGuid1);
+
+            var component = new BlockEditorPropertyHandler(s_logger);
+            var result = component.ReplaceBlockListUdis(json, GuidFactory);
+
+            var expectedJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(expected, _serializerSettings), _serializerSettings);
+            var resultJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result, _serializerSettings), _serializerSettings);
+            Console.WriteLine(expectedJson);
+            Console.WriteLine(resultJson);
+            Assert.AreEqual(expectedJson, resultJson);
         }
 
-        var innerJson = GetBlockListJson(null, SubContentGuid1, SubContentGuid2, SubSettingsGuid1);
+        [Test]
+        public void Nested_In_Complex_Editor_Escaped()
+        {
+            var guids = Enumerable.Range(0, 6).Select(x => Guid.NewGuid()).ToList();
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
 
-        // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
-        // and this is how to do that, the result will also include quotes around it.
-        var innerJsonEscaped = JsonConvert.ToString(innerJson);
+            var innerJson = GetBlockListJson(null, SubContentGuid1, SubContentGuid2, SubSettingsGuid1);
 
-        // Complex editor such as the grid
-        var complexEditorJsonEscaped = GetGridJson(innerJsonEscaped);
+            // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
+            // and this is how to do that, the result will also include quotes around it.
+            var innerJsonEscaped = JsonConvert.ToString(innerJson);
 
-        var json = GetBlockListJson(complexEditorJsonEscaped);
+            // Complex editor such as the grid
+            var complexEditorJsonEscaped = GetGridJson(innerJsonEscaped);
 
-        var component = new BlockEditorPropertyHandler(s_logger);
-        var result = component.ReplaceBlockListUdis(json, GuidFactory);
+            var json = GetBlockListJson(complexEditorJsonEscaped);
 
-        // the expected result is that the subFeatures data is no longer escaped
-        var expected = ReplaceGuids(
-            GetBlockListJson(GetGridJson(innerJson)),
-            guids,
-            ContentGuid1,
-            ContentGuid2,
-            SettingsGuid1,
-            SubContentGuid1,
-            SubContentGuid2,
-            SubSettingsGuid1);
+            var component = new BlockEditorPropertyHandler(s_logger);
+            var result = component.ReplaceBlockListUdis(json, GuidFactory);
 
-        var expectedJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(expected, _serializerSettings), _serializerSettings);
-        var resultJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result, _serializerSettings), _serializerSettings);
-        Console.WriteLine(expectedJson);
-        Console.WriteLine(resultJson);
-        Assert.AreEqual(expectedJson, resultJson);
-    }
+            // the expected result is that the subFeatures data is no longer escaped
+            var expected = ReplaceGuids(
+                GetBlockListJson(GetGridJson(innerJson)),
+                guids,
+                ContentGuid1,
+                ContentGuid2,
+                SettingsGuid1,
+                SubContentGuid1,
+                SubContentGuid2,
+                SubSettingsGuid1);
 
-    private string GetBlockListJson(
-        string subFeatures,
-        string contentGuid1 = ContentGuid1,
-        string contentGuid2 = ContentGuid2,
-        string settingsGuid1 = SettingsGuid1) =>
-        @"{
+            var expectedJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(expected, _serializerSettings), _serializerSettings);
+            var resultJson = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result, _serializerSettings), _serializerSettings);
+            Console.WriteLine(expectedJson);
+            Console.WriteLine(resultJson);
+            Assert.AreEqual(expectedJson, resultJson);
+        }
+
+        private string GetBlockListJson(
+            string subFeatures,
+            string contentGuid1 = ContentGuid1,
+            string contentGuid2 = ContentGuid2,
+            string settingsGuid1 = SettingsGuid1)
+        {
+            return @"{
     ""layout"":
     {
         ""Umbraco.BlockList"": [
             {
-                ""contentUdi"": """ + (contentGuid1.IsNullOrWhiteSpace()
-            ? string.Empty
-            : Udi.Create(Constants.UdiEntityType.Element, Guid.Parse(contentGuid1)).ToString()) + @"""
+                ""contentUdi"": """ + (contentGuid1.IsNullOrWhiteSpace() ? string.Empty : GuidUdi.Create(Constants.UdiEntityType.Element, Guid.Parse(contentGuid1)).ToString()) + @"""
             },
             {
                 ""contentUdi"": ""umb://element/" + contentGuid2 + @""",
@@ -211,9 +196,7 @@ public class BlockEditorComponentTests
     ""contentData"": [
         {
             ""contentTypeKey"": ""d6ce4a86-91a2-45b3-a99c-8691fc1fb020"",
-            ""udi"": """ + (contentGuid1.IsNullOrWhiteSpace()
-            ? string.Empty
-            : Udi.Create(Constants.UdiEntityType.Element, Guid.Parse(contentGuid1)).ToString()) + @""",
+            ""udi"": """ + (contentGuid1.IsNullOrWhiteSpace() ? string.Empty : GuidUdi.Create(Constants.UdiEntityType.Element, Guid.Parse(contentGuid1)).ToString()) + @""",
             ""featureName"": ""Hello"",
             ""featureDetails"": ""World""
         },
@@ -221,8 +204,7 @@ public class BlockEditorComponentTests
             ""contentTypeKey"": ""d6ce4a86-91a2-45b3-a99c-8691fc1fb020"",
             ""udi"": ""umb://element/" + contentGuid2 + @""",
             ""featureName"": ""Another"",
-            ""featureDetails"": ""Feature""" +
-        (subFeatures == null ? string.Empty : @", ""subFeatures"": " + subFeatures) + @"
+            ""featureDetails"": ""Feature""" + (subFeatures == null ? string.Empty : (@", ""subFeatures"": " + subFeatures)) + @"
         }
     ],
     ""settingsData"": [
@@ -234,9 +216,11 @@ public class BlockEditorComponentTests
         },
     ]
 }";
+        }
 
-    private string GetGridJson(string subBlockList) =>
-        @"{
+        private string GetGridJson(string subBlockList)
+        {
+            return @"{
   ""name"": ""1 column layout"",
   ""sections"": [
     {
@@ -290,15 +274,17 @@ public class BlockEditorComponentTests
         }]
     }]
 }";
-
-    private string ReplaceGuids(string json, List<Guid> newGuids, params string[] oldGuids)
-    {
-        for (var i = 0; i < oldGuids.Length; i++)
-        {
-            var old = oldGuids[i];
-            json = json.Replace(old, newGuids[i].ToString("N"));
         }
 
-        return json;
+        private string ReplaceGuids(string json, List<Guid> newGuids, params string[] oldGuids)
+        {
+            for (var i = 0; i < oldGuids.Length; i++)
+            {
+                var old = oldGuids[i];
+                json = json.Replace(old, newGuids[i].ToString("N"));
+            }
+
+            return json;
+        }
     }
 }

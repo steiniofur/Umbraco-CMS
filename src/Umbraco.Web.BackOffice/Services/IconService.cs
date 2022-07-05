@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -9,158 +13,164 @@ using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Web.Common.DependencyInjection;
 using Umbraco.Extensions;
-using File = System.IO.File;
 using IHostingEnvironment = Umbraco.Cms.Core.Hosting.IHostingEnvironment;
 
-namespace Umbraco.Cms.Web.BackOffice.Services;
-
-public class IconService : IIconService
+namespace Umbraco.Cms.Web.BackOffice.Services
 {
-    private readonly IAppPolicyCache _cache;
-    private readonly IHostingEnvironment _hostingEnvironment;
-    private readonly IWebHostEnvironment _webHostEnvironment;
-    private GlobalSettings _globalSettings;
-
-    [Obsolete("Use other ctor - Will be removed in Umbraco 12")]
-    public IconService(
-        IOptionsMonitor<GlobalSettings> globalSettings,
-        IHostingEnvironment hostingEnvironment,
-        AppCaches appCaches)
-        : this(
-            globalSettings,
-            hostingEnvironment,
-            appCaches,
-            StaticServiceProvider.Instance.GetRequiredService<IWebHostEnvironment>())
+    public class IconService : IIconService
     {
-    }
+        private GlobalSettings _globalSettings;
+        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IAppPolicyCache _cache;
 
-    [Obsolete("Use other ctor - Will be removed in Umbraco 12")]
-    public IconService(
-        IOptionsMonitor<GlobalSettings> globalSettings,
-        IHostingEnvironment hostingEnvironment,
-        AppCaches appCaches,
-        IWebHostEnvironment webHostEnvironment)
-    {
-        _globalSettings = globalSettings.CurrentValue;
-        _hostingEnvironment = hostingEnvironment;
-        _webHostEnvironment = webHostEnvironment;
-        _cache = appCaches.RuntimeCache;
-
-        globalSettings.OnChange(x => _globalSettings = x);
-    }
-
-    /// <inheritdoc />
-    public IReadOnlyDictionary<string, string>? GetIcons() => GetIconDictionary();
-
-    /// <inheritdoc />
-    public IconModel? GetIcon(string iconName)
-    {
-        if (iconName.IsNullOrWhiteSpace())
+        [Obsolete("Use other ctor - Will be removed in Umbraco 12")]
+        public IconService(
+            IOptionsMonitor<GlobalSettings> globalSettings,
+            IHostingEnvironment hostingEnvironment,
+            AppCaches appCaches)
+            : this(globalSettings,
+                hostingEnvironment,
+                appCaches,
+                StaticServiceProvider.Instance.GetRequiredService<IWebHostEnvironment>())
         {
-            return null;
+
         }
 
-        IReadOnlyDictionary<string, string>? allIconModels = GetIconDictionary();
-        if (allIconModels?.ContainsKey(iconName) ?? false)
+        [Obsolete("Use other ctor - Will be removed in Umbraco 12")]
+        public IconService(
+            IOptionsMonitor<GlobalSettings> globalSettings,
+            IHostingEnvironment hostingEnvironment,
+            AppCaches appCaches,
+            IWebHostEnvironment webHostEnvironment)
         {
-            return new IconModel { Name = iconName, SvgString = allIconModels[iconName] };
+            _globalSettings = globalSettings.CurrentValue;
+            _hostingEnvironment = hostingEnvironment;
+            _webHostEnvironment = webHostEnvironment;
+            _cache = appCaches.RuntimeCache;
+
+            globalSettings.OnChange(x => _globalSettings = x);
         }
 
-        return null;
-    }
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, string>? GetIcons() => GetIconDictionary();
 
-    /// <summary>
-    ///     Gets an IconModel using values from a FileInfo model
-    /// </summary>
-    /// <param name="fileInfo"></param>
-    /// <returns></returns>
-    private IconModel? GetIcon(FileInfo fileInfo) =>
-        fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.Name)
-            ? null
-            : CreateIconModel(fileInfo.Name.StripFileExtension(), fileInfo.FullName);
-
-    /// <summary>
-    ///     Gets an IconModel containing the icon name and SvgString
-    /// </summary>
-    /// <param name="iconName"></param>
-    /// <param name="iconPath"></param>
-    /// <returns></returns>
-    private IconModel? CreateIconModel(string iconName, string iconPath)
-    {
-        try
+        /// <inheritdoc />
+        public IconModel? GetIcon(string iconName)
         {
-            var svgContent = File.ReadAllText(iconPath);
-
-            var svg = new IconModel { Name = iconName, SvgString = svgContent };
-
-            return svg;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private IEnumerable<FileInfo> GetAllIconsFiles()
-    {
-        var icons = new HashSet<FileInfo>(new CaseInsensitiveFileInfoComparer());
-
-        // add icons from plugins
-        var appPluginsDirectoryPath = _hostingEnvironment.MapPathContentRoot(Constants.SystemDirectories.AppPlugins);
-        if (Directory.Exists(appPluginsDirectoryPath))
-        {
-            var appPlugins = new DirectoryInfo(appPluginsDirectoryPath);
-
-            // iterate sub directories of app plugins
-            foreach (DirectoryInfo dir in appPlugins.EnumerateDirectories())
+            if (iconName.IsNullOrWhiteSpace())
             {
-                // AppPluginIcons path was previoulsy the wrong case, so we first check for the prefered directory
-                // and then check the legacy directory.
-                var iconPath = _hostingEnvironment.MapPathContentRoot(
-                    $"{Constants.SystemDirectories.AppPlugins}/{dir.Name}{Constants.SystemDirectories.PluginIcons}");
-                var iconPathExists = Directory.Exists(iconPath);
+                return null;
+            }
 
-                if (!iconPathExists)
+            var allIconModels = GetIconDictionary();
+            if (allIconModels?.ContainsKey(iconName) ?? false)
+            {
+                return new IconModel
                 {
-                    iconPath = _hostingEnvironment.MapPathContentRoot(
-                        $"{Constants.SystemDirectories.AppPlugins}/{dir.Name}{Constants.SystemDirectories.AppPluginIcons}");
-                    iconPathExists = Directory.Exists(iconPath);
-                }
+                    Name = iconName,
+                    SvgString = allIconModels[iconName]
+                };
+            }
 
-                if (iconPathExists)
+            return null;
+        }
+
+        /// <summary>
+        /// Gets an IconModel using values from a FileInfo model
+        /// </summary>
+        /// <param name="fileInfo"></param>
+        /// <returns></returns>
+        private IconModel? GetIcon(FileInfo fileInfo)
+        {
+            return fileInfo == null || string.IsNullOrWhiteSpace(fileInfo.Name)
+                ? null
+                : CreateIconModel(fileInfo.Name.StripFileExtension(), fileInfo.FullName);
+        }
+
+        /// <summary>
+        /// Gets an IconModel containing the icon name and SvgString
+        /// </summary>
+        /// <param name="iconName"></param>
+        /// <param name="iconPath"></param>
+        /// <returns></returns>
+        private IconModel? CreateIconModel(string iconName, string iconPath)
+        {
+            try
+            {
+                var svgContent = System.IO.File.ReadAllText(iconPath);
+
+                var svg = new IconModel
                 {
-                    IEnumerable<FileInfo> dirIcons =
-                        new DirectoryInfo(iconPath).EnumerateFiles("*.svg", SearchOption.TopDirectoryOnly);
-                    icons.UnionWith(dirIcons);
-                }
+                    Name = iconName,
+                    SvgString = svgContent
+                };
+
+                return svg;
+            }
+            catch
+            {
+                return null;
             }
         }
 
-        IDirectoryContents? iconFolder =
-            _webHostEnvironment.WebRootFileProvider.GetDirectoryContents(_globalSettings.IconsPath);
+        private IEnumerable<FileInfo> GetAllIconsFiles()
+        {
+            var icons = new HashSet<FileInfo>(new CaseInsensitiveFileInfoComparer());
 
-        IEnumerable<FileInfo> coreIcons = iconFolder
-            .Where(x => !x.IsDirectory && x.Name.EndsWith(".svg"))
-            .Select(x => new FileInfo(x.PhysicalPath));
+            // add icons from plugins
+            var appPluginsDirectoryPath = _hostingEnvironment.MapPathContentRoot(Constants.SystemDirectories.AppPlugins);
+            if (Directory.Exists(appPluginsDirectoryPath))
+            {
+                var appPlugins = new DirectoryInfo(appPluginsDirectoryPath);
 
-        icons.UnionWith(coreIcons);
+                // iterate sub directories of app plugins
+                foreach (var dir in appPlugins.EnumerateDirectories())
+                {
+                    // AppPluginIcons path was previoulsy the wrong case, so we first check for the prefered directory
+                    // and then check the legacy directory.
+                    var iconPath = _hostingEnvironment.MapPathContentRoot($"{Constants.SystemDirectories.AppPlugins}/{dir.Name}{Constants.SystemDirectories.PluginIcons}");
+                    var iconPathExists = Directory.Exists(iconPath);
 
-        return icons;
-    }
+                    if (!iconPathExists)
+                    {
+                        iconPath = _hostingEnvironment.MapPathContentRoot($"{Constants.SystemDirectories.AppPlugins}/{dir.Name}{Constants.SystemDirectories.AppPluginIcons}");
+                        iconPathExists = Directory.Exists(iconPath);
+                    }
 
-    private IReadOnlyDictionary<string, string>? GetIconDictionary() => _cache.GetCacheItem(
-        $"{typeof(IconService).FullName}.{nameof(GetIconDictionary)}",
-        () => GetAllIconsFiles()
-            .Select(GetIcon)
-            .WhereNotNull()
-            .GroupBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.First().SvgString, StringComparer.OrdinalIgnoreCase));
+                    if (iconPathExists)
+                    {
+                        var dirIcons = new DirectoryInfo(iconPath).EnumerateFiles("*.svg", SearchOption.TopDirectoryOnly);
+                        icons.UnionWith(dirIcons);
+                    }
+                }
+            }
 
-    private class CaseInsensitiveFileInfoComparer : IEqualityComparer<FileInfo>
-    {
-        public bool Equals(FileInfo? one, FileInfo? two) =>
-            StringComparer.InvariantCultureIgnoreCase.Equals(one?.Name, two?.Name);
+            var iconFolder = _webHostEnvironment.WebRootFileProvider.GetDirectoryContents(_globalSettings.IconsPath);
 
-        public int GetHashCode(FileInfo item) => StringComparer.InvariantCultureIgnoreCase.GetHashCode(item.Name);
+            var coreIcons = iconFolder
+                .Where(x => !x.IsDirectory && x.Name.EndsWith(".svg"))
+                .Select(x => new FileInfo(x.PhysicalPath));
+
+            icons.UnionWith(coreIcons);
+
+            return icons;
+        }
+
+        private class CaseInsensitiveFileInfoComparer : IEqualityComparer<FileInfo>
+        {
+            public bool Equals(FileInfo? one, FileInfo? two) => StringComparer.InvariantCultureIgnoreCase.Equals(one?.Name, two?.Name);
+
+            public int GetHashCode(FileInfo item) => StringComparer.InvariantCultureIgnoreCase.GetHashCode(item.Name);
+        }
+
+        private IReadOnlyDictionary<string, string>? GetIconDictionary() => _cache.GetCacheItem(
+            $"{typeof(IconService).FullName}.{nameof(GetIconDictionary)}",
+            () => GetAllIconsFiles()
+                .Select(GetIcon)
+                .WhereNotNull()
+                .GroupBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First().SvgString, StringComparer.OrdinalIgnoreCase)
+        );
     }
 }

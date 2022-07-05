@@ -7,56 +7,57 @@ using NUnit.Framework;
 using Umbraco.Cms.Infrastructure.ModelsBuilder;
 using Umbraco.Cms.Infrastructure.ModelsBuilder.Building;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.ModelsBuilder.Embedded;
-
-[TestFixture]
-public class UmbracoApplicationTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.ModelsBuilder.Embedded
 {
-    //// [Test]
-    //// public void Test()
-    //// {
-    ////    // start and terminate
-    ////    using (var app = Application.GetApplication(TestOptions.ConnectionString, TestOptions.DatabaseProvider))
-    ////    { }
-
-    //// // start and terminate
-    ////    using (var app = Application.GetApplication(TestOptions.ConnectionString, TestOptions.DatabaseProvider))
-    ////    { }
-
-    //// // start, use and terminate
-    ////    using (var app = Application.GetApplication(TestOptions.ConnectionString, TestOptions.DatabaseProvider))
-    ////    {
-    ////        var types = app.GetContentTypes();
-    ////    }
-    //// }
-
-    [Test]
-    public void ThrowsOnDuplicateAliases()
+    [TestFixture]
+    public class UmbracoApplicationTests
     {
-        var typeModels = new List<TypeModel>
+        //// [Test]
+        //// public void Test()
+        //// {
+        ////    // start and terminate
+        ////    using (var app = Application.GetApplication(TestOptions.ConnectionString, TestOptions.DatabaseProvider))
+        ////    { }
+
+        //// // start and terminate
+        ////    using (var app = Application.GetApplication(TestOptions.ConnectionString, TestOptions.DatabaseProvider))
+        ////    { }
+
+        //// // start, use and terminate
+        ////    using (var app = Application.GetApplication(TestOptions.ConnectionString, TestOptions.DatabaseProvider))
+        ////    {
+        ////        var types = app.GetContentTypes();
+        ////    }
+        //// }
+
+        [Test]
+        public void ThrowsOnDuplicateAliases()
         {
-            new() { ItemType = TypeModel.ItemTypes.Content, Alias = "content1" },
-            new() { ItemType = TypeModel.ItemTypes.Content, Alias = "content2" },
-            new() { ItemType = TypeModel.ItemTypes.Media, Alias = "media1" },
-            new() { ItemType = TypeModel.ItemTypes.Media, Alias = "media2" },
-            new() { ItemType = TypeModel.ItemTypes.Member, Alias = "member1" },
-            new() { ItemType = TypeModel.ItemTypes.Member, Alias = "member2" },
-        };
+            var typeModels = new List<TypeModel>
+            {
+                new TypeModel { ItemType = TypeModel.ItemTypes.Content, Alias = "content1" },
+                new TypeModel { ItemType = TypeModel.ItemTypes.Content, Alias = "content2" },
+                new TypeModel { ItemType = TypeModel.ItemTypes.Media, Alias = "media1" },
+                new TypeModel { ItemType = TypeModel.ItemTypes.Media, Alias = "media2" },
+                new TypeModel { ItemType = TypeModel.ItemTypes.Member, Alias = "member1" },
+                new TypeModel { ItemType = TypeModel.ItemTypes.Member, Alias = "member2" },
+            };
 
-        Assert.AreEqual(6, UmbracoServices.EnsureDistinctAliases(typeModels).Count);
+            Assert.AreEqual(6, UmbracoServices.EnsureDistinctAliases(typeModels).Count);
 
-        typeModels.Add(new TypeModel { ItemType = TypeModel.ItemTypes.Media, Alias = "content1" });
+            typeModels.Add(new TypeModel { ItemType = TypeModel.ItemTypes.Media, Alias = "content1" });
 
-        try
-        {
-            UmbracoServices.EnsureDistinctAliases(typeModels);
+            try
+            {
+                UmbracoServices.EnsureDistinctAliases(typeModels);
+            }
+            catch (NotSupportedException e)
+            {
+                Console.WriteLine(e.Message);
+                return;
+            }
+
+            Assert.Fail("Expected NotSupportedException.");
         }
-        catch (NotSupportedException e)
-        {
-            Console.WriteLine(e.Message);
-            return;
-        }
-
-        Assert.Fail("Expected NotSupportedException.");
     }
 }

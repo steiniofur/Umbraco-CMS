@@ -1,13 +1,17 @@
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Umbraco.Cms.Core.Security;
 
-namespace Umbraco.Extensions;
-
-public static class HttpContextExtensions
+namespace Umbraco.Extensions
 {
-    public static void SetExternalLoginProviderErrors(this HttpContext httpContext, BackOfficeExternalLoginProviderErrors errors)
-        => httpContext.Items[nameof(BackOfficeExternalLoginProviderErrors)] = errors;
+    public static class HttpContextExtensions
+    {
+        public static void SetExternalLoginProviderErrors(this HttpContext httpContext, BackOfficeExternalLoginProviderErrors errors)
+            => httpContext.Items[nameof(BackOfficeExternalLoginProviderErrors)] = errors;
 
-    public static BackOfficeExternalLoginProviderErrors? GetExternalLoginProviderErrors(this HttpContext httpContext)
-        => httpContext.Items[nameof(BackOfficeExternalLoginProviderErrors)] as BackOfficeExternalLoginProviderErrors;
+        public static BackOfficeExternalLoginProviderErrors? GetExternalLoginProviderErrors(this HttpContext httpContext)
+            => httpContext.Items[nameof(BackOfficeExternalLoginProviderErrors)] as BackOfficeExternalLoginProviderErrors;
+
+    }
 }

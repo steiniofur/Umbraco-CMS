@@ -6,24 +6,25 @@ using Moq;
 using NUnit.Framework;
 using Umbraco.Cms.Core.Cache;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Cache;
-
-[TestFixture]
-public class HttpContextRequestAppCacheTests : AppCacheTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Cache
 {
-    public override void Setup()
+    [TestFixture]
+    public class HttpContextRequestAppCacheTests : AppCacheTests
     {
-        base.Setup();
-        var httpContext = new DefaultHttpContext();
+        private HttpContextRequestAppCache _appCache;
+        private IHttpContextAccessor _httpContextAccessor;
 
-        _httpContextAccessor = Mock.Of<IHttpContextAccessor>(x => x.HttpContext == httpContext);
-        _appCache = new HttpContextRequestAppCache(_httpContextAccessor);
+        public override void Setup()
+        {
+            base.Setup();
+            var httpContext = new DefaultHttpContext();
+
+            _httpContextAccessor = Mock.Of<IHttpContextAccessor>(x => x.HttpContext == httpContext);
+            _appCache = new HttpContextRequestAppCache(_httpContextAccessor);
+        }
+
+        internal override IAppCache AppCache => _appCache;
+
+        protected override int GetTotalItemCount => _httpContextAccessor.HttpContext.Items.Count;
     }
-
-    private HttpContextRequestAppCache _appCache;
-    private IHttpContextAccessor _httpContextAccessor;
-
-    internal override IAppCache AppCache => _appCache;
-
-    protected override int GetTotalItemCount => _httpContextAccessor.HttpContext.Items.Count;
 }

@@ -35,6 +35,11 @@ namespace Umbraco.Cms.Core.Configuration
 
         public void RemoveConnectionString()
         {
+            // Update and reload configuration
+            _configuration[UmbracoConnectionStringPath] = null;
+            _configuration[UmbracoConnectionStringProviderNamePath] = null;
+            (_configuration as IConfigurationRoot)?.Reload();
+
             // Remove keys from JSON
             var provider = GetJsonConfigurationProvider(UmbracoConnectionStringPath);
 
@@ -53,6 +58,11 @@ namespace Umbraco.Cms.Core.Configuration
 
         public void SaveConnectionString(string connectionString, string? providerName)
         {
+            // Update and reload configuration
+            _configuration[UmbracoConnectionStringPath] = connectionString;
+            _configuration[UmbracoConnectionStringProviderNamePath] = providerName;
+            (_configuration as IConfigurationRoot)?.Reload();
+
             // Save keys to JSON
             var provider = GetJsonConfigurationProvider();
 
@@ -74,6 +84,10 @@ namespace Umbraco.Cms.Core.Configuration
 
         public void SaveConfigValue(string key, object value)
         {
+            // Update and reload configuration
+            _configuration[key] = value?.ToString();
+            (_configuration as IConfigurationRoot)?.Reload();
+
             // Save key to JSON
             var provider = GetJsonConfigurationProvider();
 
@@ -108,6 +122,10 @@ namespace Umbraco.Cms.Core.Configuration
 
         public void SaveDisableRedirectUrlTracking(bool disable)
         {
+            // Update and reload configuration
+            _configuration["Umbraco:CMS:WebRouting:DisableRedirectUrlTracking"] = disable.ToString();
+            (_configuration as IConfigurationRoot)?.Reload();
+
             // Save key to JSON
             var provider = GetJsonConfigurationProvider();
 
@@ -129,6 +147,10 @@ namespace Umbraco.Cms.Core.Configuration
 
         public void SetGlobalId(string id)
         {
+            // Update and reload configuration
+            _configuration["Umbraco:CMS:Global:Id"] = id;
+            (_configuration as IConfigurationRoot)?.Reload();
+
             // Save key to JSON
             var provider = GetJsonConfigurationProvider();
 
@@ -314,21 +336,17 @@ namespace Umbraco.Cms.Core.Configuration
         {
             if (token is JObject obj)
             {
+
                 foreach (var property in obj.Properties())
                 {
                     if (name is null)
-                    {
                         return property.Value;
-                    }
-
                     if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
-                    {
                         return property.Value;
-                    }
                 }
             }
-
             return null;
         }
+
     }
 }

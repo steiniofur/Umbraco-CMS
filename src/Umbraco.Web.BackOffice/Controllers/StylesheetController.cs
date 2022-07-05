@@ -1,36 +1,46 @@
-using Umbraco.Cms.Core;
-using Umbraco.Cms.Core.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Umbraco.Cms.Core.Models.ContentEditing;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Web.Common.Attributes;
 using Umbraco.Extensions;
-using Stylesheet = Umbraco.Cms.Core.Models.ContentEditing.Stylesheet;
+using Constants = Umbraco.Cms.Core.Constants;
 
-namespace Umbraco.Cms.Web.BackOffice.Controllers;
-
-/// <summary>
-///     The API controller used for retrieving available stylesheets
-/// </summary>
-[PluginController(Constants.Web.Mvc.BackOfficeApiArea)]
-public class StylesheetController : UmbracoAuthorizedJsonController
+namespace Umbraco.Cms.Web.BackOffice.Controllers
 {
-    private readonly IFileService _fileService;
-
-    public StylesheetController(IFileService fileService) => _fileService = fileService;
-
-    public IEnumerable<Stylesheet> GetAll() =>
-        _fileService.GetStylesheets()
-            .Select(x =>
-                new Stylesheet { Name = x.Alias, Path = x.VirtualPath });
-
-    public IEnumerable<StylesheetRule> GetRulesByName(string name)
+    /// <summary>
+    /// The API controller used for retrieving available stylesheets
+    /// </summary>
+    [PluginController(Constants.Web.Mvc.BackOfficeApiArea)]
+    public class StylesheetController : UmbracoAuthorizedJsonController
     {
-        IStylesheet? css = _fileService.GetStylesheet(name.EnsureEndsWith(".css"));
-        if (css is null || css.Properties is null)
+        private readonly IFileService _fileService;
+
+        public StylesheetController(IFileService fileService)
         {
-            return Enumerable.Empty<StylesheetRule>();
+            _fileService = fileService;
         }
 
-        return css.Properties.Select(x => new StylesheetRule { Name = x.Name, Selector = x.Alias });
+        public IEnumerable<Stylesheet> GetAll()
+        {
+            return _fileService.GetStylesheets()
+                .Select(x =>
+                    new Stylesheet() {
+                        Name = x.Alias,
+                        Path = x.VirtualPath
+                    });
+        }
+
+        public IEnumerable<StylesheetRule> GetRulesByName(string name)
+        {
+            var css = _fileService.GetStylesheet(name.EnsureEndsWith(".css"));
+            if (css is null || css.Properties is null)
+            {
+                return Enumerable.Empty<StylesheetRule>();
+            }
+
+            return css.Properties.Select(x => new StylesheetRule() { Name = x.Name, Selector = x.Alias });
+        }
     }
+
 }

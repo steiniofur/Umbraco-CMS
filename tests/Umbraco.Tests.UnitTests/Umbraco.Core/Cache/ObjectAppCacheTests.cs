@@ -5,22 +5,23 @@ using System.Linq;
 using NUnit.Framework;
 using Umbraco.Cms.Core.Cache;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Cache;
-
-[TestFixture]
-public class ObjectAppCacheTests : RuntimeAppCacheTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Cache
 {
-    public override void Setup()
+    [TestFixture]
+    public class ObjectAppCacheTests : RuntimeAppCacheTests
     {
-        base.Setup();
-        _provider = new ObjectCacheAppCache();
+        private ObjectCacheAppCache _provider;
+
+        protected override int GetTotalItemCount => _provider.MemoryCache.Count();
+
+        public override void Setup()
+        {
+            base.Setup();
+            _provider = new ObjectCacheAppCache();
+        }
+
+        internal override IAppCache AppCache => _provider;
+
+        internal override IAppPolicyCache AppPolicyCache => _provider;
     }
-
-    private ObjectCacheAppCache _provider;
-
-    protected override int GetTotalItemCount => _provider.MemoryCache.Count();
-
-    internal override IAppCache AppCache => _provider;
-
-    internal override IAppPolicyCache AppPolicyCache => _provider;
 }

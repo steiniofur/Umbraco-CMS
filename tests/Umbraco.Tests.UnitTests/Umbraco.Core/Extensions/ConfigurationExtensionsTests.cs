@@ -9,126 +9,122 @@ using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Extensions;
-
-[TestFixture]
-public class ConfigurationExtensionsTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Extensions
 {
-    private const string DataDirectory = @"C:\Data";
-
-    [Test]
-    public void CanParseSqlServerConnectionString()
+    [TestFixture]
+    public class ConfigurationExtensionsTests
     {
-        const string ConfiguredConnectionString = @"Server=.\SQLEXPRESS;Database=UmbracoCms;Integrated Security=true";
+        private const string DataDirectory = @"C:\Data";
 
-        var mockedConfig = CreateConfig(ConfiguredConnectionString);
+        [Test]
+        public void CanParseSqlServerConnectionString()
+        {
+            const string ConfiguredConnectionString = @"Server=.\SQLEXPRESS;Database=UmbracoCms;Integrated Security=true";
 
-        var connectionString = mockedConfig.Object.GetUmbracoConnectionString(out var providerName);
+            Mock<IConfiguration> mockedConfig = CreateConfig(ConfiguredConnectionString);
 
-        AssertResults(
-            ConfiguredConnectionString,
-            "Microsoft.Data.SqlClient",
-            connectionString,
-            providerName);
-    }
+            string connectionString = mockedConfig.Object.GetUmbracoConnectionString(out string providerName);
 
-    [Test]
-    public void CanParseLocalDbConnectionString()
-    {
-        const string ConfiguredConnectionString = @"Server=(LocalDb)\MyInstance;Integrated Security=true;";
+            AssertResults(
+                ConfiguredConnectionString,
+                "Microsoft.Data.SqlClient",
+                connectionString,
+                providerName);
+        }
 
-        var mockedConfig = CreateConfig(ConfiguredConnectionString);
+        [Test]
+        public void CanParseLocalDbConnectionString()
+        {
+            const string ConfiguredConnectionString = @"Server=(LocalDb)\MyInstance;Integrated Security=true;";
 
-        var connectionString = mockedConfig.Object.GetUmbracoConnectionString(out var providerName);
+            Mock<IConfiguration> mockedConfig = CreateConfig(ConfiguredConnectionString);
 
-        AssertResults(
-            ConfiguredConnectionString,
-            "Microsoft.Data.SqlClient",
-            connectionString,
-            providerName);
-    }
+            string connectionString = mockedConfig.Object.GetUmbracoConnectionString(out string providerName);
 
-    [Test]
-    public void CanParseLocalDbConnectionStringWithDataDirectory()
-    {
-        const string ConfiguredConnectionString =
-            @"Data Source=(LocalDb)\MyInstance;Initial Catalog=UmbracoDb;Integrated Security=SSPI;AttachDBFilename=|DataDirectory|\Umbraco.mdf";
+            AssertResults(
+                ConfiguredConnectionString,
+                "Microsoft.Data.SqlClient",
+                connectionString,
+                providerName);
+        }
 
-        var mockedConfig = CreateConfig(ConfiguredConnectionString);
-        SetDataDirectory();
+        [Test]
+        public void CanParseLocalDbConnectionStringWithDataDirectory()
+        {
+            const string ConfiguredConnectionString = @"Data Source=(LocalDb)\MyInstance;Initial Catalog=UmbracoDb;Integrated Security=SSPI;AttachDBFilename=|DataDirectory|\Umbraco.mdf";
 
-        var connectionString = mockedConfig.Object.GetUmbracoConnectionString(out var providerName);
+            Mock<IConfiguration> mockedConfig = CreateConfig(ConfiguredConnectionString);
+            SetDataDirectory();
 
-        AssertResults(
-            @"Data Source=(LocalDb)\MyInstance;Initial Catalog=UmbracoDb;Integrated Security=SSPI;AttachDBFilename=C:\Data\Umbraco.mdf",
-            "Microsoft.Data.SqlClient",
-            connectionString,
-            providerName);
-    }
+            string connectionString = mockedConfig.Object.GetUmbracoConnectionString(out string providerName);
 
-    [Test]
-    public void CanParseSQLiteConnectionStringWithDataDirectory()
-    {
-        const string ConfiguredConnectionString =
-            "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True";
-        const string ConfiguredProviderName = "Microsoft.Data.Sqlite";
+            AssertResults(
+                @"Data Source=(LocalDb)\MyInstance;Initial Catalog=UmbracoDb;Integrated Security=SSPI;AttachDBFilename=C:\Data\Umbraco.mdf",
+                "Microsoft.Data.SqlClient",
+                connectionString,
+                providerName);
+        }
 
-        var mockedConfig = CreateConfig(ConfiguredConnectionString, ConfiguredProviderName);
-        SetDataDirectory();
+        [Test]
+        public void CanParseSQLiteConnectionStringWithDataDirectory()
+        {
+            const string ConfiguredConnectionString = "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True";
+            const string ConfiguredProviderName = "Microsoft.Data.Sqlite";
 
-        var connectionString = mockedConfig.Object.GetUmbracoConnectionString(out var providerName);
+            Mock<IConfiguration> mockedConfig = CreateConfig(ConfiguredConnectionString, ConfiguredProviderName);
+            SetDataDirectory();
 
-        AssertResults(
-            @"Data Source=C:\Data/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True",
-            "Microsoft.Data.Sqlite",
-            connectionString,
-            providerName);
-    }
+            string connectionString = mockedConfig.Object.GetUmbracoConnectionString(out string providerName);
 
-    [Test]
-    public void CanParseConnectionStringWithNamedProvider()
-    {
-        const string ConfiguredConnectionString = @"Server=.\SQLEXPRESS;Database=UmbracoCms;Integrated Security=true";
-        const string ConfiguredProviderName = "MyProvider";
+            AssertResults(
+                @"Data Source=C:\Data/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True",
+                "Microsoft.Data.Sqlite",
+                connectionString,
+                providerName);
+        }
 
-        var mockedConfig = CreateConfig(ConfiguredConnectionString, ConfiguredProviderName);
+        [Test]
+        public void CanParseConnectionStringWithNamedProvider()
+        {
+            const string ConfiguredConnectionString = @"Server=.\SQLEXPRESS;Database=UmbracoCms;Integrated Security=true";
+            const string ConfiguredProviderName = "MyProvider";
 
-        var connectionString = mockedConfig.Object.GetUmbracoConnectionString(out var providerName);
+            Mock<IConfiguration> mockedConfig = CreateConfig(ConfiguredConnectionString, ConfiguredProviderName);
 
-        AssertResults(
-            ConfiguredConnectionString,
-            ConfiguredProviderName,
-            connectionString,
-            providerName);
-    }
+            string connectionString = mockedConfig.Object.GetUmbracoConnectionString(out string providerName);
 
-    private static Mock<IConfiguration> CreateConfig(string configuredConnectionString, string configuredProviderName = ConnectionStrings.DefaultProviderName)
-    {
-        var mockConfigSection = new Mock<IConfigurationSection>();
-        mockConfigSection
-            .SetupGet(m => m[It.Is<string>(s => s == Constants.System.UmbracoConnectionName)])
-            .Returns(configuredConnectionString);
-        mockConfigSection
-            .SetupGet(m =>
-                m[
-                    It.Is<string>(s =>
-                        s == $"{Constants.System.UmbracoConnectionName}{ConnectionStrings.ProviderNamePostfix}")])
-            .Returns(configuredProviderName);
+            AssertResults(
+                ConfiguredConnectionString,
+                ConfiguredProviderName,
+                connectionString,
+                providerName);
+        }
 
-        var mockedConfig = new Mock<IConfiguration>();
-        mockedConfig
-            .Setup(a => a.GetSection(It.Is<string>(s => s == "ConnectionStrings")))
-            .Returns(mockConfigSection.Object);
+        private static Mock<IConfiguration> CreateConfig(string configuredConnectionString, string configuredProviderName = ConnectionStrings.DefaultProviderName)
+        {
+            var mockConfigSection = new Mock<IConfigurationSection>();
+            mockConfigSection
+                .SetupGet(m => m[It.Is<string>(s => s == Constants.System.UmbracoConnectionName)])
+                .Returns(configuredConnectionString);
+            mockConfigSection
+                .SetupGet(m => m[It.Is<string>(s => s == $"{Constants.System.UmbracoConnectionName}{ConnectionStrings.ProviderNamePostfix}")])
+                .Returns(configuredProviderName);
 
-        return mockedConfig;
-    }
+            var mockedConfig = new Mock<IConfiguration>();
+            mockedConfig
+                .Setup(a => a.GetSection(It.Is<string>(s => s == "ConnectionStrings")))
+                .Returns(mockConfigSection.Object);
 
-    private static void SetDataDirectory() =>
-        AppDomain.CurrentDomain.SetData("DataDirectory", DataDirectory);
+            return mockedConfig;
+        }
 
-    private static void AssertResults(string expectedConnectionString, string expectedProviderName, string connectionString, string providerName)
-    {
-        Assert.AreEqual(expectedConnectionString, connectionString);
-        Assert.AreEqual(expectedProviderName, providerName);
+        private static void SetDataDirectory() =>
+            AppDomain.CurrentDomain.SetData("DataDirectory", DataDirectory);
+
+        private static void AssertResults(string expectedConnectionString, string expectedProviderName, string connectionString, string providerName)
+        {
+            Assert.AreEqual(expectedConnectionString, connectionString);
+            Assert.AreEqual(expectedProviderName, providerName);
+        }
     }
 }

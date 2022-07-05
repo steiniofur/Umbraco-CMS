@@ -11,111 +11,110 @@ using Moq;
 using NUnit.Framework;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.Extensions;
-
-[TestFixture]
-public class HtmlHelperExtensionMethodsTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.Extensions
 {
-    [SetUp]
-    public virtual void Initialize() =>
-
-        // Create an empty HtmlHelper.
-        _htmlHelper = new HtmlHelper(
-            Mock.Of<IHtmlGenerator>(),
-            Mock.Of<ICompositeViewEngine>(),
-            Mock.Of<IModelMetadataProvider>(),
-            Mock.Of<IViewBufferScope>(),
-            new HtmlTestEncoder(),
-            UrlEncoder.Default);
-
-    private const string SampleWithAnchorElement = "Hello world, this is some text <a href='blah'>with a link</a>";
-
-    private const string SampleWithBoldAndAnchorElements =
-        "Hello world, <b>this</b> is some text <a href='blah'>with a link</a>";
-
-    private HtmlHelper _htmlHelper;
-
-    [Test]
-    public void Truncate_Simple()
+    [TestFixture]
+    public class HtmlHelperExtensionMethodsTests
     {
-        var result = _htmlHelper.Truncate(SampleWithAnchorElement, 25).ToString();
+        private const string SampleWithAnchorElement = "Hello world, this is some text <a href='blah'>with a link</a>";
+        private const string SampleWithBoldAndAnchorElements = "Hello world, <b>this</b> is some text <a href='blah'>with a link</a>";
 
-        Assert.AreEqual("Hello world, this is some&hellip;", result);
-    }
+        [SetUp]
+        public virtual void Initialize() =>
 
-    [Test]
-    public void When_Truncating_A_String_Ends_With_A_Space_We_Should_Trim_The_Space_Before_Appending_The_Ellipsis()
-    {
-        var result = _htmlHelper.Truncate(SampleWithAnchorElement, 26).ToString();
+            // Create an empty HtmlHelper.
+            _htmlHelper = new HtmlHelper(
+                Mock.Of<IHtmlGenerator>(),
+                Mock.Of<ICompositeViewEngine>(),
+                Mock.Of<IModelMetadataProvider>(),
+                Mock.Of<IViewBufferScope>(),
+                new HtmlTestEncoder(),
+                UrlEncoder.Default);
 
-        Assert.AreEqual("Hello world, this is some&hellip;", result);
-    }
+        private HtmlHelper _htmlHelper;
 
-    [Test]
-    public void Truncate_Inside_Word()
-    {
-        var result = _htmlHelper.Truncate(SampleWithAnchorElement, 24).ToString();
+        [Test]
+        public void Truncate_Simple()
+        {
+            var result = _htmlHelper.Truncate(SampleWithAnchorElement, 25).ToString();
 
-        Assert.AreEqual("Hello world, this is som&hellip;", result);
-    }
+            Assert.AreEqual("Hello world, this is some&hellip;", result);
+        }
 
-    [Test]
-    public void Truncate_With_Tag()
-    {
-        var result = _htmlHelper.Truncate(SampleWithAnchorElement, 35).ToString();
+        [Test]
+        public void When_Truncating_A_String_Ends_With_A_Space_We_Should_Trim_The_Space_Before_Appending_The_Ellipsis()
+        {
+            var result = _htmlHelper.Truncate(SampleWithAnchorElement, 26).ToString();
 
-        Assert.AreEqual("Hello world, this is some text <a href='blah'>with&hellip;</a>", result);
-    }
+            Assert.AreEqual("Hello world, this is some&hellip;", result);
+        }
 
-    [Test]
-    public void Truncate_By_Words()
-    {
-        var result = _htmlHelper.TruncateByWords(SampleWithAnchorElement, 4).ToString();
+        [Test]
+        public void Truncate_Inside_Word()
+        {
+            var result = _htmlHelper.Truncate(SampleWithAnchorElement, 24).ToString();
 
-        Assert.AreEqual("Hello world, this is&hellip;", result);
-    }
+            Assert.AreEqual("Hello world, this is som&hellip;", result);
+        }
 
-    [Test]
-    public void Truncate_By_Words_With_Tag()
-    {
-        var result = _htmlHelper.TruncateByWords(SampleWithBoldAndAnchorElements, 4).ToString();
+        [Test]
+        public void Truncate_With_Tag()
+        {
+            var result = _htmlHelper.Truncate(SampleWithAnchorElement, 35).ToString();
 
-        Assert.AreEqual("Hello world, <b>this</b> is&hellip;", result);
-    }
+            Assert.AreEqual("Hello world, this is some text <a href='blah'>with&hellip;</a>", result);
+        }
 
-    [Test]
-    public void Truncate_By_Words_Mid_Tag()
-    {
-        var result = _htmlHelper.TruncateByWords(SampleWithAnchorElement, 7).ToString();
+        [Test]
+        public void Truncate_By_Words()
+        {
+            var result = _htmlHelper.TruncateByWords(SampleWithAnchorElement, 4).ToString();
 
-        Assert.AreEqual("Hello world, this is some text <a href='blah'>with&hellip;</a>", result);
-    }
+            Assert.AreEqual("Hello world, this is&hellip;", result);
+        }
 
-    [Test]
-    public void Strip_All_Html()
-    {
-        var result = _htmlHelper.StripHtml(SampleWithBoldAndAnchorElements, null).ToString();
+        [Test]
+        public void Truncate_By_Words_With_Tag()
+        {
+            var result = _htmlHelper.TruncateByWords(SampleWithBoldAndAnchorElements, 4).ToString();
 
-        Assert.AreEqual("Hello world, this is some text with a link", result);
-    }
+            Assert.AreEqual("Hello world, <b>this</b> is&hellip;", result);
+        }
 
-    [Test]
-    public void Strip_Specific_Html()
-    {
-        string[] tags = { "b" };
+        [Test]
+        public void Truncate_By_Words_Mid_Tag()
+        {
+            var result = _htmlHelper.TruncateByWords(SampleWithAnchorElement, 7).ToString();
 
-        var result = _htmlHelper.StripHtml(SampleWithBoldAndAnchorElements, tags).ToString();
+            Assert.AreEqual("Hello world, this is some text <a href='blah'>with&hellip;</a>", result);
+        }
 
-        Assert.AreEqual(SampleWithAnchorElement, result);
-    }
+        [Test]
+        public void Strip_All_Html()
+        {
+            var result = _htmlHelper.StripHtml(SampleWithBoldAndAnchorElements, null).ToString();
 
-    [Test]
-    public void Strip_Invalid_Html()
-    {
-        const string text = "Hello world, <bthis</b> is some text <a href='blah'>with a link</a>";
+            Assert.AreEqual("Hello world, this is some text with a link", result);
+        }
 
-        var result = _htmlHelper.StripHtml(text).ToString();
+        [Test]
+        public void Strip_Specific_Html()
+        {
+            string[] tags = { "b" };
 
-        Assert.AreEqual("Hello world, is some text with a link", result);
+            var result = _htmlHelper.StripHtml(SampleWithBoldAndAnchorElements, tags).ToString();
+
+            Assert.AreEqual(SampleWithAnchorElement, result);
+        }
+
+        [Test]
+        public void Strip_Invalid_Html()
+        {
+            const string text = "Hello world, <bthis</b> is some text <a href='blah'>with a link</a>";
+
+            var result = _htmlHelper.StripHtml(text).ToString();
+
+            Assert.AreEqual("Hello world, is some text with a link", result);
+        }
     }
 }

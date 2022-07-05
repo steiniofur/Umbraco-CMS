@@ -3,9 +3,10 @@
 
 using System;
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithKeyBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    Guid? Key { get; set; }
+    public interface IWithKeyBuilder
+    {
+        Guid? Key { get; set; }
+    }
 }

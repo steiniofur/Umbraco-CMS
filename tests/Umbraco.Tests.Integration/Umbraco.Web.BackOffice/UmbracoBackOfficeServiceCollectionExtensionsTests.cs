@@ -9,36 +9,37 @@ using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Tests.Integration.Testing;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Web.BackOffice;
-
-[TestFixture]
-public class UmbracoBackOfficeServiceCollectionExtensionsTests : UmbracoIntegrationTest
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Web.BackOffice
 {
-    protected override void CustomTestSetup(IUmbracoBuilder builder) => builder.AddBackOfficeIdentity();
-
-    [Test]
-    public void AddUmbracoBackOfficeIdentity_ExpectBackOfficeUserStoreResolvable()
+    [TestFixture]
+    public class UmbracoBackOfficeServiceCollectionExtensionsTests : UmbracoIntegrationTest
     {
-        var userStore = Services.GetService<IUserStore<BackOfficeIdentityUser>>();
+        protected override void CustomTestSetup(IUmbracoBuilder builder) => builder.AddBackOfficeIdentity();
 
-        Assert.IsNotNull(userStore);
-        Assert.AreEqual(typeof(BackOfficeUserStore), userStore.GetType());
-    }
+        [Test]
+        public void AddUmbracoBackOfficeIdentity_ExpectBackOfficeUserStoreResolvable()
+        {
+            IUserStore<BackOfficeIdentityUser> userStore = Services.GetService<IUserStore<BackOfficeIdentityUser>>();
 
-    [Test]
-    public void AddUmbracoBackOfficeIdentity_ExpectBackOfficeClaimsPrincipalFactoryResolvable()
-    {
-        var principalFactory = Services.GetService<IUserClaimsPrincipalFactory<BackOfficeIdentityUser>>();
+            Assert.IsNotNull(userStore);
+            Assert.AreEqual(typeof(BackOfficeUserStore), userStore.GetType());
+        }
 
-        Assert.IsNotNull(principalFactory);
-        Assert.AreEqual(typeof(BackOfficeClaimsPrincipalFactory), principalFactory.GetType());
-    }
+        [Test]
+        public void AddUmbracoBackOfficeIdentity_ExpectBackOfficeClaimsPrincipalFactoryResolvable()
+        {
+            IUserClaimsPrincipalFactory<BackOfficeIdentityUser> principalFactory = Services.GetService<IUserClaimsPrincipalFactory<BackOfficeIdentityUser>>();
 
-    [Test]
-    public void AddUmbracoBackOfficeIdentity_ExpectBackOfficeUserManagerResolvable()
-    {
-        var userManager = Services.GetService<IBackOfficeUserManager>();
+            Assert.IsNotNull(principalFactory);
+            Assert.AreEqual(typeof(BackOfficeClaimsPrincipalFactory), principalFactory.GetType());
+        }
 
-        Assert.NotNull(userManager);
+        [Test]
+        public void AddUmbracoBackOfficeIdentity_ExpectBackOfficeUserManagerResolvable()
+        {
+            IBackOfficeUserManager userManager = Services.GetService<IBackOfficeUserManager>();
+
+            Assert.NotNull(userManager);
+        }
     }
 }

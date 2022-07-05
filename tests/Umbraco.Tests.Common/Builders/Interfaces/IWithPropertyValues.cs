@@ -1,13 +1,14 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithPropertyValues
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    object PropertyValues { get; set; }
+    public interface IWithPropertyValues
+    {
+        object PropertyValues { get; set; }
 
-    string PropertyValuesCulture { get; set; }
+        string PropertyValuesCulture { get; set; }
 
-    string PropertyValuesSegment { get; set; }
+        string PropertyValuesSegment { get; set; }
+    }
 }

@@ -4,9 +4,10 @@ using Umbraco.TestData.Extensions;
 
 // see https://github.com/Shazwazza/UmbracoScripts/tree/master/src/LoadTesting
 
-namespace Umbraco.TestData;
-
-public class LoadTestComposer : IComposer
+namespace Umbraco.TestData
 {
-    public void Compose(IUmbracoBuilder builder) => builder.AddUmbracoTestData();
+    public class LoadTestComposer : IComposer
+    {
+        public void Compose(IUmbracoBuilder builder) => builder.AddUmbracoTestData();
+    }
 }

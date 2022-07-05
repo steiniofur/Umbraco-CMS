@@ -6,40 +6,41 @@ using StackExchange.Profiling;
 using StackExchange.Profiling.SqlFormatters;
 using Umbraco.Cms.Core.Logging;
 
-namespace Umbraco.Cms.Tests.Common.TestHelpers.Stubs;
-
-public class TestProfiler : IProfiler
+namespace Umbraco.Cms.Tests.Common.TestHelpers.Stubs
 {
-    private static bool _enabled;
-
-    public IDisposable Step(string name) => _enabled ? MiniProfiler.Current.Step(name) : null;
-
-    public void Start()
+    public class TestProfiler : IProfiler
     {
-        if (_enabled == false)
+        public static void Enable() => s_enabled = true;
+
+        public static void Disable() => s_enabled = false;
+
+        private static bool s_enabled;
+
+        public IDisposable Step(string name) => s_enabled ? MiniProfiler.Current.Step(name) : null;
+
+        public void Start()
         {
-            return;
+            if (s_enabled == false)
+            {
+                return;
+            }
+
+            // See https://miniprofiler.com/dotnet/AspDotNet
+            MiniProfiler.Configure(new MiniProfilerOptions
+            {
+                SqlFormatter = new SqlServerFormatter(),
+                StackMaxLength = 5000,
+            });
+
+            MiniProfiler.StartNew();
         }
 
-        // See https://miniprofiler.com/dotnet/AspDotNet
-        MiniProfiler.Configure(new MiniProfilerOptions
+        public void Stop(bool discardResults = false)
         {
-            SqlFormatter = new SqlServerFormatter(),
-            StackMaxLength = 5000
-        });
-
-        MiniProfiler.StartNew();
-    }
-
-    public void Stop(bool discardResults = false)
-    {
-        if (_enabled)
-        {
-            MiniProfiler.Current.Stop(discardResults);
+            if (s_enabled)
+            {
+                MiniProfiler.Current.Stop(discardResults);
+            }
         }
     }
-
-    public static void Enable() => _enabled = true;
-
-    public static void Disable() => _enabled = false;
 }

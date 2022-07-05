@@ -1,9 +1,10 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithTrashedBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    bool? Trashed { get; set; }
+    public interface IWithTrashedBuilder
+    {
+        bool? Trashed { get; set; }
+    }
 }

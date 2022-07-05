@@ -1,42 +1,43 @@
-// Copyright (c) Umbraco.
+﻿// Copyright (c) Umbraco.
 // See LICENSE for more details.
 
 using NUnit.Framework;
 using Umbraco.Cms.Infrastructure.Persistence.Mappers;
 using Umbraco.Cms.Tests.UnitTests.TestHelpers;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Persistence.Mappers;
-
-[TestFixture]
-public class PropertyGroupMapperTest
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Persistence.Mappers
 {
-    [Test]
-    public void Can_Map_Id_Property()
+    [TestFixture]
+    public class PropertyGroupMapperTest
     {
-        // Act
-        var column = new PropertyGroupMapper(TestHelper.GetMockSqlContext(), TestHelper.CreateMaps()).Map("Id");
+        [Test]
+        public void Can_Map_Id_Property()
+        {
+            // Act
+            string column = new PropertyGroupMapper(TestHelper.GetMockSqlContext(), TestHelper.CreateMaps()).Map("Id");
 
-        // Assert
-        Assert.That(column, Is.EqualTo("[cmsPropertyTypeGroup].[id]"));
-    }
+            // Assert
+            Assert.That(column, Is.EqualTo("[cmsPropertyTypeGroup].[id]"));
+        }
 
-    [Test]
-    public void Can_Map_SortOrder_Property()
-    {
-        // Act
-        var column = new PropertyGroupMapper(TestHelper.GetMockSqlContext(), TestHelper.CreateMaps()).Map("SortOrder");
+        [Test]
+        public void Can_Map_SortOrder_Property()
+        {
+            // Act
+            string column = new PropertyGroupMapper(TestHelper.GetMockSqlContext(), TestHelper.CreateMaps()).Map("SortOrder");
 
-        // Assert
-        Assert.That(column, Is.EqualTo("[cmsPropertyTypeGroup].[sortorder]"));
-    }
+            // Assert
+            Assert.That(column, Is.EqualTo("[cmsPropertyTypeGroup].[sortorder]"));
+        }
 
-    [Test]
-    public void Can_Map_Name_Property()
-    {
-        // Act
-        var column = new PropertyGroupMapper(TestHelper.GetMockSqlContext(), TestHelper.CreateMaps()).Map("Name");
+        [Test]
+        public void Can_Map_Name_Property()
+        {
+            // Act
+            string column = new PropertyGroupMapper(TestHelper.GetMockSqlContext(), TestHelper.CreateMaps()).Map("Name");
 
-        // Assert
-        Assert.That(column, Is.EqualTo("[cmsPropertyTypeGroup].[text]"));
+            // Assert
+            Assert.That(column, Is.EqualTo("[cmsPropertyTypeGroup].[text]"));
+        }
     }
 }

@@ -5,82 +5,88 @@ using System;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Tests.Common.Builders.Interfaces;
 
-namespace Umbraco.Cms.Tests.Common.Builders;
-
-public class DictionaryTranslationBuilder
-    : ChildBuilderBase<DictionaryItemBuilder, IDictionaryTranslation>,
-        IWithIdBuilder,
-        IWithCreateDateBuilder,
-        IWithUpdateDateBuilder,
-        IWithDeleteDateBuilder,
-        IWithKeyBuilder
+namespace Umbraco.Cms.Tests.Common.Builders
 {
-    private readonly LanguageBuilder<DictionaryTranslationBuilder> _languageBuilder;
-    private DateTime? _createDate;
-    private DateTime? _deleteDate;
-    private int? _id;
-    private Guid? _key;
-    private DateTime? _updateDate;
-    private string _value;
-
-    public DictionaryTranslationBuilder()
-        : base(null) => _languageBuilder = new LanguageBuilder<DictionaryTranslationBuilder>(this);
-
-    public DictionaryTranslationBuilder(DictionaryItemBuilder parentBuilder)
-        : base(parentBuilder) => _languageBuilder = new LanguageBuilder<DictionaryTranslationBuilder>(this);
-
-    DateTime? IWithCreateDateBuilder.CreateDate
+    public class DictionaryTranslationBuilder
+        : ChildBuilderBase<DictionaryItemBuilder, IDictionaryTranslation>,
+            IWithIdBuilder,
+            IWithCreateDateBuilder,
+            IWithUpdateDateBuilder,
+            IWithDeleteDateBuilder,
+            IWithKeyBuilder
     {
-        get => _createDate;
-        set => _createDate = value;
-    }
+        private readonly LanguageBuilder<DictionaryTranslationBuilder> _languageBuilder;
+        private DateTime? _createDate;
+        private DateTime? _deleteDate;
+        private int? _id;
+        private Guid? _key;
+        private DateTime? _updateDate;
+        private string _value;
 
-    DateTime? IWithDeleteDateBuilder.DeleteDate
-    {
-        get => _deleteDate;
-        set => _deleteDate = value;
-    }
+        public DictionaryTranslationBuilder()
+            : base(null) => _languageBuilder = new LanguageBuilder<DictionaryTranslationBuilder>(this);
 
-    int? IWithIdBuilder.Id
-    {
-        get => _id;
-        set => _id = value;
-    }
+        public DictionaryTranslationBuilder(DictionaryItemBuilder parentBuilder)
+            : base(parentBuilder) => _languageBuilder = new LanguageBuilder<DictionaryTranslationBuilder>(this);
 
-    Guid? IWithKeyBuilder.Key
-    {
-        get => _key;
-        set => _key = value;
-    }
+        public LanguageBuilder<DictionaryTranslationBuilder> AddLanguage() => _languageBuilder;
 
-    DateTime? IWithUpdateDateBuilder.UpdateDate
-    {
-        get => _updateDate;
-        set => _updateDate = value;
-    }
+        public DictionaryTranslationBuilder WithValue(string value)
+        {
+            _value = value;
+            return this;
+        }
 
-    public LanguageBuilder<DictionaryTranslationBuilder> AddLanguage() => _languageBuilder;
+        public override IDictionaryTranslation Build()
+        {
+            DateTime createDate = _createDate ?? DateTime.Now;
+            DateTime updateDate = _updateDate ?? DateTime.Now;
+            DateTime? deleteDate = _deleteDate ?? null;
+            var id = _id ?? 1;
+            Guid key = _key ?? Guid.NewGuid();
 
-    public DictionaryTranslationBuilder WithValue(string value)
-    {
-        _value = value;
-        return this;
-    }
+            var result = new DictionaryTranslation(
+                _languageBuilder.Build(),
+                _value ?? Guid.NewGuid().ToString(),
+                key)
+            {
+                CreateDate = createDate,
+                UpdateDate = updateDate,
+                DeleteDate = deleteDate,
+                Id = id
+            };
 
-    public override IDictionaryTranslation Build()
-    {
-        var createDate = _createDate ?? DateTime.Now;
-        var updateDate = _updateDate ?? DateTime.Now;
-        var deleteDate = _deleteDate;
-        var id = _id ?? 1;
-        var key = _key ?? Guid.NewGuid();
+            return result;
+        }
 
-        var result = new DictionaryTranslation(
-            _languageBuilder.Build(),
-            _value ?? Guid.NewGuid().ToString(),
-            key)
-        { CreateDate = createDate, UpdateDate = updateDate, DeleteDate = deleteDate, Id = id };
+        DateTime? IWithCreateDateBuilder.CreateDate
+        {
+            get => _createDate;
+            set => _createDate = value;
+        }
 
-        return result;
+        DateTime? IWithDeleteDateBuilder.DeleteDate
+        {
+            get => _deleteDate;
+            set => _deleteDate = value;
+        }
+
+        int? IWithIdBuilder.Id
+        {
+            get => _id;
+            set => _id = value;
+        }
+
+        Guid? IWithKeyBuilder.Key
+        {
+            get => _key;
+            set => _key = value;
+        }
+
+        DateTime? IWithUpdateDateBuilder.UpdateDate
+        {
+            get => _updateDate;
+            set => _updateDate = value;
+        }
     }
 }

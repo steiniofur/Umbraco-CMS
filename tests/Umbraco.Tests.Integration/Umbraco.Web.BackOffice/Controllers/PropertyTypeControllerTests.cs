@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Umbraco.Cms.Core;
@@ -22,12 +23,12 @@ public class PropertyTypeControllerTests : UmbracoTestServerTestBase
     [TestCase(false)]
     public async Task Has_Values_Returns_Correct_Values(bool expectHasValues)
     {
-        var contentTypeService = GetRequiredService<IContentTypeService>();
-        var contentService = GetRequiredService<IContentService>();
-        var serializer = GetRequiredService<IJsonSerializer>();
+        IContentTypeService contentTypeService = GetRequiredService<IContentTypeService>();
+        IContentService contentService = GetRequiredService<IContentService>();
+        IJsonSerializer serializer = GetRequiredService<IJsonSerializer>();
 
-        var propertyTypeAlias = "title";
-        var contentType = new ContentTypeBuilder()
+        string propertyTypeAlias = "title";
+        IContentType contentType = new ContentTypeBuilder()
             .WithId(0)
             .AddPropertyType()
             .WithAlias(propertyTypeAlias)
@@ -42,7 +43,7 @@ public class PropertyTypeControllerTests : UmbracoTestServerTestBase
 
         if (expectHasValues)
         {
-            var content = new ContentBuilder()
+            Content content = new ContentBuilder()
                 .WithId(0)
                 .WithName("TestContent")
                 .WithContentType(contentType)
@@ -54,11 +55,11 @@ public class PropertyTypeControllerTests : UmbracoTestServerTestBase
             contentService.Save(content);
         }
 
-        var url = PrepareApiControllerUrl<PropertyTypeController>(x => x.HasValues(propertyTypeAlias));
+        string url = PrepareApiControllerUrl<PropertyTypeController>(x => x.HasValues(propertyTypeAlias));
 
-        var response = await Client.GetAsync(url);
+        HttpResponseMessage response = await Client.GetAsync(url);
 
-        var body = await response.Content.ReadAsStringAsync();
+        string body = await response.Content.ReadAsStringAsync();
         body = body.TrimStart(AngularJsonMediaTypeFormatter.XsrfPrefix);
 
         var result = serializer.Deserialize<PropertyTypeHasValuesDisplay>(body);
@@ -69,5 +70,6 @@ public class PropertyTypeControllerTests : UmbracoTestServerTestBase
             Assert.AreEqual(propertyTypeAlias, result.PropertyTypeAlias);
             Assert.AreEqual(expectHasValues, result.HasValues);
         });
+
     }
 }

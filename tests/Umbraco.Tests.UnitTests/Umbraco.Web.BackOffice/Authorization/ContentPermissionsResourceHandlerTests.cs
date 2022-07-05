@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Moq;
 using NUnit.Framework;
-using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Membership;
@@ -16,120 +15,112 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Tests.Common.Builders;
 using Umbraco.Cms.Web.BackOffice.Authorization;
 using Umbraco.Extensions;
+using Constants = Umbraco.Cms.Core.Constants;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.BackOffice.Authorization;
-
-public class ContentPermissionsResourceHandlerTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.BackOffice.Authorization
 {
-    private const int NodeId = 1000;
-
-    [Test]
-    public async Task Resource_With_Node_Id_With_Permission_Is_Authorized()
+    public class ContentPermissionsResourceHandlerTests
     {
-        var authHandlerContext = CreateAuthorizationHandlerContext(NodeId, true);
-        var sut = CreateHandler(NodeId, new[] { "A" });
+        private const int NodeId = 1000;
 
-        await sut.HandleAsync(authHandlerContext);
+        [Test]
+        public async Task Resource_With_Node_Id_With_Permission_Is_Authorized()
+        {
+            AuthorizationHandlerContext authHandlerContext = CreateAuthorizationHandlerContext(NodeId, createWithNodeId: true);
+            ContentPermissionsResourceHandler sut = CreateHandler(NodeId, new string[] { "A" });
 
-        Assert.IsTrue(authHandlerContext.HasSucceeded);
-    }
+            await sut.HandleAsync(authHandlerContext);
 
-    [Test]
-    public async Task Resource_With_Content_With_Permission_Is_Authorized()
-    {
-        var authHandlerContext = CreateAuthorizationHandlerContext(NodeId);
-        var sut = CreateHandler(NodeId, new[] { "A" });
+            Assert.IsTrue(authHandlerContext.HasSucceeded);
+        }
 
-        await sut.HandleAsync(authHandlerContext);
+        [Test]
+        public async Task Resource_With_Content_With_Permission_Is_Authorized()
+        {
+            AuthorizationHandlerContext authHandlerContext = CreateAuthorizationHandlerContext(NodeId);
+            ContentPermissionsResourceHandler sut = CreateHandler(NodeId, new string[] { "A" });
 
-        Assert.IsTrue(authHandlerContext.HasSucceeded);
-    }
+            await sut.HandleAsync(authHandlerContext);
 
-    [Test]
-    public async Task Resource_With_Node_Id_Withou_Permission_Is_Not_Authorized()
-    {
-        var authHandlerContext = CreateAuthorizationHandlerContext(NodeId, true);
-        var sut = CreateHandler(NodeId, new[] { "B" });
+            Assert.IsTrue(authHandlerContext.HasSucceeded);
+        }
 
-        await sut.HandleAsync(authHandlerContext);
+        [Test]
+        public async Task Resource_With_Node_Id_Withou_Permission_Is_Not_Authorized()
+        {
+            AuthorizationHandlerContext authHandlerContext = CreateAuthorizationHandlerContext(NodeId, createWithNodeId: true);
+            ContentPermissionsResourceHandler sut = CreateHandler(NodeId, new string[] { "B" });
 
-        Assert.IsFalse(authHandlerContext.HasSucceeded);
-    }
+            await sut.HandleAsync(authHandlerContext);
 
-    [Test]
-    public async Task Resource_With_Content_Without_Permission_Is_Not_Authorized()
-    {
-        var authHandlerContext = CreateAuthorizationHandlerContext(NodeId);
-        var sut = CreateHandler(NodeId, new[] { "B" });
+            Assert.IsFalse(authHandlerContext.HasSucceeded);
+        }
 
-        await sut.HandleAsync(authHandlerContext);
+        [Test]
+        public async Task Resource_With_Content_Without_Permission_Is_Not_Authorized()
+        {
+            AuthorizationHandlerContext authHandlerContext = CreateAuthorizationHandlerContext(NodeId);
+            ContentPermissionsResourceHandler sut = CreateHandler(NodeId, new string[] { "B" });
 
-        Assert.IsFalse(authHandlerContext.HasSucceeded);
-    }
+            await sut.HandleAsync(authHandlerContext);
 
-    private static AuthorizationHandlerContext CreateAuthorizationHandlerContext(
-        int nodeId,
-        bool createWithNodeId = false)
-    {
-        var requirement = new ContentPermissionsResourceRequirement();
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()));
-        var content = CreateContent(nodeId);
-        var permissions = new List<char> { 'A' }.AsReadOnly();
-        var resource = createWithNodeId
-            ? new ContentPermissionsResource(content, nodeId, permissions)
-            : new ContentPermissionsResource(content, permissions);
-        return new AuthorizationHandlerContext(new List<IAuthorizationRequirement> { requirement }, user, resource);
-    }
+            Assert.IsFalse(authHandlerContext.HasSucceeded);
+        }
 
-    private static IContent CreateContent(int nodeId)
-    {
-        var contentType = ContentTypeBuilder.CreateBasicContentType();
-        return ContentBuilder.CreateBasicContent(contentType, nodeId);
-    }
+        private static AuthorizationHandlerContext CreateAuthorizationHandlerContext(int nodeId, bool createWithNodeId = false)
+        {
+            var requirement = new ContentPermissionsResourceRequirement();
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()));
+            IContent content = CreateContent(nodeId);
+            System.Collections.ObjectModel.ReadOnlyCollection<char> permissions = new List<char> { 'A' }.AsReadOnly();
+            ContentPermissionsResource resource = createWithNodeId
+                ? new ContentPermissionsResource(content, nodeId, permissions)
+                : new ContentPermissionsResource(content, permissions);
+            return new AuthorizationHandlerContext(new List<IAuthorizationRequirement> { requirement }, user, resource);
+        }
 
-    private ContentPermissionsResourceHandler CreateHandler(int nodeId, string[] permissionsForPath)
-    {
-        var mockBackOfficeSecurityAccessor = CreateMockBackOfficeSecurityAccessor();
-        var contentPermissions = CreateContentPermissions(nodeId, permissionsForPath);
-        return new ContentPermissionsResourceHandler(mockBackOfficeSecurityAccessor.Object, contentPermissions);
-    }
+        private static IContent CreateContent(int nodeId)
+        {
+            ContentType contentType = ContentTypeBuilder.CreateBasicContentType();
+            return ContentBuilder.CreateBasicContent(contentType, nodeId);
+        }
 
-    private static Mock<IBackOfficeSecurityAccessor> CreateMockBackOfficeSecurityAccessor()
-    {
-        var user = CreateUser();
-        var mockBackOfficeSecurity = new Mock<IBackOfficeSecurity>();
-        mockBackOfficeSecurity.SetupGet(x => x.CurrentUser).Returns(user);
-        var mockBackOfficeSecurityAccessor = new Mock<IBackOfficeSecurityAccessor>();
-        mockBackOfficeSecurityAccessor.Setup(x => x.BackOfficeSecurity).Returns(mockBackOfficeSecurity.Object);
-        return mockBackOfficeSecurityAccessor;
-    }
+        private ContentPermissionsResourceHandler CreateHandler(int nodeId, string[] permissionsForPath)
+        {
+            Mock<IBackOfficeSecurityAccessor> mockBackOfficeSecurityAccessor = CreateMockBackOfficeSecurityAccessor();
+            ContentPermissions contentPermissions = CreateContentPermissions(nodeId, permissionsForPath);
+            return new ContentPermissionsResourceHandler(mockBackOfficeSecurityAccessor.Object, contentPermissions);
+        }
 
-    private static User CreateUser() =>
-        new UserBuilder()
-            .Build();
+        private static Mock<IBackOfficeSecurityAccessor> CreateMockBackOfficeSecurityAccessor()
+        {
+            User user = CreateUser();
+            var mockBackOfficeSecurity = new Mock<IBackOfficeSecurity>();
+            mockBackOfficeSecurity.SetupGet(x => x.CurrentUser).Returns(user);
+            var mockBackOfficeSecurityAccessor = new Mock<IBackOfficeSecurityAccessor>();
+            mockBackOfficeSecurityAccessor.Setup(x => x.BackOfficeSecurity).Returns(mockBackOfficeSecurity.Object);
+            return mockBackOfficeSecurityAccessor;
+        }
 
-    private static ContentPermissions CreateContentPermissions(int nodeId, string[] permissionsForPath)
-    {
-        var mockUserService = new Mock<IUserService>();
+        private static User CreateUser() =>
+            new UserBuilder()
+                .Build();
 
-        mockUserService
-            .Setup(x => x.GetPermissionsForPath(
-                It.IsAny<IUser>(),
-                It.Is<string>(y => y == $"{Constants.System.RootString},{nodeId.ToInvariantString()}")))
-            .Returns(new EntityPermissionSet(
-                nodeId,
-                new EntityPermissionCollection(new List<EntityPermission> { new(1, nodeId, permissionsForPath) })));
+        private static ContentPermissions CreateContentPermissions(int nodeId, string[] permissionsForPath)
+        {
+            var mockUserService = new Mock<IUserService>();
 
-        var mockContentService = new Mock<IContentService>();
-        mockContentService
-            .Setup(x => x.GetById(It.Is<int>(y => y == nodeId)))
-            .Returns(CreateContent(nodeId));
+            mockUserService
+                .Setup(x => x.GetPermissionsForPath(It.IsAny<IUser>(), It.Is<string>(y => y == $"{Constants.System.RootString},{nodeId.ToInvariantString()}")))
+                .Returns(new EntityPermissionSet(nodeId, new EntityPermissionCollection(new List<EntityPermission> { new EntityPermission(1, nodeId, permissionsForPath) })));
 
-        var mockEntityService = new Mock<IEntityService>();
-        return new ContentPermissions(
-            mockUserService.Object,
-            mockContentService.Object,
-            mockEntityService.Object,
-            AppCaches.Disabled);
+            var mockContentService = new Mock<IContentService>();
+            mockContentService
+                .Setup(x => x.GetById(It.Is<int>(y => y == nodeId)))
+                .Returns(CreateContent(nodeId));
+
+            var mockEntityService = new Mock<IEntityService>();
+            return new ContentPermissions(mockUserService.Object, mockContentService.Object, mockEntityService.Object, AppCaches.Disabled);
+        }
     }
 }

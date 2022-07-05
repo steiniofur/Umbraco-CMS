@@ -2,26 +2,28 @@
 // See LICENSE for more details.
 
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Umbraco.Cms.Tests.Integration.TestServerTest;
 using Umbraco.Cms.Web.BackOffice.Controllers;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Web.BackOffice.Controllers;
-
-[TestFixture]
-public class BackOfficeAssetsControllerTests : UmbracoTestServerTestBase
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Web.BackOffice.Controllers
 {
-    [Test]
-    public async Task EnsureSuccessStatusCode()
+    [TestFixture]
+    public class BackOfficeAssetsControllerTests : UmbracoTestServerTestBase
     {
-        // Arrange
-        var url = PrepareApiControllerUrl<BackOfficeAssetsController>(x => x.GetSupportedLocales());
+        [Test]
+        public async Task EnsureSuccessStatusCode()
+        {
+            // Arrange
+            string url = PrepareApiControllerUrl<BackOfficeAssetsController>(x => x.GetSupportedLocales());
 
-        // Act
-        var response = await Client.GetAsync(url);
+            // Act
+            HttpResponseMessage response = await Client.GetAsync(url);
 
-        // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            // Assert
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        }
     }
 }

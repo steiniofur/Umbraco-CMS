@@ -7,35 +7,36 @@ using Microsoft.AspNetCore.Http;
 using NUnit.Framework;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.Extensions;
-
-[TestFixture]
-public class HttpContextExtensionTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.Extensions
 {
-    [Test]
-    public void TryGetBasicAuthCredentials_WithoutHeader_ReturnsFalse()
+    [TestFixture]
+    public class HttpContextExtensionTests
     {
-        var httpContext = new DefaultHttpContext();
+        [Test]
+        public void TryGetBasicAuthCredentials_WithoutHeader_ReturnsFalse()
+        {
+            var httpContext = new DefaultHttpContext();
 
-        var result = httpContext.TryGetBasicAuthCredentials(out var _, out var _);
+            var result = httpContext.TryGetBasicAuthCredentials(out string _, out string _);
 
-        Assert.IsFalse(result);
-    }
+            Assert.IsFalse(result);
+        }
 
-    [Test]
-    public void TryGetBasicAuthCredentials_WithHeader_ReturnsTrueWithCredentials()
-    {
-        const string testUsername = "fred";
-        const string testPassword = "test";
+        [Test]
+        public void TryGetBasicAuthCredentials_WithHeader_ReturnsTrueWithCredentials()
+        {
+            const string Username = "fred";
+            const string Password = "test";
 
-        var httpContext = new DefaultHttpContext();
-        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{testUsername}:{testPassword}"));
-        httpContext.Request.Headers.Add("Authorization", $"Basic {credentials}");
+            var httpContext = new DefaultHttpContext();
+            var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Username}:{Password}"));
+            httpContext.Request.Headers.Add("Authorization", $"Basic {credentials}");
 
-        var result = httpContext.TryGetBasicAuthCredentials(out var username, out var password);
+            bool result = httpContext.TryGetBasicAuthCredentials(out string username, out string password);
 
-        Assert.IsTrue(result);
-        Assert.AreEqual(testUsername, username);
-        Assert.AreEqual(testPassword, password);
+            Assert.IsTrue(result);
+            Assert.AreEqual(Username, username);
+            Assert.AreEqual(Password, password);
+        }
     }
 }

@@ -41,20 +41,19 @@ public class ModelsBuilderSettings
     /// </remarks>
     public bool FlagOutOfDateModels
     {
-        get
-        {
-            if (ModelsMode == ModelsMode.Nothing ||ModelsMode.IsAuto())
-            {
-                return false;
+        get => _flagOutOfDateModels;
 
+        set
+        {
+            if (!ModelsMode.IsAuto())
+            {
+                _flagOutOfDateModels = false;
+                return;
             }
 
-            return _flagOutOfDateModels;
+            _flagOutOfDateModels = value;
         }
-
-            set => _flagOutOfDateModels = value;
     }
-
 
     /// <summary>
     ///     Gets or sets a value for the models directory.

@@ -2,70 +2,73 @@
 // See LICENSE for more details.
 
 using System.Linq;
+using System.Threading;
 using NUnit.Framework;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Services;
-
-[TestFixture]
-[UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest)]
-public class FileServiceTests : UmbracoIntegrationTest
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Services
 {
-    private IFileService FileService => GetRequiredService<IFileService>();
-
-    [Test]
-    public void Create_Template_Then_Assign_Child()
+    [TestFixture]
+    [UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest)]
+    public class FileServiceTests : UmbracoIntegrationTest
     {
-        var child = FileService.CreateTemplateWithIdentity("Child", "child", "test");
-        var parent = FileService.CreateTemplateWithIdentity("Parent", "parent", "test");
+        private IFileService FileService => GetRequiredService<IFileService>();
 
-        child.SetMasterTemplate(parent);
-        FileService.SaveTemplate(child);
+        [Test]
+        public void Create_Template_Then_Assign_Child()
+        {
+            ITemplate child = FileService.CreateTemplateWithIdentity("Child", "child", "test");
+            ITemplate parent = FileService.CreateTemplateWithIdentity("Parent", "parent", "test");
 
-        child = FileService.GetTemplate(child.Id);
+            child.SetMasterTemplate(parent);
+            FileService.SaveTemplate(child);
 
-        Assert.AreEqual(parent.Alias, child.MasterTemplateAlias);
-    }
+            child = FileService.GetTemplate(child.Id);
 
-    [Test]
-    public void Create_Template_With_Child_Then_Unassign()
-    {
-        var parent = FileService.CreateTemplateWithIdentity("Parent", "parent", "test");
-        var child = FileService.CreateTemplateWithIdentity("Child", "child", "test", parent);
+            Assert.AreEqual(parent.Alias, child.MasterTemplateAlias);
+        }
 
-        child.SetMasterTemplate(null);
-        FileService.SaveTemplate(child);
+        [Test]
+        public void Create_Template_With_Child_Then_Unassign()
+        {
+            ITemplate parent = FileService.CreateTemplateWithIdentity("Parent", "parent", "test");
+            ITemplate child = FileService.CreateTemplateWithIdentity("Child", "child", "test", parent);
 
-        child = FileService.GetTemplate(child.Id);
+            child.SetMasterTemplate(null);
+            FileService.SaveTemplate(child);
 
-        Assert.AreEqual(null, child.MasterTemplateAlias);
-    }
+            child = FileService.GetTemplate(child.Id);
 
-    [Test]
-    public void Can_Query_Template_Children()
-    {
-        var parent = FileService.CreateTemplateWithIdentity("Parent", "parent", "test");
-        var child1 = FileService.CreateTemplateWithIdentity("Child1", "child1", "test", parent);
-        var child2 = FileService.CreateTemplateWithIdentity("Child2", "child2", "test", parent);
+            Assert.AreEqual(null, child.MasterTemplateAlias);
+        }
 
-        var children = FileService.GetTemplates(parent.Id).Select(x => x.Id).ToArray();
+        [Test]
+        public void Can_Query_Template_Children()
+        {
+            ITemplate parent = FileService.CreateTemplateWithIdentity("Parent", "parent", "test");
+            ITemplate child1 = FileService.CreateTemplateWithIdentity("Child1", "child1", "test", parent);
+            ITemplate child2 = FileService.CreateTemplateWithIdentity("Child2", "child2", "test", parent);
 
-        Assert.IsTrue(children.Contains(child1.Id));
-        Assert.IsTrue(children.Contains(child2.Id));
-    }
+            int[] children = FileService.GetTemplates(parent.Id).Select(x => x.Id).ToArray();
 
-    [Test]
-    public void Create_Template_With_Custom_Alias()
-    {
-        var template = FileService.CreateTemplateWithIdentity("Test template", "customTemplateAlias", "test");
+            Assert.IsTrue(children.Contains(child1.Id));
+            Assert.IsTrue(children.Contains(child2.Id));
+        }
 
-        FileService.SaveTemplate(template);
+        [Test]
+        public void Create_Template_With_Custom_Alias()
+        {
+            ITemplate template = FileService.CreateTemplateWithIdentity("Test template", "customTemplateAlias", "test");
 
-        template = FileService.GetTemplate(template.Id);
+            FileService.SaveTemplate(template);
 
-        Assert.AreEqual("Test template", template.Name);
-        Assert.AreEqual("customTemplateAlias", template.Alias);
+            template = FileService.GetTemplate(template.Id);
+
+            Assert.AreEqual("Test template", template.Name);
+            Assert.AreEqual("customTemplateAlias", template.Alias);
+        }
     }
 }

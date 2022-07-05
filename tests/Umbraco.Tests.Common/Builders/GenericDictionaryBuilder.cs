@@ -3,23 +3,24 @@
 
 using System.Collections.Generic;
 
-namespace Umbraco.Cms.Tests.Common.Builders;
-
-public class GenericDictionaryBuilder<TBuilder, TKey, TValue>
-    : ChildBuilderBase<TBuilder, IDictionary<TKey, TValue>>
+namespace Umbraco.Cms.Tests.Common.Builders
 {
-    private readonly IDictionary<TKey, TValue> _dictionary;
-
-    public GenericDictionaryBuilder(TBuilder parentBuilder)
-        : base(parentBuilder) => _dictionary = new Dictionary<TKey, TValue>();
-
-    public override IDictionary<TKey, TValue> Build() => _dictionary == null
-        ? new Dictionary<TKey, TValue>()
-        : new Dictionary<TKey, TValue>(_dictionary);
-
-    public GenericDictionaryBuilder<TBuilder, TKey, TValue> WithKeyValue(TKey key, TValue value)
+    public class GenericDictionaryBuilder<TBuilder, TKey, TValue>
+        : ChildBuilderBase<TBuilder, IDictionary<TKey, TValue>>
     {
-        _dictionary.Add(key, value);
-        return this;
+        private readonly IDictionary<TKey, TValue> _dictionary;
+
+        public GenericDictionaryBuilder(TBuilder parentBuilder)
+            : base(parentBuilder) => _dictionary = new Dictionary<TKey, TValue>();
+
+        public override IDictionary<TKey, TValue> Build() => _dictionary == null
+                ? new Dictionary<TKey, TValue>()
+                : new Dictionary<TKey, TValue>(_dictionary);
+
+        public GenericDictionaryBuilder<TBuilder, TKey, TValue> WithKeyValue(TKey key, TValue value)
+        {
+            _dictionary.Add(key, value);
+            return this;
+        }
     }
 }

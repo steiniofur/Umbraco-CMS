@@ -5,8 +5,4 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);umbraco/Logs/**</DefaultItemExcludes>
     <DefaultItemExcludes>$(DefaultItemExcludes);wwwroot/media/**</DefaultItemExcludes>
   </PropertyGroup>
-  <ItemGroup>
-    <Using Include="Umbraco.Cms.Core.DependencyInjection" />
-    <Using Include="Umbraco.Extensions" />
-  </ItemGroup>
 </Project>

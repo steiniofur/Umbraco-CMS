@@ -7,59 +7,53 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Umbraco.Cms.Core.PropertyEditors;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.PropertyEditors;
-
-[TestFixture]
-public class NestedContentPropertyComponentTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.PropertyEditors
 {
-    private static void AreEqualJson(string expected, string actual) =>
-        Assert.AreEqual(JToken.Parse(expected), JToken.Parse(actual));
-
-    [Test]
-    public void Invalid_Json()
+    [TestFixture]
+    public class NestedContentPropertyComponentTests
     {
-        var component = new NestedContentPropertyHandler();
-
-        Assert.DoesNotThrow(() => component.CreateNestedContentKeys("this is not json", true));
-    }
-
-    [Test]
-    public void No_Nesting()
-    {
-        Guid[] guids = { Guid.NewGuid(), Guid.NewGuid() };
-        var guidCounter = 0;
-
-        Guid GuidFactory()
+        private static void AreEqualJson(string expected, string actual)
         {
-            return guids[guidCounter++];
+            Assert.AreEqual(JToken.Parse(expected), JToken.Parse(actual));
+        }
+        
+        [Test]
+        public void Invalid_Json()
+        {
+            var component = new NestedContentPropertyHandler();
+
+            Assert.DoesNotThrow(() => component.CreateNestedContentKeys("this is not json", true));
         }
 
-        var json = @"[
+        [Test]
+        public void No_Nesting()
+        {
+            Guid[] guids = new[] { Guid.NewGuid(), Guid.NewGuid() };
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            var json = @"[
               {""key"":""04a6dba8-813c-4144-8aca-86a3f24ebf08"",""name"":""Item 1"",""ncContentTypeAlias"":""nested"",""text"":""woot""},
               {""key"":""d8e214d8-c5a5-4b45-9b51-4050dd47f5fa"",""name"":""Item 2"",""ncContentTypeAlias"":""nested"",""text"":""zoot""}
             ]";
-        var expected = json
-            .Replace("04a6dba8-813c-4144-8aca-86a3f24ebf08", guids[0].ToString())
-            .Replace("d8e214d8-c5a5-4b45-9b51-4050dd47f5fa", guids[1].ToString());
+            var expected = json
+                .Replace("04a6dba8-813c-4144-8aca-86a3f24ebf08", guids[0].ToString())
+                .Replace("d8e214d8-c5a5-4b45-9b51-4050dd47f5fa", guids[1].ToString());
 
-        var component = new NestedContentPropertyHandler();
-        var actual = component.CreateNestedContentKeys(json, false, GuidFactory);
+            var component = new NestedContentPropertyHandler();
+            var actual = component.CreateNestedContentKeys(json, false, GuidFactory);
 
-        AreEqualJson(expected, actual);
-    }
-
-    [Test]
-    public void One_Level_Nesting_Unescaped()
-    {
-        Guid[] guids = { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-        var guidCounter = 0;
-
-        Guid GuidFactory()
-        {
-            return guids[guidCounter++];
+            AreEqualJson(expected, actual);
         }
 
-        var json = @"[{
+        [Test]
+        public void One_Level_Nesting_Unescaped()
+        {
+            Guid[] guids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            var json = @"[{
 		        ""key"": ""04a6dba8-813c-4144-8aca-86a3f24ebf08"",
 		        ""name"": ""Item 1"",
 		        ""ncContentTypeAlias"": ""text"",
@@ -82,32 +76,28 @@ public class NestedContentPropertyComponentTests
 			    }]
 	        }]";
 
-        var expected = json
-            .Replace("04a6dba8-813c-4144-8aca-86a3f24ebf08", guids[0].ToString())
-            .Replace("d8e214d8-c5a5-4b45-9b51-4050dd47f5fa", guids[1].ToString())
-            .Replace("dccf550c-3a05-469e-95e1-a8f560f788c2", guids[2].ToString())
-            .Replace("fbde4288-8382-4e13-8933-ed9c160de050", guids[3].ToString());
+            var expected = json
+                .Replace("04a6dba8-813c-4144-8aca-86a3f24ebf08", guids[0].ToString())
+                .Replace("d8e214d8-c5a5-4b45-9b51-4050dd47f5fa", guids[1].ToString())
+                .Replace("dccf550c-3a05-469e-95e1-a8f560f788c2", guids[2].ToString())
+                .Replace("fbde4288-8382-4e13-8933-ed9c160de050", guids[3].ToString());
 
-        var component = new NestedContentPropertyHandler();
-        var actual = component.CreateNestedContentKeys(json, false, GuidFactory);
+            var component = new NestedContentPropertyHandler();
+            var actual = component.CreateNestedContentKeys(json, false, GuidFactory);
 
-        AreEqualJson(expected, actual);
-    }
-
-    [Test]
-    public void One_Level_Nesting_Escaped()
-    {
-        Guid[] guids = { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-        var guidCounter = 0;
-
-        Guid GuidFactory()
-        {
-            return guids[guidCounter++];
+            AreEqualJson(expected, actual);
         }
 
-        // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
-        // and this is how to do that, the result will also include quotes around it.
-        var subJsonEscaped = JsonConvert.ToString(JToken.Parse(@"
+        [Test]
+        public void One_Level_Nesting_Escaped()
+        {
+            Guid[] guids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
+            // and this is how to do that, the result will also include quotes around it.
+            var subJsonEscaped = JsonConvert.ToString(JToken.Parse(@"
             [{
 				""key"": ""dccf550c-3a05-469e-95e1-a8f560f788c2"",
 				""name"": ""Item 1"",
@@ -121,7 +111,7 @@ public class NestedContentPropertyComponentTests
 			}
 		]").ToString(Formatting.None));
 
-        var json = @"[{
+            var json = @"[{
 		        ""key"": ""04a6dba8-813c-4144-8aca-86a3f24ebf08"",
 		        ""name"": ""Item 1"",
 		        ""ncContentTypeAlias"": ""text"",
@@ -135,32 +125,28 @@ public class NestedContentPropertyComponentTests
 	        }
         ]";
 
-        var expected = json
-            .Replace("04a6dba8-813c-4144-8aca-86a3f24ebf08", guids[0].ToString())
-            .Replace("d8e214d8-c5a5-4b45-9b51-4050dd47f5fa", guids[1].ToString())
-            .Replace("dccf550c-3a05-469e-95e1-a8f560f788c2", guids[2].ToString())
-            .Replace("fbde4288-8382-4e13-8933-ed9c160de050", guids[3].ToString());
+            var expected = json
+                .Replace("04a6dba8-813c-4144-8aca-86a3f24ebf08", guids[0].ToString())
+                .Replace("d8e214d8-c5a5-4b45-9b51-4050dd47f5fa", guids[1].ToString())
+                .Replace("dccf550c-3a05-469e-95e1-a8f560f788c2", guids[2].ToString())
+                .Replace("fbde4288-8382-4e13-8933-ed9c160de050", guids[3].ToString());
 
-        var component = new NestedContentPropertyHandler();
-        var actual = component.CreateNestedContentKeys(json, false, GuidFactory);
+            var component = new NestedContentPropertyHandler();
+            var actual = component.CreateNestedContentKeys(json, false, GuidFactory);
 
-        AreEqualJson(expected, actual);
-    }
-
-    [Test]
-    public void Nested_In_Complex_Editor_Escaped()
-    {
-        Guid[] guids = { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-        var guidCounter = 0;
-
-        Guid GuidFactory()
-        {
-            return guids[guidCounter++];
+            AreEqualJson(expected, actual);
         }
 
-        // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
-        // and this is how to do that, the result will also include quotes around it.
-        var subJsonEscaped = JsonConvert.ToString(JToken.Parse(@"[{
+        [Test]
+        public void Nested_In_Complex_Editor_Escaped()
+        {
+            Guid[] guids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
+            // and this is how to do that, the result will also include quotes around it.
+            var subJsonEscaped = JsonConvert.ToString(JToken.Parse(@"[{
 				""key"": ""dccf550c-3a05-469e-95e1-a8f560f788c2"",
 				""name"": ""Item 1"",
 				""ncContentTypeAlias"": ""text"",
@@ -173,8 +159,8 @@ public class NestedContentPropertyComponentTests
 			}
 		]").ToString(Formatting.None));
 
-        // Complex editor such as the grid
-        var complexEditorJsonEscaped = @"{
+            // Complex editor such as the grid
+            var complexEditorJsonEscaped = @"{
   ""name"": ""1 column layout"",
   ""sections"": [
     {
@@ -229,7 +215,7 @@ public class NestedContentPropertyComponentTests
     }]
 }";
 
-        var json = @"[{
+            var json = @"[{
 		""key"": ""04a6dba8-813c-4144-8aca-86a3f24ebf08"",
 		""name"": ""Item 1"",
 		""ncContentTypeAlias"": ""text"",
@@ -243,58 +229,50 @@ public class NestedContentPropertyComponentTests
 	}
 ]";
 
-        var expected = json
-            .Replace("04a6dba8-813c-4144-8aca-86a3f24ebf08", guids[0].ToString())
-            .Replace("d8e214d8-c5a5-4b45-9b51-4050dd47f5fa", guids[1].ToString())
-            .Replace("dccf550c-3a05-469e-95e1-a8f560f788c2", guids[2].ToString())
-            .Replace("fbde4288-8382-4e13-8933-ed9c160de050", guids[3].ToString());
+            var expected = json
+                .Replace("04a6dba8-813c-4144-8aca-86a3f24ebf08", guids[0].ToString())
+                .Replace("d8e214d8-c5a5-4b45-9b51-4050dd47f5fa", guids[1].ToString())
+                .Replace("dccf550c-3a05-469e-95e1-a8f560f788c2", guids[2].ToString())
+                .Replace("fbde4288-8382-4e13-8933-ed9c160de050", guids[3].ToString());
 
-        var component = new NestedContentPropertyHandler();
-        var actual = component.CreateNestedContentKeys(json, false, GuidFactory);
+            var component = new NestedContentPropertyHandler();
+            var actual = component.CreateNestedContentKeys(json, false, GuidFactory);
 
-        AreEqualJson(expected, actual);
-    }
-
-    [Test]
-    public void No_Nesting_Generates_Keys_For_Missing_Items()
-    {
-        Guid[] guids = { Guid.NewGuid() };
-        var guidCounter = 0;
-
-        Guid GuidFactory()
-        {
-            return guids[guidCounter++];
+            AreEqualJson(expected, actual);
         }
 
-        var json = @"[
+        [Test]
+        public void No_Nesting_Generates_Keys_For_Missing_Items()
+        {
+            Guid[] guids = new[] { Guid.NewGuid() };
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            var json = @"[
   {""key"":""04a6dba8-813c-4144-8aca-86a3f24ebf08"",""name"":""Item 1 my key wont change"",""ncContentTypeAlias"":""nested"",""text"":""woot""},
   {""name"":""Item 2 was copied and has no key prop"",""ncContentTypeAlias"":""nested"",""text"":""zoot""}
 ]";
 
-        var component = new NestedContentPropertyHandler();
-        var result = component.CreateNestedContentKeys(json, true, GuidFactory);
+            var component = new NestedContentPropertyHandler();
+            var result = component.CreateNestedContentKeys(json, true, GuidFactory);
 
-        // Ensure the new GUID is put in a key into the JSON
-        Assert.IsTrue(result.Contains(guids[0].ToString()));
+            // Ensure the new GUID is put in a key into the JSON
+            Assert.IsTrue(result.Contains(guids[0].ToString()));
 
-        // Ensure that the original key is NOT changed/modified & still exists
-        Assert.IsTrue(result.Contains("04a6dba8-813c-4144-8aca-86a3f24ebf08"));
-    }
-
-    [Test]
-    public void One_Level_Nesting_Escaped_Generates_Keys_For_Missing_Items()
-    {
-        Guid[] guids = { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-        var guidCounter = 0;
-
-        Guid GuidFactory()
-        {
-            return guids[guidCounter++];
+            // Ensure that the original key is NOT changed/modified & still exists
+            Assert.IsTrue(result.Contains("04a6dba8-813c-4144-8aca-86a3f24ebf08"));
         }
 
-        // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
-        // and this is how to do that, the result will also include quotes around it.
-        var subJsonEscaped = JsonConvert.ToString(JToken.Parse(@"[{
+        [Test]
+        public void One_Level_Nesting_Escaped_Generates_Keys_For_Missing_Items()
+        {
+            Guid[] guids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
+            // and this is how to do that, the result will also include quotes around it.
+            var subJsonEscaped = JsonConvert.ToString(JToken.Parse(@"[{
 				""name"": ""Item 1"",
 				""ncContentTypeAlias"": ""text"",
 				""text"": ""woot""
@@ -305,7 +283,7 @@ public class NestedContentPropertyComponentTests
 			}
 		]").ToString(Formatting.None));
 
-        var json = @"[{
+            var json = @"[{
 		""name"": ""Item 1 was copied and has no key"",
 		""ncContentTypeAlias"": ""text"",
 		""text"": ""woot""
@@ -318,29 +296,25 @@ public class NestedContentPropertyComponentTests
 	}
 ]";
 
-        var component = new NestedContentPropertyHandler();
-        var result = component.CreateNestedContentKeys(json, true, GuidFactory);
+            var component = new NestedContentPropertyHandler();
+            var result = component.CreateNestedContentKeys(json, true, GuidFactory);
 
-        // Ensure the new GUID is put in a key into the JSON for each item
-        Assert.IsTrue(result.Contains(guids[0].ToString()));
-        Assert.IsTrue(result.Contains(guids[1].ToString()));
-        Assert.IsTrue(result.Contains(guids[2].ToString()));
-    }
-
-    [Test]
-    public void Nested_In_Complex_Editor_Escaped_Generates_Keys_For_Missing_Items()
-    {
-        Guid[] guids = { Guid.NewGuid(), Guid.NewGuid() };
-        var guidCounter = 0;
-
-        Guid GuidFactory()
-        {
-            return guids[guidCounter++];
+            // Ensure the new GUID is put in a key into the JSON for each item
+            Assert.IsTrue(result.Contains(guids[0].ToString()));
+            Assert.IsTrue(result.Contains(guids[1].ToString()));
+            Assert.IsTrue(result.Contains(guids[2].ToString()));
         }
 
-        // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
-        // and this is how to do that, the result will also include quotes around it.
-        var subJsonEscaped = JsonConvert.ToString(JToken.Parse(@"[{
+        [Test]
+        public void Nested_In_Complex_Editor_Escaped_Generates_Keys_For_Missing_Items()
+        {
+            Guid[] guids = new[] { Guid.NewGuid(), Guid.NewGuid() };
+            var guidCounter = 0;
+            Guid GuidFactory() => guids[guidCounter++];
+
+            // we need to ensure the escaped json is consistent with how it will be re-escaped after parsing
+            // and this is how to do that, the result will also include quotes around it.
+            var subJsonEscaped = JsonConvert.ToString(JToken.Parse(@"[{
 				""key"": ""dccf550c-3a05-469e-95e1-a8f560f788c2"",
 				""name"": ""Item 1"",
 				""ncContentTypeAlias"": ""text"",
@@ -352,8 +326,8 @@ public class NestedContentPropertyComponentTests
 			}
 		]").ToString(Formatting.None));
 
-        // Complex editor such as the grid
-        var complexEditorJsonEscaped = @"{
+            // Complex editor such as the grid
+            var complexEditorJsonEscaped = @"{
   ""name"": ""1 column layout"",
   ""sections"": [
     {
@@ -408,7 +382,7 @@ public class NestedContentPropertyComponentTests
     }]
 }";
 
-        var json = @"[{
+            var json = @"[{
 		""key"": ""04a6dba8-813c-4144-8aca-86a3f24ebf08"",
 		""name"": ""Item 1"",
 		""ncContentTypeAlias"": ""text"",
@@ -421,11 +395,12 @@ public class NestedContentPropertyComponentTests
 	}
 ]";
 
-        var component = new NestedContentPropertyHandler();
-        var result = component.CreateNestedContentKeys(json, true, GuidFactory);
+            var component = new NestedContentPropertyHandler();
+            var result = component.CreateNestedContentKeys(json, true, GuidFactory);
 
-        // Ensure the new GUID is put in a key into the JSON for each item
-        Assert.IsTrue(result.Contains(guids[0].ToString()));
-        Assert.IsTrue(result.Contains(guids[1].ToString()));
+            // Ensure the new GUID is put in a key into the JSON for each item
+            Assert.IsTrue(result.Contains(guids[0].ToString()));
+            Assert.IsTrue(result.Contains(guids[1].ToString()));
+        }
     }
 }

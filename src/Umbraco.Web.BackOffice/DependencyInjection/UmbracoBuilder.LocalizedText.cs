@@ -1,6 +1,11 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Services;
@@ -12,7 +17,6 @@ namespace Umbraco.Extensions
     /// </summary>
     public static partial class UmbracoBuilderExtensions
     {
-
         /// <summary>
         /// Adds the supplementary localized texxt file sources from the various physical and virtual locations supported.
         /// </summary>
@@ -69,52 +73,45 @@ namespace Umbraco.Extensions
         private static IEnumerable<LocalizedTextServiceSupplementaryFileSource> GetPluginLanguageFileSources(
             IFileProvider fileProvider, string folder, bool overwriteCoreKeys)
         {
-            IEnumerable<IFileInfo> pluginFolders = fileProvider
-                .GetDirectoryContents(folder)
-                .Where(x => x.IsDirectory);
+            // locate all the *.xml files inside Lang folders inside folders of the main folder
+            // e.g. /app_plugins/plugin-name/lang/*.xml
+            var fileSources = new List<LocalizedTextServiceSupplementaryFileSource>();
+
+            var pluginFolders = fileProvider.GetDirectoryContents(folder)
+                    .Where(x => x.IsDirectory).ToList();
 
             foreach (IFileInfo pluginFolder in pluginFolders)
             {
                 // get the full virtual path for the plugin folder
                 var pluginFolderPath = WebPath.Combine(folder, pluginFolder.Name);
 
+                // get any lang folders in this plugin
+                IEnumerable<IFileInfo> langFolders = fileProvider.GetDirectoryContents(pluginFolderPath)
+                    .Where(x => x.IsDirectory && x.Name.InvariantEquals("lang"));
+
                 // loop through the lang folder(s)
                 //  - there could be multiple on case sensitive file system
-                foreach (var langFolder in GetLangFolderPaths(fileProvider, pluginFolderPath))
+                foreach (var langFolder in langFolders)
                 {
-                    // request all the files out of the path, these will have physicalPath set.
-                    IEnumerable<FileInfo> localizationFiles = fileProvider
-                        .GetDirectoryContents(langFolder)
-                        .Where(x => !string.IsNullOrEmpty(x.PhysicalPath))
-                        .Where(x => x.Name.InvariantEndsWith(".xml"))
-                        .Select(x => new FileInfo(x.PhysicalPath));
+                    // get the full 'virtual' path of the lang folder
+                    var langFolderPath = WebPath.Combine(pluginFolderPath, langFolder.Name);
 
-                    foreach (FileInfo file in localizationFiles)
+                    // request all the files out of the path, these will have physicalPath set.
+                    var files = fileProvider.GetDirectoryContents(langFolderPath)
+                        .Where(x => x.Name.InvariantEndsWith(".xml") && !string.IsNullOrEmpty(x.PhysicalPath))
+                        .Select(x => new FileInfo(x.PhysicalPath))
+                        .Select(x => new LocalizedTextServiceSupplementaryFileSource(x, overwriteCoreKeys))
+                        .ToList();
+
+                    // add any to our results
+                    if (files.Count > 0)
                     {
-                        yield return new LocalizedTextServiceSupplementaryFileSource(file, overwriteCoreKeys);
+                        fileSources.AddRange(files);
                     }
                 }
             }
-        }
 
-        private static IEnumerable<string> GetLangFolderPaths(IFileProvider fileProvider, string path)
-        {
-            IEnumerable<IFileInfo> directories = fileProvider.GetDirectoryContents(path).Where(x => x.IsDirectory);
-
-            foreach (IFileInfo directory in directories)
-            {
-                var virtualPath = WebPath.Combine(path, directory.Name);
-
-                if (directory.Name.InvariantEquals("lang"))
-                {
-                    yield return virtualPath;
-                }
-
-                foreach (var nested in GetLangFolderPaths(fileProvider, virtualPath))
-                {
-                    yield return nested;
-                }
-            }
+            return fileSources;
         }
     }
 }

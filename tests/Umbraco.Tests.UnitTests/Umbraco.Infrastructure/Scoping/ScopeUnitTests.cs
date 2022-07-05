@@ -1,21 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using CSharpTest.Net.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using NPoco;
 using NUnit.Framework;
 using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.DistributedLocking;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
+using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Strings;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Infrastructure.Persistence.SqlSyntax;
 using Umbraco.Cms.Infrastructure.Scoping;
 using Umbraco.Cms.Tests.Common;
+using Umbraco.Cms.Tests.UnitTests.AutoFixture;
 
 namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
 {
@@ -30,11 +36,8 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
         private ScopeProvider GetScopeProvider(out Mock<IDistributedLockingMechanism> lockingMechanism)
         {
             var loggerFactory = NullLoggerFactory.Instance;
-            var fileSystems = new FileSystems(
-                loggerFactory,
-                Mock.Of<IIOHelper>(),
-                Mock.Of<IOptions<GlobalSettings>>(),
-                Mock.Of<IHostingEnvironment>());
+            var fileSystems = new FileSystems(loggerFactory,
+                Mock.Of<IIOHelper>(), Mock.Of<IOptions<GlobalSettings>>(), Mock.Of<IHostingEnvironment>());
             var mediaFileManager = new MediaFileManager(
                 Mock.Of<IFileSystem>(),
                 Mock.Of<IMediaPathScheme>(),
@@ -64,19 +67,17 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
             database.Setup(x => x.SqlContext).Returns(sqlContext.Object);
 
             var syntaxProviderMock = new Mock<ISqlSyntaxProvider>();
-
             // Setup mock of ISqlContext to return syntaxProviderMock
             sqlContext.Setup(x => x.SqlSyntax).Returns(syntaxProviderMock.Object);
 
             return new ScopeProvider(
-                new AmbientScopeStack(),
-                new AmbientScopeContextStack(),
                 lockingMechanismFactory.Object,
                 databaseFactory.Object,
                 fileSystems,
                 new TestOptionsMonitor<CoreDebugSettings>(new CoreDebugSettings()),
                 mediaFileManager,
                 loggerFactory,
+                Mock.Of<IRequestCache>(),
                 Mock.Of<IEventAggregator>());
         }
 
@@ -134,10 +135,8 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
                         innerScope2.EagerWriteLock(Constants.Locks.Languages);
                         innerScope2.Complete();
                     }
-
                     innerScope1.Complete();
                 }
-
                 outerScope.Complete();
             }
 
@@ -191,7 +190,6 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
                         innerScope2.EagerWriteLock(timeout, Constants.Locks.Languages);
                         innerScope2.Complete();
                     }
-
                     innerScope1.Complete();
                 }
 
@@ -318,7 +316,6 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
                     Assert.AreEqual(2, outerscope.GetWriteLocks()[innerScope.InstanceId][Constants.Locks.Languages]);
                     innerScope.Complete();
                 }
-
                 Assert.AreEqual(2, outerscope.GetWriteLocks()[outerscope.InstanceId][Constants.Locks.ContentTree]);
                 Assert.IsFalse(outerscope.GetWriteLocks().ContainsKey(innerscopeId));
                 outerscope.Complete();
@@ -350,9 +347,9 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
                     Assert.AreEqual(2, outerscope.GetReadLocks()[innerScope.InstanceId][Constants.Locks.Languages]);
                     innerScope.Complete();
                 }
-
                 Assert.AreEqual(2, outerscope.GetReadLocks()[outerscope.InstanceId][Constants.Locks.ContentTree]);
                 Assert.IsFalse(outerscope.GetReadLocks().ContainsKey(innerscopeId));
+
 
                 outerscope.Complete();
             }
@@ -402,7 +399,6 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
 
                         innerScope2.Complete();
                     }
-
                     Assert.AreEqual(1, realParentScope.GetWriteLocks()[realParentScope.InstanceId][Constants.Locks.ContentTree], $"innerScope1, parent instance, after innserScope2 disposed: {nameof(Constants.Locks.ContentTree)}");
                     Assert.AreEqual(1, realParentScope.GetWriteLocks()[realParentScope.InstanceId][Constants.Locks.ContentTypes], $"innerScope1, parent instance, after innserScope2 disposed: {nameof(Constants.Locks.ContentTypes)}");
                     Assert.AreEqual(1, realParentScope.GetWriteLocks()[innerScope1.InstanceId][Constants.Locks.ContentTree], $"innerScope1, innerScope1 instance, after innserScope2 disposed: {nameof(Constants.Locks.ContentTree)}");
@@ -412,7 +408,6 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.Scoping
 
                     innerScope1.Complete();
                 }
-
                 Assert.AreEqual(1, realParentScope.GetWriteLocks()[realParentScope.InstanceId][Constants.Locks.ContentTree], $"parentScope after inner scopes disposed: {nameof(Constants.Locks.ContentTree)}");
                 Assert.AreEqual(1, realParentScope.GetWriteLocks()[realParentScope.InstanceId][Constants.Locks.ContentTypes], $"parentScope after inner scopes disposed: {nameof(Constants.Locks.ContentTypes)}");
                 Assert.IsFalse(realParentScope.GetWriteLocks().ContainsKey(innerScope2Id));

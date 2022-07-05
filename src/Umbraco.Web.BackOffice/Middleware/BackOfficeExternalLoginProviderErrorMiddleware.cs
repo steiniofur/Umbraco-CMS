@@ -1,53 +1,52 @@
+using System;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Newtonsoft.Json;
-using Umbraco.Cms.Core.Security;
 using Umbraco.Extensions;
+using HttpRequestExtensions = Umbraco.Extensions.HttpRequestExtensions;
 
-namespace Umbraco.Cms.Web.BackOffice.Middleware;
-
-/// <summary>
-///     Used to handle errors registered by external login providers
-/// </summary>
-/// <remarks>
-///     When an external login provider registers an error with
-///     <see cref="Extensions.HttpContextExtensions.SetExternalLoginProviderErrors" /> during the OAuth process,
-///     this middleware will detect that, store the errors into cookie data and redirect to the back office login so we can
-///     read the errors back out.
-/// </remarks>
-public class BackOfficeExternalLoginProviderErrorMiddleware : IMiddleware
+namespace Umbraco.Cms.Web.BackOffice.Middleware
 {
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+
+    /// <summary>
+    /// Used to handle errors registered by external login providers
+    /// </summary>
+    /// <remarks>
+    /// When an external login provider registers an error with <see cref="Extensions.HttpContextExtensions.SetExternalLoginProviderErrors"/> during the OAuth process,
+    /// this middleware will detect that, store the errors into cookie data and redirect to the back office login so we can read the errors back out.
+    /// </remarks>
+    public class BackOfficeExternalLoginProviderErrorMiddleware : IMiddleware
     {
-        var shortCircuit = false;
-        if (!context.Request.IsClientSideRequest())
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            // check if we have any errors registered
-            BackOfficeExternalLoginProviderErrors? errors = context.GetExternalLoginProviderErrors();
-            if (errors != null)
+            var shortCircuit = false;
+            if (!HttpRequestExtensions.IsClientSideRequest(context.Request))
             {
-                shortCircuit = true;
+                // check if we have any errors registered
+                var errors = context.GetExternalLoginProviderErrors();
+                if (errors != null)
+                {
+                    shortCircuit = true;
 
-                var serialized = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(errors)));
+                    var serialized = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(errors)));
 
-                context.Response.Cookies.Append(
-                    ViewDataExtensions.TokenExternalSignInError,
-                    serialized,
-                    new CookieOptions
+                    context.Response.Cookies.Append(ViewDataExtensions.TokenExternalSignInError, serialized, new CookieOptions
                     {
                         Expires = DateTime.Now.AddMinutes(5),
                         HttpOnly = true,
                         Secure = context.Request.IsHttps
                     });
 
-                context.Response.Redirect(context.Request.GetEncodedUrl());
+                    context.Response.Redirect(context.Request.GetEncodedUrl());
+                }
             }
-        }
 
-        if (next != null && !shortCircuit)
-        {
-            await next(context);
+            if (next != null && !shortCircuit)
+            {
+                await next(context);
+            }
         }
     }
 }

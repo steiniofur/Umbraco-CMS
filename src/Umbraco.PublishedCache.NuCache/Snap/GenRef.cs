@@ -1,10 +1,13 @@
-namespace Umbraco.Cms.Infrastructure.PublishedCache.Snap;
-
-internal class GenRef
+﻿namespace Umbraco.Cms.Infrastructure.PublishedCache.Snap
 {
-    public readonly GenObj GenObj;
+    internal class GenRef
+    {
+        public GenRef(GenObj genObj)
+        {
+            GenObj = genObj;
+        }
 
-    public GenRef(GenObj genObj) => GenObj = genObj;
-
-    public long Gen => GenObj.Gen;
+        public readonly GenObj GenObj;
+        public long Gen => GenObj.Gen;
+    }
 }

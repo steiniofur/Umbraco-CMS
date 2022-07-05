@@ -1,51 +1,54 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Web.BackOffice.Authorization;
-
-/// <summary>
-///     Ensures that the current user has access to the section for which the specified tree(s) belongs
-/// </summary>
-/// <remarks>
-///     This would allow a tree to be moved between sections.
-///     The user only needs access to one of the trees specified, not all of the trees.
-/// </remarks>
-public class TreeHandler : MustSatisfyRequirementAuthorizationHandler<TreeRequirement>
+namespace Umbraco.Cms.Web.BackOffice.Authorization
 {
-    private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
-    private readonly ITreeService _treeService;
-
     /// <summary>
-    ///     Initializes a new instance of the <see cref="TreeHandler" /> class.
+    /// Ensures that the current user has access to the section for which the specified tree(s) belongs
     /// </summary>
-    /// <param name="treeService">Service for section tree operations.</param>
-    /// <param name="backOfficeSecurityAccessor">Accessor for back-office security.</param>
-    public TreeHandler(ITreeService treeService, IBackOfficeSecurityAccessor backOfficeSecurityAccessor)
+    /// <remarks>
+    /// This would allow a tree to be moved between sections.
+    /// The user only needs access to one of the trees specified, not all of the trees.
+    /// </remarks>
+    public class TreeHandler : MustSatisfyRequirementAuthorizationHandler<TreeRequirement>
     {
-        _treeService = treeService ?? throw new ArgumentNullException(nameof(treeService));
-        _backOfficeSecurityAccessor = backOfficeSecurityAccessor ??
-                                      throw new ArgumentNullException(nameof(backOfficeSecurityAccessor));
-    }
+        private readonly ITreeService _treeService;
+        private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
 
-    /// <inheritdoc />
-    protected override Task<bool> IsAuthorized(AuthorizationHandlerContext context, TreeRequirement requirement)
-    {
-        var apps = requirement.TreeAliases
-            .Select(x => _treeService.GetByAlias(x))
-            .WhereNotNull()
-            .Select(x => x.SectionAlias)
-            .Distinct()
-            .ToArray();
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TreeHandler"/> class.
+        /// </summary>
+        /// <param name="treeService">Service for section tree operations.</param>
+        /// <param name="backOfficeSecurityAccessor">Accessor for back-office security.</param>
+        public TreeHandler(ITreeService treeService, IBackOfficeSecurityAccessor backOfficeSecurityAccessor)
+        {
+            _treeService = treeService ?? throw new ArgumentNullException(nameof(treeService));
+            _backOfficeSecurityAccessor = backOfficeSecurityAccessor ?? throw new ArgumentNullException(nameof(backOfficeSecurityAccessor));
+        }
 
-        var isAuth = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser != null &&
-                     apps.Any(app => _backOfficeSecurityAccessor.BackOfficeSecurity.UserHasSectionAccess(
-                         app, _backOfficeSecurityAccessor.BackOfficeSecurity.CurrentUser));
+        /// <inheritdoc/>
+        protected override Task<bool> IsAuthorized(AuthorizationHandlerContext context, TreeRequirement requirement)
+        {
+            var apps = requirement.TreeAliases
+                .Select(x => _treeService.GetByAlias(x))
+                .WhereNotNull()
+                .Select(x => x.SectionAlias)
+                .Distinct()
+                .ToArray();
 
-        return Task.FromResult(isAuth);
+            var isAuth = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser != null &&
+                apps.Any(app => _backOfficeSecurityAccessor.BackOfficeSecurity.UserHasSectionAccess(
+                    app, _backOfficeSecurityAccessor.BackOfficeSecurity.CurrentUser));
+
+            return Task.FromResult(isAuth);
+        }
     }
 }

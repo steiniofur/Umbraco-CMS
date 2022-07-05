@@ -3,26 +3,27 @@ using Microsoft.Extensions.DependencyInjection;
 using Umbraco.Cms.Web.BackOffice.Install;
 using Umbraco.Cms.Web.Common.ApplicationBuilder;
 
-namespace Umbraco.Extensions;
-
-/// <summary>
-///     <see cref="IApplicationBuilder" /> extensions for Umbraco installer
-/// </summary>
-public static partial class UmbracoApplicationBuilderExtensions
+namespace Umbraco.Extensions
 {
     /// <summary>
-    ///     Enables the Umbraco installer
+    /// <see cref="IApplicationBuilder"/> extensions for Umbraco installer
     /// </summary>
-    public static IUmbracoEndpointBuilderContext UseInstallerEndpoints(this IUmbracoEndpointBuilderContext app)
+    public static partial class UmbracoApplicationBuilderExtensions
     {
-        if (!app.RuntimeState.UmbracoCanBoot())
+        /// <summary>
+        /// Enables the Umbraco installer
+        /// </summary>
+        public static IUmbracoEndpointBuilderContext UseInstallerEndpoints(this IUmbracoEndpointBuilderContext app)
         {
+            if (!app.RuntimeState.UmbracoCanBoot())
+            {
+                return app;
+            }
+
+            InstallAreaRoutes installerRoutes = app.ApplicationServices.GetRequiredService<InstallAreaRoutes>();
+            installerRoutes.CreateRoutes(app.EndpointRouteBuilder);
+
             return app;
         }
-
-        InstallAreaRoutes installerRoutes = app.ApplicationServices.GetRequiredService<InstallAreaRoutes>();
-        installerRoutes.CreateRoutes(app.EndpointRouteBuilder);
-
-        return app;
     }
 }

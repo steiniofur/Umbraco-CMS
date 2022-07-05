@@ -1,17 +1,20 @@
+﻿using System;
 using Microsoft.AspNetCore.Authentication;
 
-namespace Umbraco.Cms.Web.BackOffice.Security;
-
-public class BackOfficeExternaLoginProviderScheme
+namespace Umbraco.Cms.Web.BackOffice.Security
 {
-    public BackOfficeExternaLoginProviderScheme(
-        BackOfficeExternalLoginProvider externalLoginProvider,
-        AuthenticationScheme? authenticationScheme)
+    public class BackOfficeExternaLoginProviderScheme
     {
-        ExternalLoginProvider = externalLoginProvider ?? throw new ArgumentNullException(nameof(externalLoginProvider));
-        AuthenticationScheme = authenticationScheme ?? throw new ArgumentNullException(nameof(authenticationScheme));
+        public BackOfficeExternaLoginProviderScheme(
+            BackOfficeExternalLoginProvider externalLoginProvider,
+            AuthenticationScheme? authenticationScheme)
+        {
+            ExternalLoginProvider = externalLoginProvider ?? throw new ArgumentNullException(nameof(externalLoginProvider));
+            AuthenticationScheme = authenticationScheme ?? throw new ArgumentNullException(nameof(authenticationScheme));
+        }
+
+        public BackOfficeExternalLoginProvider ExternalLoginProvider { get; }
+        public AuthenticationScheme AuthenticationScheme { get; }
     }
 
-    public BackOfficeExternalLoginProvider ExternalLoginProvider { get; }
-    public AuthenticationScheme AuthenticationScheme { get; }
 }

@@ -1,16 +1,17 @@
+﻿using System;
 using Umbraco.Cms.Core.Xml.XPath;
 
-namespace Umbraco.Cms.Infrastructure.PublishedCache.Navigable;
-
-internal class NavigablePropertyType : INavigableFieldType
+namespace Umbraco.Cms.Infrastructure.PublishedCache.Navigable
 {
-    public NavigablePropertyType(string name, Func<object, string>? xmlStringConverter = null)
+    internal class NavigablePropertyType : INavigableFieldType
     {
-        Name = name;
-        XmlStringConverter = xmlStringConverter;
+        public NavigablePropertyType(string name, Func<object, string>? xmlStringConverter = null)
+        {
+            Name = name;
+            XmlStringConverter = xmlStringConverter;
+        }
+
+        public string Name { get; }
+        public Func<object, string>? XmlStringConverter { get; }
     }
-
-    public string Name { get; }
-
-    public Func<object, string>? XmlStringConverter { get; }
 }

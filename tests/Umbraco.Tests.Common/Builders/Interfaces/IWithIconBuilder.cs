@@ -1,9 +1,10 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithIconBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    string Icon { get; set; }
+    public interface IWithIconBuilder
+    {
+        string Icon { get; set; }
+    }
 }

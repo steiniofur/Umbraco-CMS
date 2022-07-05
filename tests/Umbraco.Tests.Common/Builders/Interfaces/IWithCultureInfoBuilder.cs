@@ -3,9 +3,10 @@
 
 using System.Globalization;
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithCultureInfoBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    CultureInfo CultureInfo { get; set; }
+    public interface IWithCultureInfoBuilder
+    {
+        CultureInfo CultureInfo { get; set; }
+    }
 }

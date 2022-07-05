@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -7,50 +8,51 @@ using Umbraco.Cms.Web.BackOffice.Middleware;
 using Umbraco.Cms.Web.BackOffice.Routing;
 using Umbraco.Cms.Web.Common.ApplicationBuilder;
 
-namespace Umbraco.Extensions;
 
-/// <summary>
-///     <see cref="IUmbracoEndpointBuilderContext" /> extensions for Umbraco
-/// </summary>
-public static partial class UmbracoApplicationBuilderExtensions
+namespace Umbraco.Extensions
 {
     /// <summary>
-    ///     Adds all required middleware to run the back office
+    /// <see cref="IUmbracoEndpointBuilderContext"/> extensions for Umbraco
     /// </summary>
-    /// <param name="builder"></param>
-    /// <returns></returns>
-    public static IUmbracoApplicationBuilderContext UseBackOffice(this IUmbracoApplicationBuilderContext builder)
+    public static partial class UmbracoApplicationBuilderExtensions
     {
-        KeepAliveSettings keepAliveSettings =
-            builder.ApplicationServices.GetRequiredService<IOptions<KeepAliveSettings>>().Value;
-        IHostingEnvironment hostingEnvironment = builder.ApplicationServices.GetRequiredService<IHostingEnvironment>();
-        builder.AppBuilder.Map(
-            hostingEnvironment.ToAbsolute(keepAliveSettings.KeepAlivePingUrl),
-            a => a.UseMiddleware<KeepAliveMiddleware>());
-
-        builder.AppBuilder.UseMiddleware<BackOfficeExternalLoginProviderErrorMiddleware>();
-        return builder;
-    }
-
-    public static IUmbracoEndpointBuilderContext UseBackOfficeEndpoints(this IUmbracoEndpointBuilderContext app)
-    {
-        // NOTE: This method will have been called after UseRouting, UseAuthentication, UseAuthorization
-        if (app == null)
+        /// <summary>
+        /// Adds all required middleware to run the back office
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IUmbracoApplicationBuilderContext UseBackOffice(this IUmbracoApplicationBuilderContext builder)
         {
-            throw new ArgumentNullException(nameof(app));
+            KeepAliveSettings keepAliveSettings = builder.ApplicationServices.GetRequiredService<IOptions<KeepAliveSettings>>().Value;
+            IHostingEnvironment hostingEnvironment = builder.ApplicationServices.GetRequiredService<IHostingEnvironment>();
+            builder.AppBuilder.Map(
+                hostingEnvironment.ToAbsolute(keepAliveSettings.KeepAlivePingUrl),
+                a => a.UseMiddleware<KeepAliveMiddleware>());
+
+            builder.AppBuilder.UseMiddleware<BackOfficeExternalLoginProviderErrorMiddleware>();
+            return builder;
         }
 
-        if (!app.RuntimeState.UmbracoCanBoot())
+        public static IUmbracoEndpointBuilderContext UseBackOfficeEndpoints(this IUmbracoEndpointBuilderContext app)
         {
+            // NOTE: This method will have been called after UseRouting, UseAuthentication, UseAuthorization
+            if (app == null)
+            {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            if (!app.RuntimeState.UmbracoCanBoot())
+            {
+                return app;
+            }
+
+            BackOfficeAreaRoutes backOfficeRoutes = app.ApplicationServices.GetRequiredService<BackOfficeAreaRoutes>();
+            backOfficeRoutes.CreateRoutes(app.EndpointRouteBuilder);
+
+            app.UseUmbracoRuntimeMinificationEndpoints();
+            app.UseUmbracoPreviewEndpoints();
+
             return app;
         }
-
-        BackOfficeAreaRoutes backOfficeRoutes = app.ApplicationServices.GetRequiredService<BackOfficeAreaRoutes>();
-        backOfficeRoutes.CreateRoutes(app.EndpointRouteBuilder);
-
-        app.UseUmbracoRuntimeMinificationEndpoints();
-        app.UseUmbracoPreviewEndpoints();
-
-        return app;
     }
 }

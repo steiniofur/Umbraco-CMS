@@ -1,9 +1,10 @@
-// Copyright (c) Umbraco.
+﻿// Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithIsApprovedBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    bool? IsApproved { get; set; }
+    public interface IWithIsApprovedBuilder
+    {
+        bool? IsApproved { get; set; }
+    }
 }

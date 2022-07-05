@@ -1,35 +1,36 @@
+using System;
 using Microsoft.Extensions.Options;
 
-namespace Umbraco.Cms.Web.BackOffice.Security;
-
-/// <summary>
-///     An external login (OAuth) provider for the back office
-/// </summary>
-public class BackOfficeExternalLoginProvider : IEquatable<BackOfficeExternalLoginProvider>
+namespace Umbraco.Cms.Web.BackOffice.Security
 {
-    public BackOfficeExternalLoginProvider(
-        string authenticationType,
-        IOptionsMonitor<BackOfficeExternalLoginProviderOptions> properties)
+    /// <summary>
+    /// An external login (OAuth) provider for the back office
+    /// </summary>
+    public class BackOfficeExternalLoginProvider : IEquatable<BackOfficeExternalLoginProvider>
     {
-        if (properties is null)
+        public BackOfficeExternalLoginProvider(
+            string authenticationType,
+            IOptionsMonitor<BackOfficeExternalLoginProviderOptions> properties)
         {
-            throw new ArgumentNullException(nameof(properties));
+            if (properties is null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            AuthenticationType = authenticationType ?? throw new ArgumentNullException(nameof(authenticationType));
+            Options = properties.Get(authenticationType);
         }
 
-        AuthenticationType = authenticationType ?? throw new ArgumentNullException(nameof(authenticationType));
-        Options = properties.Get(authenticationType);
+        /// <summary>
+        /// The authentication "Scheme"
+        /// </summary>
+        public string AuthenticationType { get; }
+
+        public BackOfficeExternalLoginProviderOptions Options { get; }
+
+        public override bool Equals(object? obj) => Equals(obj as BackOfficeExternalLoginProvider);
+        public bool Equals(BackOfficeExternalLoginProvider? other) => other != null && AuthenticationType == other.AuthenticationType;
+        public override int GetHashCode() => HashCode.Combine(AuthenticationType);
     }
 
-    /// <summary>
-    ///     The authentication "Scheme"
-    /// </summary>
-    public string AuthenticationType { get; }
-
-    public BackOfficeExternalLoginProviderOptions Options { get; }
-
-    public bool Equals(BackOfficeExternalLoginProvider? other) =>
-        other != null && AuthenticationType == other.AuthenticationType;
-
-    public override bool Equals(object? obj) => Equals(obj as BackOfficeExternalLoginProvider);
-    public override int GetHashCode() => HashCode.Combine(AuthenticationType);
 }

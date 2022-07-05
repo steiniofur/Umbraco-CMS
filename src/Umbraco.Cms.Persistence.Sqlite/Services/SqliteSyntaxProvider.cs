@@ -38,20 +38,6 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
             [typeof(Guid)] = new SqliteGuidScalarMapper(),
             [typeof(Guid?)] = new SqliteNullableGuidScalarMapper(),
         };
-
-        IntColumnDefinition = "INTEGER";
-        LongColumnDefinition = "INTEGER";
-        BoolColumnDefinition = "INTEGER";
-
-        GuidColumnDefinition = "TEXT";
-        DateTimeColumnDefinition = "TEXT";
-        DateTimeOffsetColumnDefinition = "TEXT";
-        TimeColumnDefinition = "TEXT";
-        DecimalColumnDefinition = "TEXT"; // REAL would be lossy. - https://docs.microsoft.com/en-us/dotnet/standard/data/sqlite/types
-
-        RealColumnDefinition = "REAL";
-
-        BlobColumnDefinition = "BLOB";
     }
 
     /// <inheritdoc />
@@ -68,11 +54,13 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
     /// <inheritdoc />
     public override string DbProvider => Constants.ProviderName;
 
+
     /// <inheritdoc />
     public override bool SupportsIdentityInsert() => false;
 
     /// <inheritdoc />
     public override bool SupportsClustered() => false;
+
 
     public override string GetIndexType(IndexTypes indexTypes)
     {
@@ -155,9 +143,7 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
 
 
     public override string ConvertIntegerToOrderableString => "substr('0000000000'||'{0}', -10, 10)";
-
     public override string ConvertDecimalToOrderableString => "substr('0000000000'||'{0}', -10, 10)";
-
     public override string ConvertDateToOrderableString => "{0}";
 
     /// <inheritdoc />
@@ -167,14 +153,16 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
     public override string GetSpecialDbType(SpecialDbType dbType, int customSize) => GetSpecialDbType(dbType);
 
     /// <inheritdoc />
-    public override bool TryGetDefaultConstraint(IDatabase db, string? tableName, string columnName, out string constraintName)
+    public override bool TryGetDefaultConstraint(IDatabase db, string? tableName, string columnName,
+        out string constraintName)
     {
         // TODO: SQLite
         constraintName = string.Empty;
         return false;
     }
 
-    public override string GetFieldNameForUpdate<TDto>(Expression<Func<TDto, object?>> fieldSelector, string? tableAlias = null)
+    public override string GetFieldNameForUpdate<TDto>(Expression<Func<TDto, object?>> fieldSelector,
+        string? tableAlias = null)
     {
         var field = ExpressionHelper.FindProperty(fieldSelector).Item1 as PropertyInfo;
         var fieldName = GetColumnName(field!);
@@ -254,12 +242,14 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
         return $"CONSTRAINT {constraintName} {constraintType} ({columns})";
     }
 
+
     /// <inheritdoc />
     public override Sql<ISqlContext> SelectTop(Sql<ISqlContext> sql, int top)
     {
         // SQLite uses LIMIT as opposed to TOP
         // SELECT TOP 5 * FROM My_Table
         // SELECT * FROM My_Table LIMIT 5;
+
         return sql.Append($"LIMIT {top}");
     }
 
@@ -274,7 +264,8 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
         return sb.ToString().TrimStart(',');
     }
 
-    public override void HandleCreateTable(IDatabase database, TableDefinition tableDefinition, bool skipKeysAndIndexes = false)
+    public override void HandleCreateTable(IDatabase database, TableDefinition tableDefinition,
+        bool skipKeysAndIndexes = false)
     {
         var columns = Format(tableDefinition.Columns);
         var primaryKey = FormatPrimaryKey(tableDefinition);
@@ -343,16 +334,17 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
         }
     }
 
+
     /// <inheritdoc />
     public override IEnumerable<Tuple<string, string, string>> GetConstraintsPerColumn(IDatabase db)
     {
-        IEnumerable<SqliteMaster> items = db.Fetch<SqliteMaster>("select * from sqlite_master where type = 'table'")
+        var items = db.Fetch<SqliteMaster>("select * from sqlite_master where type = 'table'")
             .Where(x => !x.Name.StartsWith("sqlite_"));
 
         List<Constraint> foundConstraints = new();
         foreach (SqliteMaster row in items)
         {
-            Match altPk = Regex.Match(row.Sql, @"CONSTRAINT (?<constraint>PK_\w+)\s.*UNIQUE \(""(?<field>.+?)""\)");
+            var altPk = Regex.Match(row.Sql, @"CONSTRAINT (?<constraint>PK_\w+)\s.*UNIQUE \(""(?<field>.+?)""\)");
             if (altPk.Success)
             {
                 var field = altPk.Groups["field"].Value;
@@ -361,14 +353,14 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
             }
             else
             {
-                Match identity = Regex.Match(row.Sql, @"""(?<field>.+)"".*AUTOINCREMENT");
+                var identity = Regex.Match(row.Sql, @"""(?<field>.+)"".*AUTOINCREMENT");
                 if (identity.Success)
                 {
                     foundConstraints.Add(new Constraint(row.Name, identity.Groups["field"].Value, $"PK_{row.Name}"));
                 }
             }
 
-            Match pk = Regex.Match(row.Sql, @"CONSTRAINT (?<constraint>\w+)\s.*PRIMARY KEY \(""(?<field>.+?)""\)");
+            var pk = Regex.Match(row.Sql, @"CONSTRAINT (?<constraint>\w+)\s.*PRIMARY KEY \(""(?<field>.+?)""\)");
             if (pk.Success)
             {
                 var field = pk.Groups["field"].Value;
@@ -377,9 +369,9 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
             }
 
             var fkRegex = new Regex(@"CONSTRAINT (?<constraint>\w+) FOREIGN KEY \(""(?<field>.+?)""\) REFERENCES");
-            IEnumerable<Match> foreignKeys = fkRegex.Matches(row.Sql).Cast<Match>();
+            var foreignKeys = fkRegex.Matches(row.Sql).Cast<Match>();
             {
-                foreach (Match fk in foreignKeys)
+                foreach (var fk in foreignKeys)
                 {
                     var field = fk.Groups["field"].Value;
                     var constraint = fk.Groups["constraint"].Value;
@@ -389,7 +381,8 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
         }
 
         // item.TableName, item.ColumnName, item.ConstraintName
-        return foundConstraints.Select(x => Tuple.Create(x.TableName, x.ColumnName, x.ConstraintName));
+        return foundConstraints
+            .Select(x => Tuple.Create(x.TableName, x.ColumnName, x.ConstraintName));
     }
 
     public override Sql<ISqlContext>.SqlJoinClause<ISqlContext> LeftJoinWithNestedJoin<TDto>(
@@ -442,20 +435,15 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
     private class SqliteMaster
     {
         public string Type { get; set; } = null!;
-
         public string Name { get; set; } = null!;
-
         public string Sql { get; set; } = null!;
     }
 
     private class IndexMeta
     {
         public string TableName { get; set; } = null!;
-
         public string IndexName { get; set; } = null!;
-
         public string ColumnName { get; set; } = null!;
-
         public bool IsUnique { get; set; }
     }
 }

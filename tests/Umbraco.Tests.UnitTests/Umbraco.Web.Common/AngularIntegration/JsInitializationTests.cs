@@ -1,22 +1,22 @@
-// Copyright (c) Umbraco.
+﻿// Copyright (c) Umbraco.
 // See LICENSE for more details.
 
 using NUnit.Framework;
 using Umbraco.Cms.Infrastructure.WebAssets;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.AngularIntegration;
-
-[TestFixture]
-public class JsInitializationTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.AngularIntegration
 {
-    [Test]
-    public void Parse_Main()
+    [TestFixture]
+    public class JsInitializationTests
     {
-        var result = BackOfficeJavaScriptInitializer.WriteScript("[World]", "Hello", "Blah");
+        [Test]
+        public void Parse_Main()
+        {
+            var result = BackOfficeJavaScriptInitializer.WriteScript("[World]", "Hello", "Blah");
 
-        Assert.AreEqual(
-            @"LazyLoad.js([World], function () {
+            Assert.AreEqual(
+                @"LazyLoad.js([World], function () {
     //we need to set the legacy UmbClientMgr path
     if ((typeof UmbClientMgr) !== ""undefined"") {
         UmbClientMgr.setUmbracoPath('Hello');
@@ -27,7 +27,7 @@ public class JsInitializationTests
         angular.bootstrap(document, ['Blah']);
 
     });
-});".StripWhitespace(),
-            result.StripWhitespace());
+});".StripWhitespace(), result.StripWhitespace());
+        }
     }
 }

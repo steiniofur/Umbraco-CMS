@@ -1,30 +1,37 @@
-namespace Umbraco.Cms.Infrastructure.PublishedCache.Snap;
+﻿using System;
+using System.Threading;
 
-internal class GenObj
+namespace Umbraco.Cms.Infrastructure.PublishedCache.Snap
 {
-    public readonly long Gen;
-    public readonly WeakReference WeakGenRef;
-    public int Count;
-
-    public GenObj(long gen)
+    internal class GenObj
     {
-        Gen = gen;
-        WeakGenRef = new WeakReference(null);
-    }
-
-    public GenRef GetGenRef()
-    {
-        // not thread-safe but always invoked from within a lock
-        var genRef = (GenRef?)WeakGenRef.Target;
-        if (genRef == null)
+        public GenObj(long gen)
         {
-            WeakGenRef.Target = genRef = new GenRef(this);
+            Gen = gen;
+            WeakGenRef = new WeakReference(null);
         }
 
-        return genRef;
+        public GenRef GetGenRef()
+        {
+            // not thread-safe but always invoked from within a lock
+            var genRef = (GenRef?)WeakGenRef.Target;
+            if (genRef == null)
+                WeakGenRef.Target = genRef = new GenRef(this);
+            return genRef;
+        }
+
+        public readonly long Gen;
+        public readonly WeakReference WeakGenRef;
+        public int Count;
+
+        public void Reference()
+        {
+            Interlocked.Increment(ref Count);
+        }
+
+        public void Release()
+        {
+            Interlocked.Decrement(ref Count);
+        }
     }
-
-    public void Reference() => Interlocked.Increment(ref Count);
-
-    public void Release() => Interlocked.Decrement(ref Count);
 }

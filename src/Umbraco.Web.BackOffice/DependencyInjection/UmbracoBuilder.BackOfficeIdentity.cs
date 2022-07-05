@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -15,77 +16,77 @@ using Umbraco.Cms.Web.BackOffice.Security;
 using Umbraco.Cms.Web.Common.AspNetCore;
 using Umbraco.Cms.Web.Common.Security;
 
-namespace Umbraco.Extensions;
-
-/// <summary>
-///     Extension methods for <see cref="IUmbracoBuilder" /> for the Umbraco back office
-/// </summary>
-public static partial class UmbracoBuilderExtensions
+namespace Umbraco.Extensions
 {
     /// <summary>
-    ///     Adds Identity support for Umbraco back office
+    /// Extension methods for <see cref="IUmbracoBuilder"/> for the Umbraco back office
     /// </summary>
-    public static IUmbracoBuilder AddBackOfficeIdentity(this IUmbracoBuilder builder)
+    public static partial class UmbracoBuilderExtensions
     {
-        IServiceCollection services = builder.Services;
+        /// <summary>
+        /// Adds Identity support for Umbraco back office
+        /// </summary>
+        public static IUmbracoBuilder AddBackOfficeIdentity(this IUmbracoBuilder builder)
+        {
+            IServiceCollection services = builder.Services;
 
-        services.AddDataProtection();
+            services.AddDataProtection();
 
-        builder.BuildUmbracoBackOfficeIdentity()
-            .AddDefaultTokenProviders()
-            .AddUserStore<IUserStore<BackOfficeIdentityUser>, BackOfficeUserStore>(factory => new BackOfficeUserStore(
-                factory.GetRequiredService<ICoreScopeProvider>(),
-                factory.GetRequiredService<IUserService>(),
-                factory.GetRequiredService<IEntityService>(),
-                factory.GetRequiredService<IExternalLoginWithKeyService>(),
-                factory.GetRequiredService<IOptionsSnapshot<GlobalSettings>>(),
-                factory.GetRequiredService<IUmbracoMapper>(),
-                factory.GetRequiredService<BackOfficeErrorDescriber>(),
-                factory.GetRequiredService<AppCaches>(),
-                factory.GetRequiredService<ITwoFactorLoginService>()
-            ))
-            .AddUserManager<IBackOfficeUserManager, BackOfficeUserManager>()
-            .AddSignInManager<IBackOfficeSignInManager, BackOfficeSignInManager>()
-            .AddClaimsPrincipalFactory<BackOfficeClaimsPrincipalFactory>()
-            .AddErrorDescriber<BackOfficeErrorDescriber>();
+            builder.BuildUmbracoBackOfficeIdentity()
+                .AddDefaultTokenProviders()
+                .AddUserStore<IUserStore<BackOfficeIdentityUser>, BackOfficeUserStore>(factory => new BackOfficeUserStore(
+                    factory.GetRequiredService<ICoreScopeProvider>(),
+                    factory.GetRequiredService<IUserService>(),
+                    factory.GetRequiredService<IEntityService>(),
+                    factory.GetRequiredService<IExternalLoginWithKeyService>(),
+                    factory.GetRequiredService<IOptionsSnapshot<GlobalSettings>>(),
+                    factory.GetRequiredService<IUmbracoMapper>(),
+                    factory.GetRequiredService<BackOfficeErrorDescriber>(),
+                    factory.GetRequiredService<AppCaches>(),
+                    factory.GetRequiredService<ITwoFactorLoginService>()
+                ))
+                .AddUserManager<IBackOfficeUserManager, BackOfficeUserManager>()
+                .AddSignInManager<IBackOfficeSignInManager, BackOfficeSignInManager>()
+                .AddClaimsPrincipalFactory<BackOfficeClaimsPrincipalFactory>()
+                .AddErrorDescriber<BackOfficeErrorDescriber>();
 
-        services.TryAddSingleton<IBackOfficeUserPasswordChecker, NoopBackOfficeUserPasswordChecker>();
+            services.TryAddSingleton<IBackOfficeUserPasswordChecker, NoopBackOfficeUserPasswordChecker>();
 
-        // Configure the options specifically for the UmbracoBackOfficeIdentityOptions instance
-        services.ConfigureOptions<ConfigureBackOfficeIdentityOptions>();
-        services.ConfigureOptions<ConfigureBackOfficeSecurityStampValidatorOptions>();
+            // Configure the options specifically for the UmbracoBackOfficeIdentityOptions instance
+            services.ConfigureOptions<ConfigureBackOfficeIdentityOptions>();
+            services.ConfigureOptions<ConfigureBackOfficeSecurityStampValidatorOptions>();
 
-        return builder;
-    }
+            return builder;
+        }
 
-    private static BackOfficeIdentityBuilder BuildUmbracoBackOfficeIdentity(this IUmbracoBuilder builder)
-    {
-        IServiceCollection services = builder.Services;
+        private static BackOfficeIdentityBuilder BuildUmbracoBackOfficeIdentity(this IUmbracoBuilder builder)
+        {
+            IServiceCollection services = builder.Services;
 
-        services.TryAddScoped<IIpResolver, AspNetCoreIpResolver>();
-        services.TryAddSingleton<IBackOfficeExternalLoginProviders, BackOfficeExternalLoginProviders>();
-        services.TryAddSingleton<IBackOfficeTwoFactorOptions, DefaultBackOfficeTwoFactorOptions>();
+            services.TryAddScoped<IIpResolver, AspNetCoreIpResolver>();
+            services.TryAddSingleton<IBackOfficeExternalLoginProviders, BackOfficeExternalLoginProviders>();
+            services.TryAddSingleton<IBackOfficeTwoFactorOptions, DefaultBackOfficeTwoFactorOptions>();
 
-        return new BackOfficeIdentityBuilder(services);
-    }
+            return new BackOfficeIdentityBuilder(services);
+        }
 
-    /// <summary>
-    ///     Adds support for external login providers in Umbraco
-    /// </summary>
-    public static IUmbracoBuilder AddBackOfficeExternalLogins(this IUmbracoBuilder umbracoBuilder,
-        Action<BackOfficeExternalLoginsBuilder> builder)
-    {
-        builder(new BackOfficeExternalLoginsBuilder(umbracoBuilder.Services));
-        return umbracoBuilder;
-    }
+        /// <summary>
+        /// Adds support for external login providers in Umbraco
+        /// </summary>
+        public static IUmbracoBuilder AddBackOfficeExternalLogins(this IUmbracoBuilder umbracoBuilder, Action<BackOfficeExternalLoginsBuilder> builder)
+        {
+            builder(new BackOfficeExternalLoginsBuilder(umbracoBuilder.Services));
+            return umbracoBuilder;
+        }
 
-    public static BackOfficeIdentityBuilder AddTwoFactorProvider<T>(this BackOfficeIdentityBuilder identityBuilder,
-        string providerName) where T : class, ITwoFactorProvider
-    {
-        identityBuilder.Services.AddSingleton<ITwoFactorProvider, T>();
-        identityBuilder.Services.AddSingleton<T>();
-        identityBuilder.AddTokenProvider<TwoFactorBackOfficeValidationProvider<T>>(providerName);
+        public static BackOfficeIdentityBuilder AddTwoFactorProvider<T>(this BackOfficeIdentityBuilder identityBuilder, string providerName) where T : class, ITwoFactorProvider
+        {
+            identityBuilder.Services.AddSingleton<ITwoFactorProvider, T>();
+            identityBuilder.Services.AddSingleton<T>();
+            identityBuilder.AddTokenProvider<TwoFactorBackOfficeValidationProvider<T>>(providerName);
 
-        return identityBuilder;
+            return identityBuilder;
+        }
+
     }
 }

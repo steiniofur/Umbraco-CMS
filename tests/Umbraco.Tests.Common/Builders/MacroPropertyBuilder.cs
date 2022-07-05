@@ -6,73 +6,74 @@ using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Tests.Common.Builders.Extensions;
 using Umbraco.Cms.Tests.Common.Builders.Interfaces;
 
-namespace Umbraco.Cms.Tests.Common.Builders;
-
-public class MacroPropertyBuilder
-    : ChildBuilderBase<MacroBuilder, IMacroProperty>,
-        IWithIdBuilder,
-        IWithKeyBuilder,
-        IWithAliasBuilder,
-        IWithNameBuilder,
-        IWithSortOrderBuilder
+namespace Umbraco.Cms.Tests.Common.Builders
 {
-    private string _alias;
-    private string _editorAlias;
-    private int? _id;
-    private Guid? _key;
-    private string _name;
-    private int? _sortOrder;
-
-    public MacroPropertyBuilder(MacroBuilder parentBuilder)
-        : base(parentBuilder)
+    public class MacroPropertyBuilder
+        : ChildBuilderBase<MacroBuilder, IMacroProperty>,
+            IWithIdBuilder,
+            IWithKeyBuilder,
+            IWithAliasBuilder,
+            IWithNameBuilder,
+            IWithSortOrderBuilder
     {
-    }
+        private int? _id;
+        private Guid? _key;
+        private string _alias;
+        private string _name;
+        private int? _sortOrder;
+        private string _editorAlias;
 
-    string IWithAliasBuilder.Alias
-    {
-        get => _alias;
-        set => _alias = value;
-    }
+        public MacroPropertyBuilder(MacroBuilder parentBuilder)
+            : base(parentBuilder)
+        {
+        }
 
-    int? IWithIdBuilder.Id
-    {
-        get => _id;
-        set => _id = value;
-    }
+        public MacroPropertyBuilder WithEditorAlias(string editorAlias)
+        {
+            _editorAlias = editorAlias;
+            return this;
+        }
 
-    Guid? IWithKeyBuilder.Key
-    {
-        get => _key;
-        set => _key = value;
-    }
+        public override IMacroProperty Build()
+        {
+            var id = _id ?? 1;
+            var name = _name ?? Guid.NewGuid().ToString();
+            var alias = _alias ?? name.ToCamelCase();
+            Guid key = _key ?? Guid.NewGuid();
+            var sortOrder = _sortOrder ?? 0;
+            var editorAlias = _editorAlias ?? string.Empty;
 
-    string IWithNameBuilder.Name
-    {
-        get => _name;
-        set => _name = value;
-    }
+            return new MacroProperty(id, key, alias, name, sortOrder, editorAlias);
+        }
 
-    int? IWithSortOrderBuilder.SortOrder
-    {
-        get => _sortOrder;
-        set => _sortOrder = value;
-    }
+        int? IWithIdBuilder.Id
+        {
+            get => _id;
+            set => _id = value;
+        }
 
-    public MacroPropertyBuilder WithEditorAlias(string editorAlias)
-    {
-        _editorAlias = editorAlias;
-        return this;
-    }
+        Guid? IWithKeyBuilder.Key
+        {
+            get => _key;
+            set => _key = value;
+        }
 
-    public override IMacroProperty Build()
-    {
-        var id = _id ?? 1;
-        var name = _name ?? Guid.NewGuid().ToString();
-        var alias = _alias ?? name.ToCamelCase();
-        var key = _key ?? Guid.NewGuid();
-        var sortOrder = _sortOrder ?? 0;
-        var editorAlias = _editorAlias ?? string.Empty;
+        string IWithAliasBuilder.Alias
+        {
+            get => _alias;
+            set => _alias = value;
+        }
 
-        return new MacroProperty(id, key, alias, name, sortOrder, editorAlias);
+        string IWithNameBuilder.Name
+        {
+            get => _name;
+            set => _name = value;
+        }
+
+        int? IWithSortOrderBuilder.SortOrder
+        {
+            get => _sortOrder;
+            set => _sortOrder = value;
+        }
     }
 }

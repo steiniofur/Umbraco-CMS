@@ -7,55 +7,62 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Trees;
 using Umbraco.Cms.Web.Common.Attributes;
 using Umbraco.Cms.Web.Common.Authorization;
+using Constants = Umbraco.Cms.Core.Constants;
 
-namespace Umbraco.Cms.Web.BackOffice.Trees;
-
-[Authorize(Policy = AuthorizationPolicies.TreeAccessUsers)]
-[Tree(Constants.Applications.Users, Constants.Trees.Users, SortOrder = 0, IsSingleNodeTree = true)]
-[PluginController(Constants.Web.Mvc.BackOfficeTreeArea)]
-[CoreTree]
-public class UserTreeController : TreeController
+namespace Umbraco.Cms.Web.BackOffice.Trees
 {
-    private readonly IMenuItemCollectionFactory _menuItemCollectionFactory;
-
-    public UserTreeController(
-        IMenuItemCollectionFactory menuItemCollectionFactory,
-        ILocalizedTextService localizedTextService,
-        UmbracoApiControllerTypeCollection umbracoApiControllerTypeCollection,
-        IEventAggregator eventAggregator
-    ) : base(localizedTextService, umbracoApiControllerTypeCollection, eventAggregator) =>
-        _menuItemCollectionFactory = menuItemCollectionFactory;
-
-    /// <summary>
-    ///     Helper method to create a root model for a tree
-    /// </summary>
-    /// <returns></returns>
-    protected override ActionResult<TreeNode?> CreateRootNode(FormCollection queryStrings)
+    [Authorize(Policy = AuthorizationPolicies.TreeAccessUsers)]
+    [Tree(Constants.Applications.Users, Constants.Trees.Users, SortOrder = 0, IsSingleNodeTree = true)]
+    [PluginController(Constants.Web.Mvc.BackOfficeTreeArea)]
+    [CoreTree]
+    public class UserTreeController : TreeController
     {
-        ActionResult<TreeNode?> rootResult = base.CreateRootNode(queryStrings);
-        if (!(rootResult.Result is null))
+        private readonly IMenuItemCollectionFactory _menuItemCollectionFactory;
+
+        public UserTreeController(
+            IMenuItemCollectionFactory menuItemCollectionFactory,
+            ILocalizedTextService localizedTextService,
+            UmbracoApiControllerTypeCollection umbracoApiControllerTypeCollection,
+            IEventAggregator eventAggregator
+            ) : base(localizedTextService, umbracoApiControllerTypeCollection, eventAggregator)
         {
-            return rootResult.Result;
+            _menuItemCollectionFactory = menuItemCollectionFactory;
         }
 
-        TreeNode? root = rootResult.Value;
-
-        if (root is not null)
+        /// <summary>
+        /// Helper method to create a root model for a tree
+        /// </summary>
+        /// <returns></returns>
+        protected override ActionResult<TreeNode?> CreateRootNode(FormCollection queryStrings)
         {
-            // this will load in a custom UI instead of the dashboard for the root node
-            root.RoutePath = $"{Constants.Applications.Users}/{Constants.Trees.Users}/users";
-            root.Icon = Constants.Icons.UserGroup;
-            root.HasChildren = false;
+            var rootResult = base.CreateRootNode(queryStrings);
+            if (!(rootResult.Result is null))
+            {
+                return rootResult.Result;
+            }
+            var root = rootResult.Value;
+
+            if (root is not null)
+            {
+                // this will load in a custom UI instead of the dashboard for the root node
+                root.RoutePath = $"{Constants.Applications.Users}/{Constants.Trees.Users}/users";
+                root.Icon = Constants.Icons.UserGroup;
+                root.HasChildren = false;
+            }
+
+            return root;
         }
 
-        return root;
+        protected override ActionResult<TreeNodeCollection> GetTreeNodes(string id, FormCollection queryStrings)
+        {
+            //full screen app without tree nodes
+            return TreeNodeCollection.Empty;
+        }
+
+        protected override ActionResult<MenuItemCollection> GetMenuForNode(string id, FormCollection queryStrings)
+        {
+            //doesn't have a menu, this is a full screen app without tree nodes
+            return _menuItemCollectionFactory.Create();
+        }
     }
-
-    protected override ActionResult<TreeNodeCollection> GetTreeNodes(string id, FormCollection queryStrings) =>
-        //full screen app without tree nodes
-        TreeNodeCollection.Empty;
-
-    protected override ActionResult<MenuItemCollection> GetMenuForNode(string id, FormCollection queryStrings) =>
-        //doesn't have a menu, this is a full screen app without tree nodes
-        _menuItemCollectionFactory.Create();
 }

@@ -1,9 +1,10 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithThumbnailBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    string Thumbnail { get; set; }
+    public interface IWithThumbnailBuilder
+    {
+        string Thumbnail { get; set; }
+    }
 }

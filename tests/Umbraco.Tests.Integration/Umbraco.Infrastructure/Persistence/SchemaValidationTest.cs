@@ -9,36 +9,30 @@ using Umbraco.Cms.Infrastructure.Migrations.Install;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence;
-
-[TestFixture]
-[UmbracoTest(Database = UmbracoTestOptions.Database.NewEmptyPerTest)]
-public class SchemaValidationTest : UmbracoIntegrationTest
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence
 {
-    private IUmbracoVersion UmbracoVersion => GetRequiredService<IUmbracoVersion>();
-
-    private IEventAggregator EventAggregator => GetRequiredService<IEventAggregator>();
-
-    [Test]
-    public void DatabaseSchemaCreation_Produces_DatabaseSchemaResult_With_Zero_Errors()
+    [TestFixture]
+    [UmbracoTest(Database = UmbracoTestOptions.Database.NewEmptyPerTest)]
+    public class SchemaValidationTest : UmbracoIntegrationTest
     {
-        DatabaseSchemaResult result;
+        private IUmbracoVersion UmbracoVersion => GetRequiredService<IUmbracoVersion>();
 
-        using (ScopeProvider.CreateScope(autoComplete: true))
+        private IEventAggregator EventAggregator => GetRequiredService<IEventAggregator>();
+
+        [Test]
+        public void DatabaseSchemaCreation_Produces_DatabaseSchemaResult_With_Zero_Errors()
         {
-            var schema = new DatabaseSchemaCreator(
-                ScopeAccessor.AmbientScope.Database,
-                LoggerFactory.CreateLogger<DatabaseSchemaCreator>(),
-                LoggerFactory,
-                UmbracoVersion,
-                EventAggregator,
-                Mock.Of<IOptionsMonitor<InstallDefaultDataSettings>>(x =>
-                    x.CurrentValue == new InstallDefaultDataSettings()));
-            schema.InitializeDatabaseSchema();
-            result = schema.ValidateSchema(DatabaseSchemaCreator._orderedTables);
-        }
+            DatabaseSchemaResult result;
 
-        // Assert
-        Assert.That(result.Errors.Count, Is.EqualTo(0));
+            using (ScopeProvider.CreateScope(autoComplete: true))
+            {
+                var schema = new DatabaseSchemaCreator(ScopeAccessor.AmbientScope.Database, LoggerFactory.CreateLogger<DatabaseSchemaCreator>(), LoggerFactory, UmbracoVersion, EventAggregator, Mock.Of<IOptionsMonitor<InstallDefaultDataSettings>>(x => x.CurrentValue == new InstallDefaultDataSettings()));
+                schema.InitializeDatabaseSchema();
+                result = schema.ValidateSchema(DatabaseSchemaCreator._orderedTables);
+            }
+
+            // Assert
+            Assert.That(result.Errors.Count, Is.EqualTo(0));
+        }
     }
 }

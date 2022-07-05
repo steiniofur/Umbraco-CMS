@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +30,7 @@ using Umbraco.Cms.Web.Common.Attributes;
 using Umbraco.Cms.Web.Common.DependencyInjection;
 using Umbraco.Cms.Web.Common.Models;
 using Umbraco.Extensions;
+using Language = Umbraco.Cms.Core.Models.ContentEditing.Language;
 
 namespace Umbraco.Cms.Web.BackOffice.Controllers
 {
@@ -157,7 +162,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                 {"features", new [] {"disabledFeatures"}}
             };
             //now do the filtering...
-            Dictionary<string, object> defaults = await GetServerVariablesAsync();
+            var defaults = await GetServerVariablesAsync();
             foreach (var key in defaults.Keys.ToArray())
             {
                 if (keepOnlyKeys.ContainsKey(key) == false)
@@ -197,7 +202,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
         /// <returns></returns>
         internal async Task<Dictionary<string, object>> GetServerVariablesAsync()
         {
-            GlobalSettings globalSettings = _globalSettings;
+            var globalSettings = _globalSettings;
             var backOfficeControllerName = ControllerExtensions.GetControllerName<BackOfficeController>();
             var defaultVals = new Dictionary<string, object>
             {
@@ -228,7 +233,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                         },
                         {
                             "embedApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<RteEmbedController>(
-                                controller => controller.GetEmbed(string.Empty, 0, 0))
+                                controller => controller.GetEmbed("", 0, 0))
                         },
                         {
                             "userApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<UsersController>(
@@ -256,7 +261,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                         },
                         {
                             "imagesApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<ImagesController>(
-                                controller => controller.GetBigThumbnail(string.Empty))
+                                controller => controller.GetBigThumbnail(""))
                         },
                         {
                             "sectionApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<SectionController>(
@@ -364,7 +369,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                         },
                         {
                             "tagsDataBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<TagsDataController>(
-                                controller => controller.GetTags(string.Empty, string.Empty, null))
+                                controller => controller.GetTags("", "", null))
                         },
                         {
                             "examineMgmtBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<ExamineManagementController>(
@@ -380,7 +385,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                         },
                         {
                             "codeFileApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<CodeFileController>(
-                                controller => controller.GetByPath(string.Empty, string.Empty))
+                                controller => controller.GetByPath("", ""))
                         },
                         {
                             "publishedStatusBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<PublishedStatusController>(
@@ -396,7 +401,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                         },
                         {
                             "helpApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<HelpController>(
-                                controller => controller.GetContextHelpForPage(string.Empty,string.Empty,string.Empty))
+                                controller => controller.GetContextHelpForPage("","",""))
                         },
                         {
                             "backOfficeAssetsApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<BackOfficeAssetsController>(
@@ -557,23 +562,19 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
             // do this instead
             // inheriting from TreeControllerBase and marked with TreeAttribute
 
-            foreach (Tree tree in _treeCollection)
+            foreach (var tree in _treeCollection)
             {
-                Type treeType = tree.TreeControllerType;
+                var treeType = tree.TreeControllerType;
 
                 // exclude anything marked with CoreTreeAttribute
-                CoreTreeAttribute? coreTree = treeType.GetCustomAttribute<CoreTreeAttribute>(false);
+                var coreTree = treeType.GetCustomAttribute<CoreTreeAttribute>(false);
                 if (coreTree != null)
-                {
                     continue;
-                }
 
                 // exclude anything not marked with PluginControllerAttribute
-                PluginControllerAttribute? pluginController = treeType.GetCustomAttribute<PluginControllerAttribute>(false);
+                var pluginController = treeType.GetCustomAttribute<PluginControllerAttribute>(false);
                 if (pluginController == null)
-                {
                     continue;
-                }
 
                 yield return new PluginTree { Alias = tree.TreeAlias, PackageFolder = pluginController.AreaName };
             }

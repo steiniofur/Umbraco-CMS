@@ -27,165 +27,158 @@ using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Infrastructure.Serialization;
 using Umbraco.Cms.Tests.Common.TestHelpers;
 using Umbraco.Extensions;
+using Constants = Umbraco.Cms.Core.Constants;
 
-namespace Umbraco.Cms.Tests.Common;
-
-/// <summary>
-///     Common helper properties and methods useful to testing
-/// </summary>
-public abstract class TestHelperBase
+namespace Umbraco.Cms.Tests.Common
 {
-    private readonly ITypeFinder _typeFinder;
-    private IIOHelper _ioHelper;
-    private UriUtility _uriUtility;
-    private string _workingDir;
-
-    protected TestHelperBase(Assembly entryAssembly)
-    {
-        MainDom = new SimpleMainDom();
-        _typeFinder = new TypeFinder(NullLoggerFactory.Instance.CreateLogger<TypeFinder>(), new DefaultUmbracoAssemblyProvider(entryAssembly, NullLoggerFactory.Instance));
-    }
-
     /// <summary>
-    ///     Gets the working directory of the test project.
+    /// Common helper properties and methods useful to testing
     /// </summary>
-    public string WorkingDirectory
+    public abstract class TestHelperBase
     {
-        get
+        private readonly ITypeFinder _typeFinder;
+        private UriUtility _uriUtility;
+        private IIOHelper _ioHelper;
+        private string _workingDir;
+
+        protected TestHelperBase(Assembly entryAssembly)
         {
-            if (_workingDir != null)
+            MainDom = new SimpleMainDom();
+            _typeFinder = new TypeFinder(NullLoggerFactory.Instance.CreateLogger<TypeFinder>(), new DefaultUmbracoAssemblyProvider(entryAssembly, NullLoggerFactory.Instance));
+        }
+
+        public ITypeFinder GetTypeFinder() => _typeFinder;
+
+        public TypeLoader GetMockedTypeLoader() =>
+            new TypeLoader(Mock.Of<ITypeFinder>(), new VaryingRuntimeHash(), Mock.Of<IAppPolicyCache>(), new DirectoryInfo(GetHostingEnvironment().MapPathContentRoot(Constants.SystemDirectories.TempData)), Mock.Of<ILogger<TypeLoader>>(), Mock.Of<IProfiler>());
+
+        /// <summary>
+        /// Gets the working directory of the test project.
+        /// </summary>
+        public string WorkingDirectory
+        {
+            get
             {
+                if (_workingDir != null)
+                {
+                    return _workingDir;
+                }
+
+                // Azure DevOps can only store a database in certain locations so we will need to detect if we are running
+                // on a build server and if so we'll use the temp path.
+                var dir = string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("System_DefaultWorkingDirectory"))
+                    ? Path.Combine(Assembly.GetExecutingAssembly().GetRootDirectorySafe(), "TEMP")
+                    : Path.Combine(Path.GetTempPath(), "UmbracoTests", "TEMP");
+
+                if (!Directory.Exists(dir))
+                {
+                    _ = Directory.CreateDirectory(dir);
+                }
+
+                _workingDir = dir;
                 return _workingDir;
             }
+        }
 
-            // Azure DevOps can only store a database in certain locations so we will need to detect if we are running
-            // on a build server and if so we'll use the temp path.
-            var dir = string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("System_DefaultWorkingDirectory"))
-                ? Path.Combine(Assembly.GetExecutingAssembly().GetRootDirectorySafe(), "TEMP")
-                : Path.Combine(Path.GetTempPath(), "UmbracoTests", "TEMP");
+        public IShortStringHelper ShortStringHelper { get; } = new DefaultShortStringHelper(new DefaultShortStringHelperConfig());
 
-            if (!Directory.Exists(dir))
+        public IJsonSerializer JsonSerializer { get; } = new JsonNetSerializer();
+
+        public IVariationContextAccessor VariationContextAccessor { get; } = new TestVariationContextAccessor();
+
+        public abstract IBulkSqlInsertProvider BulkSqlInsertProvider { get; }
+
+        public abstract IMarchal Marchal { get; }
+
+        public CoreDebugSettings CoreDebugSettings { get; } = new CoreDebugSettings();
+
+        public IIOHelper IOHelper
+        {
+            get
             {
-                _ = Directory.CreateDirectory(dir);
+                if (_ioHelper == null)
+                {
+                    IHostingEnvironment hostingEnvironment = GetHostingEnvironment();
+
+                    if (TestEnvironment.IsWindows)
+                    {
+                        _ioHelper = new IOHelperWindows(hostingEnvironment);
+                    }
+                    else if (TestEnvironment.IsLinux)
+                    {
+                        _ioHelper = new IOHelperLinux(hostingEnvironment);
+                    }
+                    else if (TestEnvironment.IsOSX)
+                    {
+                        _ioHelper = new IOHelperOSX(hostingEnvironment);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("Unexpected OS");
+                    }
+                }
+
+                return _ioHelper;
+            }
+        }
+
+        public IMainDom MainDom { get; }
+
+        public UriUtility UriUtility
+        {
+            get
+            {
+                if (_uriUtility == null)
+                {
+                    _uriUtility = new UriUtility(GetHostingEnvironment());
+                }
+
+                return _uriUtility;
+            }
+        }
+
+        /// <summary>
+        /// Some test files are copied to the /bin (/bin/debug) on build, this is a utility to return their physical path based on a virtual path name
+        /// </summary>
+        public virtual string MapPathForTestFiles(string relativePath)
+        {
+            if (!relativePath.StartsWith("~/"))
+            {
+                throw new ArgumentException("relativePath must start with '~/'", nameof(relativePath));
             }
 
-            _workingDir = dir;
-            return _workingDir;
+            var codeBase = typeof(TestHelperBase).Assembly.CodeBase;
+            var uri = new Uri(codeBase);
+            var path = uri.LocalPath;
+            var bin = Path.GetDirectoryName(path);
+
+            return relativePath.Replace("~/", bin + "/");
         }
-    }
 
-    public IShortStringHelper ShortStringHelper { get; } =
-        new DefaultShortStringHelper(new DefaultShortStringHelperConfig());
+        public IUmbracoVersion GetUmbracoVersion() => new UmbracoVersion();
 
-    public IJsonSerializer JsonSerializer { get; } = new JsonNetSerializer();
+        public IServiceCollection GetRegister() => new ServiceCollection();
 
-    public IVariationContextAccessor VariationContextAccessor { get; } = new TestVariationContextAccessor();
+        public abstract IHostingEnvironment GetHostingEnvironment();
 
-    public abstract IBulkSqlInsertProvider BulkSqlInsertProvider { get; }
+        public abstract IApplicationShutdownRegistry GetHostingEnvironmentLifetime();
 
-    public abstract IMarchal Marchal { get; }
+        public abstract IIpResolver GetIpResolver();
 
-    public CoreDebugSettings CoreDebugSettings { get; } = new();
+        public IRequestCache GetRequestCache() => new DictionaryAppCache();
 
-    public IIOHelper IOHelper
-    {
-        get
+        public IPublishedUrlProvider GetPublishedUrlProvider()
         {
-            if (_ioHelper == null)
-            {
-                var hostingEnvironment = GetHostingEnvironment();
+            var mock = new Mock<IPublishedUrlProvider>();
 
-                if (TestEnvironment.IsWindows)
-                {
-                    _ioHelper = new IOHelperWindows(hostingEnvironment);
-                }
-                else if (TestEnvironment.IsLinux)
-                {
-                    _ioHelper = new IOHelperLinux(hostingEnvironment);
-                }
-                else if (TestEnvironment.IsOSX)
-                {
-                    _ioHelper = new IOHelperOSX(hostingEnvironment);
-                }
-                else
-                {
-                    throw new NotSupportedException("Unexpected OS");
-                }
-            }
-
-            return _ioHelper;
+            return mock.Object;
         }
-    }
 
-    public IMainDom MainDom { get; }
-
-    public UriUtility UriUtility
-    {
-        get
+        public ILoggingConfiguration GetLoggingConfiguration(IHostingEnvironment hostingEnv = null)
         {
-            if (_uriUtility == null)
-            {
-                _uriUtility = new UriUtility(GetHostingEnvironment());
-            }
-
-            return _uriUtility;
+            hostingEnv = hostingEnv ?? GetHostingEnvironment();
+            return new LoggingConfiguration(
+                Path.Combine(hostingEnv.ApplicationPhysicalPath, "umbraco", "logs"));
         }
-    }
-
-    public ITypeFinder GetTypeFinder() => _typeFinder;
-
-    public TypeLoader GetMockedTypeLoader() =>
-        new(
-            Mock.Of<ITypeFinder>(),
-            new VaryingRuntimeHash(),
-            Mock.Of<IAppPolicyCache>(),
-            new DirectoryInfo(GetHostingEnvironment()
-                .MapPathContentRoot(Constants.SystemDirectories.TempData)),
-            Mock.Of<ILogger<TypeLoader>>(),
-            Mock.Of<IProfiler>());
-
-    /// <summary>
-    ///     Some test files are copied to the /bin (/bin/debug) on build, this is a utility to return their physical path based
-    ///     on a virtual path name
-    /// </summary>
-    public virtual string MapPathForTestFiles(string relativePath)
-    {
-        if (!relativePath.StartsWith("~/"))
-        {
-            throw new ArgumentException("relativePath must start with '~/'", nameof(relativePath));
-        }
-
-        var codeBase = typeof(TestHelperBase).Assembly.CodeBase;
-        var uri = new Uri(codeBase);
-        var path = uri.LocalPath;
-        var bin = Path.GetDirectoryName(path);
-
-        return relativePath.Replace("~/", bin + "/");
-    }
-
-    public IUmbracoVersion GetUmbracoVersion() => new UmbracoVersion();
-
-    public IServiceCollection GetRegister() => new ServiceCollection();
-
-    public abstract IHostingEnvironment GetHostingEnvironment();
-
-    public abstract IApplicationShutdownRegistry GetHostingEnvironmentLifetime();
-
-    public abstract IIpResolver GetIpResolver();
-
-    public IRequestCache GetRequestCache() => new DictionaryAppCache();
-
-    public IPublishedUrlProvider GetPublishedUrlProvider()
-    {
-        var mock = new Mock<IPublishedUrlProvider>();
-
-        return mock.Object;
-    }
-
-    public ILoggingConfiguration GetLoggingConfiguration(IHostingEnvironment hostingEnv = null)
-    {
-        hostingEnv ??= GetHostingEnvironment();
-        return new LoggingConfiguration(
-            Path.Combine(hostingEnv.ApplicationPhysicalPath, "umbraco", "logs"));
     }
 }

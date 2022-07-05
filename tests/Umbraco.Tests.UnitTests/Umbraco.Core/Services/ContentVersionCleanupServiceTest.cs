@@ -10,164 +10,158 @@ using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Persistence.Repositories;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.Implement;
 using Umbraco.Cms.Tests.UnitTests.AutoFixture;
 
-namespace Umbraco.Tests.Services;
-
-[TestFixture]
-internal class ContentVersionCleanupServiceTest
+namespace Umbraco.Tests.Services
 {
-    [Test]
-    [AutoMoqData]
-    public void PerformContentVersionCleanup_Always_RespectsDeleteRevisionsCancellation(
-        [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
-        [Frozen] Mock<IContentVersionCleanupPolicy> policy,
-        [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
-        List<ContentVersionMeta> someHistoricVersions,
-        DateTime aDateTime,
-        ContentVersionService sut)
+    [TestFixture]
+    internal class ContentVersionCleanupServiceTest
     {
-        documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
-            .Returns(someHistoricVersions);
-
-        eventAggregator.Setup(x => x.PublishCancelable(It.IsAny<ContentDeletingVersionsNotification>()))
-            .Returns(true);
-
-        policy.Setup(x => x.Apply(aDateTime, someHistoricVersions))
-            .Returns(someHistoricVersions);
-
-        // # Act
-        var report = sut.PerformContentVersionCleanup(aDateTime);
-
-        Assert.Multiple(() =>
+        [Test]
+        [AutoMoqData]
+        public void PerformContentVersionCleanup_Always_RespectsDeleteRevisionsCancellation(
+            [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
+            [Frozen] Mock<IContentVersionCleanupPolicy> policy,
+            [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
+            List<ContentVersionMeta> someHistoricVersions,
+            DateTime aDateTime,
+            ContentVersionService sut)
         {
-            eventAggregator.Verify(
-                x => x.PublishCancelable(
-                    It.IsAny<ContentDeletingVersionsNotification>()),
-                Times.Exactly(someHistoricVersions.Count));
-            Assert.AreEqual(0, report.Count);
-        });
-    }
+            documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
+                .Returns(someHistoricVersions);
 
-    [Test]
-    [AutoMoqData]
-    public void PerformContentVersionCleanup_Always_FiresDeletedVersionsForEachDeletedVersion(
-        [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
-        [Frozen] Mock<IContentVersionCleanupPolicy> policy,
-        [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
-        List<ContentVersionMeta> someHistoricVersions,
-        DateTime aDateTime,
-        ContentVersionService sut)
-    {
-        documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
-            .Returns(someHistoricVersions);
+            eventAggregator.Setup(x => x.PublishCancelable(It.IsAny<ContentDeletingVersionsNotification>()))
+                .Returns(true);
 
-        eventAggregator
-            .Setup(x => x.PublishCancelable(It.IsAny<ICancelableNotification>()))
-            .Returns(false);
+            policy.Setup(x => x.Apply(aDateTime, someHistoricVersions))
+                .Returns(someHistoricVersions);
 
-        policy.Setup(x => x.Apply(aDateTime, someHistoricVersions))
-            .Returns(someHistoricVersions);
+            // # Act
+            IReadOnlyCollection<ContentVersionMeta> report = sut.PerformContentVersionCleanup(aDateTime);
 
-        // # Act
-        sut.PerformContentVersionCleanup(aDateTime);
+            Assert.Multiple(() =>
+            {
+                eventAggregator.Verify(x => x.PublishCancelable(It.IsAny<ContentDeletingVersionsNotification>()), Times.Exactly(someHistoricVersions.Count));
+                Assert.AreEqual(0, report.Count);
+            });
+        }
 
-        eventAggregator.Verify(x => x.Publish(It.IsAny<ContentDeletedVersionsNotification>()), Times.Exactly(someHistoricVersions.Count));
-    }
-
-    [Test]
-    [AutoMoqData]
-    public void PerformContentVersionCleanup_Always_ReturnsReportOfDeletedItems(
-        [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
-        [Frozen] Mock<IContentVersionCleanupPolicy> policy,
-        [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
-        List<ContentVersionMeta> someHistoricVersions,
-        DateTime aDateTime,
-        ContentVersionService sut)
-    {
-        documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
-            .Returns(someHistoricVersions);
-
-        eventAggregator
-            .Setup(x => x.PublishCancelable(It.IsAny<ICancelableNotification>()))
-            .Returns(false);
-
-        // # Act
-        var report = sut.PerformContentVersionCleanup(aDateTime);
-
-        Assert.Multiple(() =>
+        [Test]
+        [AutoMoqData]
+        public void PerformContentVersionCleanup_Always_FiresDeletedVersionsForEachDeletedVersion(
+            [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
+            [Frozen] Mock<IContentVersionCleanupPolicy> policy,
+            [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
+            List<ContentVersionMeta> someHistoricVersions,
+            DateTime aDateTime,
+            ContentVersionService sut)
         {
-            Assert.Greater(report.Count, 0);
-            Assert.AreEqual(someHistoricVersions.Count, report.Count);
-        });
-    }
+            documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
+                .Returns(someHistoricVersions);
 
-    [Test]
-    [AutoMoqData]
-    public void PerformContentVersionCleanup_Always_AdheresToCleanupPolicy(
-        [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
-        [Frozen] Mock<IContentVersionCleanupPolicy> policy,
-        [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
-        List<ContentVersionMeta> someHistoricVersions,
-        DateTime aDateTime,
-        ContentVersionService sut)
-    {
-        documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
-            .Returns(someHistoricVersions);
+            eventAggregator
+                 .Setup(x => x.PublishCancelable(It.IsAny<ICancelableNotification>()))
+                 .Returns(false);
 
-        eventAggregator
-            .Setup(x => x.PublishCancelable(It.IsAny<ICancelableNotification>()))
-            .Returns(false);
+            policy.Setup(x => x.Apply(aDateTime, someHistoricVersions))
+                .Returns(someHistoricVersions);
 
-        policy.Setup(x => x.Apply(It.IsAny<DateTime>(), It.IsAny<IEnumerable<ContentVersionMeta>>()))
-            .Returns<DateTime, IEnumerable<ContentVersionMeta>>((_, items) => items.Take(1));
+            // # Act
+            sut.PerformContentVersionCleanup(aDateTime);
 
-        // # Act
-        var report = sut.PerformContentVersionCleanup(aDateTime);
+            eventAggregator.Verify(x => x.Publish(It.IsAny<ContentDeletedVersionsNotification>()), Times.Exactly(someHistoricVersions.Count));
+        }
 
-        Debug.Assert(someHistoricVersions.Count > 1);
-
-        Assert.Multiple(() =>
+        [Test, AutoMoqData]
+        public void PerformContentVersionCleanup_Always_ReturnsReportOfDeletedItems(
+            [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
+            [Frozen] Mock<IContentVersionCleanupPolicy> policy,
+            [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
+            List<ContentVersionMeta> someHistoricVersions,
+            DateTime aDateTime,
+            ContentVersionService sut)
         {
-            policy.Verify(x => x.Apply(aDateTime, someHistoricVersions), Times.Once);
-            Assert.AreEqual(someHistoricVersions.First(), report.Single());
-        });
-    }
+            documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
+                .Returns(someHistoricVersions);
 
-    /// <remarks>
-    ///     For v9 this just needs a rewrite, no static events, no service location etc
-    /// </remarks>
-    [Test]
-    [AutoMoqData]
-    public void PerformContentVersionCleanup_HasVersionsToDelete_CallsDeleteOnRepositoryWithFilteredSet(
-        [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
-        [Frozen] Mock<IContentVersionCleanupPolicy> policy,
-        [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
-        List<ContentVersionMeta> someHistoricVersions,
-        DateTime aDateTime,
-        ContentVersionService sut)
-    {
-        documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
-            .Returns(someHistoricVersions);
+            eventAggregator
+                .Setup(x => x.PublishCancelable(It.IsAny<ICancelableNotification>()))
+                .Returns(false);
 
-        eventAggregator
-            .Setup(x => x.PublishCancelable(It.IsAny<ICancelableNotification>()))
-            .Returns(false);
+            // # Act
+            var report = sut.PerformContentVersionCleanup(aDateTime);
 
-        var filteredSet = someHistoricVersions.Take(1);
+            Assert.Multiple(() =>
+            {
+                Assert.Greater(report.Count, 0);
+                Assert.AreEqual(someHistoricVersions.Count, report.Count);
+            });
+        }
 
-        policy.Setup(x => x.Apply(It.IsAny<DateTime>(), It.IsAny<IEnumerable<ContentVersionMeta>>()))
-            .Returns<DateTime, IEnumerable<ContentVersionMeta>>((_, items) => filteredSet);
+        [Test, AutoMoqData]
+        public void PerformContentVersionCleanup_Always_AdheresToCleanupPolicy(
+            [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
+            [Frozen] Mock<IContentVersionCleanupPolicy> policy,
+            [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
+            List<ContentVersionMeta> someHistoricVersions,
+            DateTime aDateTime,
+            ContentVersionService sut)
+        {
+            documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
+                .Returns(someHistoricVersions);
 
-        // # Act
-        sut.PerformContentVersionCleanup(aDateTime);
+            eventAggregator
+                .Setup(x => x.PublishCancelable(It.IsAny<ICancelableNotification>()))
+                .Returns(false);
 
-        Debug.Assert(someHistoricVersions.Any());
+            policy.Setup(x => x.Apply(It.IsAny<DateTime>(), It.IsAny<IEnumerable<ContentVersionMeta>>()))
+                .Returns<DateTime, IEnumerable<ContentVersionMeta>>((_, items) => items.Take(1));
 
-        var expectedId = filteredSet.First().VersionId;
+            // # Act
+            var report = sut.PerformContentVersionCleanup(aDateTime);
 
-        documentVersionRepository.Verify(
-            x => x.DeleteVersions(It.Is<IEnumerable<int>>(y => y.Single() == expectedId)),
-            Times.Once);
+            Debug.Assert(someHistoricVersions.Count > 1);
+
+            Assert.Multiple(() =>
+            {
+                policy.Verify(x => x.Apply(aDateTime, someHistoricVersions), Times.Once);
+                Assert.AreEqual(someHistoricVersions.First(), report.Single());
+            });
+        }
+
+        /// <remarks>
+        /// For v9 this just needs a rewrite, no static events, no service location etc
+        /// </remarks>
+        [Test, AutoMoqData]
+        public void PerformContentVersionCleanup_HasVersionsToDelete_CallsDeleteOnRepositoryWithFilteredSet(
+            [Frozen] Mock<IScopedNotificationPublisher> eventAggregator,
+            [Frozen] Mock<IContentVersionCleanupPolicy> policy,
+            [Frozen] Mock<IDocumentVersionRepository> documentVersionRepository,
+            List<ContentVersionMeta> someHistoricVersions,
+            DateTime aDateTime,
+            ContentVersionService sut)
+        {
+            documentVersionRepository.Setup(x => x.GetDocumentVersionsEligibleForCleanup())
+                .Returns(someHistoricVersions);
+
+            eventAggregator
+                .Setup(x => x.PublishCancelable(It.IsAny<ICancelableNotification>()))
+                .Returns(false);
+
+            var filteredSet = someHistoricVersions.Take(1);
+
+            policy.Setup(x => x.Apply(It.IsAny<DateTime>(), It.IsAny<IEnumerable<ContentVersionMeta>>()))
+                .Returns<DateTime, IEnumerable<ContentVersionMeta>>((_, items) => filteredSet);
+
+            // # Act
+            var report = sut.PerformContentVersionCleanup(aDateTime);
+
+            Debug.Assert(someHistoricVersions.Any());
+
+            var expectedId = filteredSet.First().VersionId;
+
+            documentVersionRepository.Verify(x => x.DeleteVersions(It.Is<IEnumerable<int>>(y => y.Single() == expectedId)), Times.Once);
+        }
     }
 }

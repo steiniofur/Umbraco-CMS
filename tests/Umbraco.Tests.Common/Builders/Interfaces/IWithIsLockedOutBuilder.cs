@@ -3,11 +3,12 @@
 
 using System;
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithIsLockedOutBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    bool? IsLockedOut { get; set; }
+    public interface IWithIsLockedOutBuilder
+    {
+        bool? IsLockedOut { get; set; }
 
-    DateTime? LastLockoutDate { get; set; }
+        DateTime? LastLockoutDate { get; set; }
+    }
 }

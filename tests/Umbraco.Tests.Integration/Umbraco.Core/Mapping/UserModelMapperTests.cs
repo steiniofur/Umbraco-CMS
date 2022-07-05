@@ -11,34 +11,35 @@ using Umbraco.Cms.Core.Models.Membership;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Core.Mapping;
-
-[TestFixture]
-[UmbracoTest(Mapper = true, Database = UmbracoTestOptions.Database.NewSchemaPerTest)]
-public class UserModelMapperTests : UmbracoIntegrationTest
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Core.Mapping
 {
-    [SetUp]
-    public void Setup() => _sut = Services.GetRequiredService<IUmbracoMapper>();
-
-    private IUmbracoMapper _sut;
-
-    [Test]
-    public void Map_UserGroupSave_To_IUserGroup()
+    [TestFixture]
+    [UmbracoTest(Mapper = true, Database = UmbracoTestOptions.Database.NewSchemaPerTest)]
+    public class UserModelMapperTests : UmbracoIntegrationTest
     {
-        IUserGroup userGroup =
-            new UserGroup(ShortStringHelper, 0, "alias", "name", new List<string> { "c" }, "icon") { Id = 42 };
+        private IUmbracoMapper _sut;
 
-        // userGroup.permissions is List`1[System.String]
+        [SetUp]
+        public void Setup() => _sut = Services.GetRequiredService<IUmbracoMapper>();
 
-        // userGroup.permissions is System.Linq.Enumerable+WhereSelectArrayIterator`2[System.Char, System.String]
-        // fixed: now List`1[System.String]
-        const string json =
-            "{\"id\":@@@ID@@@,\"alias\":\"perm1\",\"name\":\"Perm1\",\"icon\":\"icon-users\",\"sections\":[\"content\"],\"users\":[],\"defaultPermissions\":[\"F\",\"C\",\"A\"],\"assignedPermissions\":{},\"startContentId\":-1,\"startMediaId\":-1,\"action\":\"save\",\"parentId\":-1}";
-        var userGroupSave =
-            JsonConvert.DeserializeObject<UserGroupSave>(json.Replace("@@@ID@@@", userGroup.Id.ToString()));
+        [Test]
+        public void Map_UserGroupSave_To_IUserGroup()
+        {
+            IUserGroup userGroup = new UserGroup(ShortStringHelper, 0, "alias", "name", new List<string> { "c" }, "icon")
+            {
+                Id = 42
+            };
 
-        // failed, AutoMapper complained, "Unable to cast object of type 'WhereSelectArrayIterator`2[System.Char,System.String]' to type 'System.Collections.IList'".
-        // FIXME: added ToList() in UserGroupFactory
-        _sut.Map(userGroupSave, userGroup);
+            // userGroup.permissions is List`1[System.String]
+
+            // userGroup.permissions is System.Linq.Enumerable+WhereSelectArrayIterator`2[System.Char, System.String]
+            // fixed: now List`1[System.String]
+            const string json = "{\"id\":@@@ID@@@,\"alias\":\"perm1\",\"name\":\"Perm1\",\"icon\":\"icon-users\",\"sections\":[\"content\"],\"users\":[],\"defaultPermissions\":[\"F\",\"C\",\"A\"],\"assignedPermissions\":{},\"startContentId\":-1,\"startMediaId\":-1,\"action\":\"save\",\"parentId\":-1}";
+            UserGroupSave userGroupSave = JsonConvert.DeserializeObject<UserGroupSave>(json.Replace("@@@ID@@@", userGroup.Id.ToString()));
+
+            // failed, AutoMapper complained, "Unable to cast object of type 'WhereSelectArrayIterator`2[System.Char,System.String]' to type 'System.Collections.IList'".
+            // FIXME: added ToList() in UserGroupFactory
+            _sut.Map(userGroupSave, userGroup);
+        }
     }
 }

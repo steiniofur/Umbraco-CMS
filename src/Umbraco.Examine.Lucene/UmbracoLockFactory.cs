@@ -1,13 +1,15 @@
-// Copyright (c) Umbraco.
+﻿// Copyright (c) Umbraco.
 // See LICENSE for more details.
 
+using System.IO;
 using Examine.Lucene.Directories;
 using Lucene.Net.Store;
 
-namespace Umbraco.Cms.Infrastructure.Examine;
-
-public class UmbracoLockFactory : ILockFactory
+namespace Umbraco.Cms.Infrastructure.Examine
 {
-    public LockFactory GetLockFactory(DirectoryInfo directory)
-        => new NoPrefixSimpleFsLockFactory(directory);
+    public class UmbracoLockFactory : ILockFactory
+    {
+        public LockFactory GetLockFactory(DirectoryInfo directory)
+            => new NoPrefixSimpleFsLockFactory(directory);
+    }
 }

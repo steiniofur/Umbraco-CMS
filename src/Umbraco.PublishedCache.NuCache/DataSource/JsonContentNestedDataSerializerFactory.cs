@@ -1,8 +1,10 @@
-namespace Umbraco.Cms.Infrastructure.PublishedCache.DataSource;
+using System;
 
-internal class JsonContentNestedDataSerializerFactory : IContentCacheDataSerializerFactory
+namespace Umbraco.Cms.Infrastructure.PublishedCache.DataSource
 {
-    private readonly Lazy<JsonContentNestedDataSerializer> _serializer = new();
-
-    public IContentCacheDataSerializer Create(ContentCacheDataSerializerEntityType types) => _serializer.Value;
+    internal class JsonContentNestedDataSerializerFactory : IContentCacheDataSerializerFactory
+    {
+        private readonly Lazy<JsonContentNestedDataSerializer> _serializer = new Lazy<JsonContentNestedDataSerializer>();
+        public IContentCacheDataSerializer Create(ContentCacheDataSerializerEntityType types) => _serializer.Value;
+    }
 }

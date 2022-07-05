@@ -1,9 +1,10 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithSortOrderBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    int? SortOrder { get; set; }
+    public interface IWithSortOrderBuilder
+    {
+        int? SortOrder { get; set; }
+    }
 }

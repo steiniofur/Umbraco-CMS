@@ -1,3 +1,4 @@
+﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
@@ -6,66 +7,57 @@ using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 
-namespace Umbraco.Cms.Web.BackOffice.Filters;
-
-/// <summary>
-///     Validates the incoming <see cref="MemberSave" /> model
-/// </summary>
-internal sealed class MemberSaveValidationAttribute : TypeFilterAttribute
+namespace Umbraco.Cms.Web.BackOffice.Filters
 {
-    public MemberSaveValidationAttribute() : base(typeof(MemberSaveValidationFilter))
+    /// <summary>
+    /// Validates the incoming <see cref="MemberSave"/> model
+    /// </summary>
+    internal sealed class MemberSaveValidationAttribute : TypeFilterAttribute
     {
-    }
-
-    private sealed class MemberSaveValidationFilter : IActionFilter
-    {
-        private readonly IBackOfficeSecurityAccessor _backofficeSecurityAccessor;
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly IMemberService _memberService;
-        private readonly IMemberTypeService _memberTypeService;
-        private readonly IPropertyValidationService _propertyValidationService;
-        private readonly IShortStringHelper _shortStringHelper;
-
-        public MemberSaveValidationFilter(
-            ILoggerFactory loggerFactory,
-            IBackOfficeSecurityAccessor backofficeSecurityAccessor,
-            IMemberTypeService memberTypeService,
-            IMemberService memberService,
-            IShortStringHelper shortStringHelper,
-            IPropertyValidationService propertyValidationService)
+        public MemberSaveValidationAttribute() : base(typeof(MemberSaveValidationFilter))
         {
-            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-            _backofficeSecurityAccessor = backofficeSecurityAccessor ??
-                                          throw new ArgumentNullException(nameof(backofficeSecurityAccessor));
-            _memberTypeService = memberTypeService ?? throw new ArgumentNullException(nameof(memberTypeService));
-            _memberService = memberService ?? throw new ArgumentNullException(nameof(memberService));
-            _shortStringHelper = shortStringHelper ?? throw new ArgumentNullException(nameof(shortStringHelper));
-            _propertyValidationService = propertyValidationService ??
-                                         throw new ArgumentNullException(nameof(propertyValidationService));
+
         }
 
-        public void OnActionExecuting(ActionExecutingContext context)
+        private sealed class MemberSaveValidationFilter : IActionFilter
         {
-            var model = (MemberSave?)context.ActionArguments["contentItem"];
-            var contentItemValidator = new MemberSaveModelValidator(
-                _loggerFactory.CreateLogger<MemberSaveModelValidator>(),
-                _backofficeSecurityAccessor.BackOfficeSecurity,
-                _memberTypeService,
-                _memberService,
-                _shortStringHelper,
-                _propertyValidationService);
-            //now do each validation step
-            if (contentItemValidator.ValidateExistingContent(model, context))
+            private readonly ILoggerFactory _loggerFactory;
+            private readonly IBackOfficeSecurityAccessor _backofficeSecurityAccessor;
+            private readonly IMemberTypeService _memberTypeService;
+            private readonly IMemberService _memberService;
+            private readonly IShortStringHelper _shortStringHelper;
+            private readonly IPropertyValidationService _propertyValidationService;
+
+            public MemberSaveValidationFilter(
+                ILoggerFactory loggerFactory,
+                IBackOfficeSecurityAccessor backofficeSecurityAccessor,
+                IMemberTypeService memberTypeService,
+                IMemberService memberService,
+                IShortStringHelper shortStringHelper,
+                IPropertyValidationService propertyValidationService)
             {
-                if (contentItemValidator.ValidateProperties(model, model, context))
-                {
-                    contentItemValidator.ValidatePropertiesData(model, model, model?.PropertyCollectionDto, context.ModelState);
-                }
+                _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+                _backofficeSecurityAccessor = backofficeSecurityAccessor ?? throw new ArgumentNullException(nameof(backofficeSecurityAccessor));
+                _memberTypeService = memberTypeService ?? throw new ArgumentNullException(nameof(memberTypeService));
+                _memberService = memberService  ?? throw new ArgumentNullException(nameof(memberService));
+                _shortStringHelper = shortStringHelper ?? throw new ArgumentNullException(nameof(shortStringHelper));
+                _propertyValidationService = propertyValidationService ?? throw new ArgumentNullException(nameof(propertyValidationService));
             }
-        }
 
-        public void OnActionExecuted(ActionExecutedContext context)
-        {
+            public void OnActionExecuting(ActionExecutingContext context)
+            {
+                var model = (MemberSave?)context.ActionArguments["contentItem"];
+                var contentItemValidator = new MemberSaveModelValidator(_loggerFactory.CreateLogger<MemberSaveModelValidator>(), _backofficeSecurityAccessor.BackOfficeSecurity, _memberTypeService, _memberService, _shortStringHelper, _propertyValidationService);
+                //now do each validation step
+                if (contentItemValidator.ValidateExistingContent(model, context))
+                    if (contentItemValidator.ValidateProperties(model, model, context))
+                        contentItemValidator.ValidatePropertiesData(model, model, model?.PropertyCollectionDto, context.ModelState);
+            }
+
+            public void OnActionExecuted(ActionExecutedContext context)
+            {
+            }
+
         }
     }
 }

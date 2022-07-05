@@ -1,55 +1,51 @@
+﻿using System.Collections.Generic;
+using System.Linq;
 using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Routing;
 
-namespace Umbraco.Cms.Infrastructure.PublishedCache;
-
-/// <summary>
-///     Implements <see cref="IDomainCache" /> for NuCache.
-/// </summary>
-public class DomainCache : IDomainCache
+namespace Umbraco.Cms.Infrastructure.PublishedCache
 {
-    private readonly SnapDictionary<int, Domain>.Snapshot _snapshot;
-
     /// <summary>
-    ///     Initializes a new instance of the <see cref="DomainCache" /> class.
+    /// Implements <see cref="IDomainCache"/> for NuCache.
     /// </summary>
-    public DomainCache(SnapDictionary<int, Domain>.Snapshot snapshot, string defaultCulture)
+    public class DomainCache : IDomainCache
     {
-        _snapshot = snapshot;
-        DefaultCulture = defaultCulture;
-    }
+        private readonly SnapDictionary<int, Domain>.Snapshot _snapshot;
 
-    /// <inheritdoc />
-    public string DefaultCulture { get; }
-
-    /// <inheritdoc />
-    public IEnumerable<Domain> GetAll(bool includeWildcards)
-    {
-        IEnumerable<Domain> list = _snapshot.GetAll();
-        if (includeWildcards == false)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DomainCache"/> class.
+        /// </summary>
+        public DomainCache(SnapDictionary<int, Domain>.Snapshot snapshot, string defaultCulture)
         {
-            list = list.Where(x => x.IsWildcard == false);
+            _snapshot = snapshot;
+            DefaultCulture = defaultCulture;
         }
 
-        return list;
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<Domain> GetAssigned(int documentId, bool includeWildcards = false)
-    {
-        // probably this could be optimized with an index
-        // but then we'd need a custom DomainStore of some sort
-        IEnumerable<Domain> list = _snapshot.GetAll();
-        list = list.Where(x => x.ContentId == documentId);
-        if (includeWildcards == false)
+        /// <inheritdoc />
+        public IEnumerable<Domain> GetAll(bool includeWildcards)
         {
-            list = list.Where(x => x.IsWildcard == false);
+            var list = _snapshot.GetAll();
+            if (includeWildcards == false) list = list.Where(x => x.IsWildcard == false);
+            return list;
         }
 
-        return list;
-    }
+        /// <inheritdoc />
+        public IEnumerable<Domain> GetAssigned(int documentId, bool includeWildcards = false)
+        {
+            // probably this could be optimized with an index
+            // but then we'd need a custom DomainStore of some sort
 
-    /// <inheritdoc />
-    public bool HasAssigned(int documentId, bool includeWildcards = false)
-        => documentId > 0 && GetAssigned(documentId, includeWildcards).Any();
+            var list = _snapshot.GetAll();
+            list = list.Where(x => x.ContentId == documentId);
+            if (includeWildcards == false) list = list.Where(x => x.IsWildcard == false);
+            return list;
+        }
+
+        /// <inheritdoc />
+        public bool HasAssigned(int documentId, bool includeWildcards = false)
+            => documentId > 0 && GetAssigned(documentId, includeWildcards).Any();
+
+        /// <inheritdoc />
+        public string DefaultCulture { get; }
+    }
 }

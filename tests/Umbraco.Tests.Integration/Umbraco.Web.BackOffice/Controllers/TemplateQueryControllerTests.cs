@@ -2,6 +2,7 @@
 // See LICENSE for more details.
 
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,38 +14,39 @@ using Umbraco.Cms.Web.BackOffice.Controllers;
 using Umbraco.Cms.Web.Common.Formatters;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Web.BackOffice.Controllers;
-
-[TestFixture]
-public class TemplateQueryControllerTests : UmbracoTestServerTestBase
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Web.BackOffice.Controllers
 {
-    [Test]
-    public async Task GetContentTypes__Ensure_camel_case()
+    [TestFixture]
+    public class TemplateQueryControllerTests : UmbracoTestServerTestBase
     {
-        var url = PrepareApiControllerUrl<TemplateQueryController>(x => x.GetContentTypes());
-
-        // Act
-        var response = await Client.GetAsync(url);
-
-        var body = await response.Content.ReadAsStringAsync();
-
-        body = body.TrimStart(AngularJsonMediaTypeFormatter.XsrfPrefix);
-
-        // Assert
-        Assert.Multiple(() =>
+        [Test]
+        public async Task GetContentTypes__Ensure_camel_case()
         {
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            string url = PrepareApiControllerUrl<TemplateQueryController>(x => x.GetContentTypes());
 
-            Assert.DoesNotThrow(() => JsonConvert.DeserializeObject<ContentTypeModel[]>(body));
+            // Act
+            HttpResponseMessage response = await Client.GetAsync(url);
 
-            var jtokens = JsonConvert.DeserializeObject<JToken[]>(body);
-            foreach (var jToken in jtokens)
+            string body = await response.Content.ReadAsStringAsync();
+
+            body = body.TrimStart(AngularJsonMediaTypeFormatter.XsrfPrefix);
+
+            // Assert
+            Assert.Multiple(() =>
             {
-                var alias = nameof(ContentTypeModel.Alias);
-                var camelCaseAlias = alias.ToCamelCase();
-                Assert.IsNotNull(jToken.Value<string>(camelCaseAlias), $"'{jToken}' do not contain the key '{camelCaseAlias}' in the expected casing");
-                Assert.IsNull(jToken.Value<string>(alias), $"'{jToken}' do contain the key '{alias}', which was not expect in that casing");
-            }
-        });
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+                Assert.DoesNotThrow(() => JsonConvert.DeserializeObject<ContentTypeModel[]>(body));
+
+                JToken[] jtokens = JsonConvert.DeserializeObject<JToken[]>(body);
+                foreach (JToken jToken in jtokens)
+                {
+                    string alias = nameof(ContentTypeModel.Alias);
+                    string camelCaseAlias = alias.ToCamelCase();
+                    Assert.IsNotNull(jToken.Value<string>(camelCaseAlias), $"'{jToken}' do not contain the key '{camelCaseAlias}' in the expected casing");
+                    Assert.IsNull(jToken.Value<string>(alias), $"'{jToken}' do contain the key '{alias}', which was not expect in that casing");
+                }
+            });
+        }
     }
 }

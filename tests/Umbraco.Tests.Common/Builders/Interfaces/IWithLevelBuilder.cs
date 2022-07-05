@@ -1,9 +1,10 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithLevelBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    int? Level { get; set; }
+    public interface IWithLevelBuilder
+    {
+        int? Level { get; set; }
+    }
 }

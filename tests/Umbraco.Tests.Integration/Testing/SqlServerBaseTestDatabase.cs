@@ -16,6 +16,7 @@ namespace Umbraco.Cms.Tests.Integration.Testing;
 
 public abstract class SqlServerBaseTestDatabase : BaseTestDatabase
 {
+
     protected UmbracoDatabase.CommandInfo[] _cachedDatabaseInitCommands = new UmbracoDatabase.CommandInfo[0];
 
     protected override void ResetTestDatabase(TestDbMeta meta)
@@ -57,11 +58,12 @@ public abstract class SqlServerBaseTestDatabase : BaseTestDatabase
         command.CommandText = sql;
         command.Parameters.Clear();
 
-        for (var i = 0; i < args.Length; i++)
+        for (int i = 0; i < args.Length; i++)
         {
             command.Parameters.AddWithValue("@" + i, args[i]);
         }
     }
+
 
 
     protected override DbConnection GetConnection(TestDbMeta meta) => new SqlConnection(meta.ConnectionString);
@@ -77,12 +79,12 @@ public abstract class SqlServerBaseTestDatabase : BaseTestDatabase
             }
         }
 
-        foreach (var dbCommand in _cachedDatabaseInitCommands)
+        foreach (UmbracoDatabase.CommandInfo dbCommand in _cachedDatabaseInitCommands)
         {
             command.CommandText = dbCommand.Text;
             command.Parameters.Clear();
 
-            foreach (var parameterInfo in dbCommand.Parameters)
+            foreach (UmbracoDatabase.ParameterInfo parameterInfo in dbCommand.Parameters)
             {
                 AddParameter(command, parameterInfo);
             }
@@ -99,16 +101,13 @@ public abstract class SqlServerBaseTestDatabase : BaseTestDatabase
         {
             database.LogCommands = true;
 
-            using (var transaction = database.GetTransaction())
+            using (NPoco.ITransaction transaction = database.GetTransaction())
             {
-                var options =
-                    new TestOptionsMonitor<InstallDefaultDataSettings>(
-                        new InstallDefaultDataSettings { InstallData = InstallDefaultDataOption.All });
+                var options = new TestOptionsMonitor<InstallDefaultDataSettings>(new InstallDefaultDataSettings { InstallData = InstallDefaultDataOption.All });
 
                 var schemaCreator = new DatabaseSchemaCreator(
                     database,
-                    _loggerFactory.CreateLogger<DatabaseSchemaCreator>(),
-                    _loggerFactory,
+                    _loggerFactory.CreateLogger<DatabaseSchemaCreator>(), _loggerFactory,
                     new UmbracoVersion(),
                     Mock.Of<IEventAggregator>(),
                     options);

@@ -3,17 +3,18 @@
 
 using Umbraco.Cms.Core.PublishedCache;
 
-namespace Umbraco.Cms.Tests.Common;
-
-public class TestPublishedSnapshotAccessor : IPublishedSnapshotAccessor
+namespace Umbraco.Cms.Tests.Common
 {
-    private IPublishedSnapshot _snapshot;
-
-    public bool TryGetPublishedSnapshot(out IPublishedSnapshot publishedSnapshot)
+    public class TestPublishedSnapshotAccessor : IPublishedSnapshotAccessor
     {
-        publishedSnapshot = _snapshot;
-        return _snapshot != null;
-    }
+        private IPublishedSnapshot _snapshot = null;
 
-    public void SetCurrent(IPublishedSnapshot snapshot) => _snapshot = snapshot;
+        public bool TryGetPublishedSnapshot(out IPublishedSnapshot publishedSnapshot)
+        {
+            publishedSnapshot = _snapshot;
+            return _snapshot != null;
+        }
+
+        public void SetCurrent(IPublishedSnapshot snapshot) => _snapshot = snapshot;
+    }
 }

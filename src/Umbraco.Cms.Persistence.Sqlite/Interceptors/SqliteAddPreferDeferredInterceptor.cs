@@ -8,6 +8,5 @@ namespace Umbraco.Cms.Persistence.Sqlite.Interceptors;
 public class SqliteAddPreferDeferredInterceptor : SqliteConnectionInterceptor
 {
     public override DbConnection OnConnectionOpened(IDatabase database, DbConnection conn)
-        => new SqlitePreferDeferredTransactionsConnection(conn as SqliteConnection ??
-                                                          throw new InvalidOperationException());
+        => new SqlitePreferDeferredTransactionsConnection(conn as SqliteConnection ?? throw new InvalidOperationException());
 }

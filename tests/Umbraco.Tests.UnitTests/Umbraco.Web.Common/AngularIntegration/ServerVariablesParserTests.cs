@@ -6,36 +6,38 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.WebAssets;
 using Umbraco.Cms.Infrastructure.WebAssets;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.AngularIntegration;
-
-[TestFixture]
-public class ServerVariablesParserTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.AngularIntegration
 {
-    [Test]
-    public async Task Parse()
+    [TestFixture]
+    public class ServerVariablesParserTests
     {
-        var parser = new ServerVariablesParser(Mock.Of<IEventAggregator>());
-
-        var d = new Dictionary<string, object>
+        [Test]
+        public async Task Parse()
         {
-            { "test1", "Test 1" },
-            { "test2", "Test 2" },
-            { "test3", "Test 3" },
-            { "test4", "Test 4" },
-            { "test5", "Test 5" },
-        };
+            var parser = new ServerVariablesParser(Mock.Of<IEventAggregator>());
 
-        var output = (await parser.ParseAsync(d)).StripWhitespace();
+            var d = new Dictionary<string, object>
+            {
+                { "test1", "Test 1" },
+                { "test2", "Test 2" },
+                { "test3", "Test 3" },
+                { "test4", "Test 4" },
+                { "test5", "Test 5" }
+            };
 
-        Assert.IsTrue(output.Contains(@"Umbraco.Sys.ServerVariables = {
+            var output = (await parser.ParseAsync(d)).StripWhitespace();
+
+            Assert.IsTrue(output.Contains(@"Umbraco.Sys.ServerVariables = {
   ""test1"": ""Test 1"",
   ""test2"": ""Test 2"",
   ""test3"": ""Test 3"",
   ""test4"": ""Test 4"",
   ""test5"": ""Test 5""
 } ;".StripWhitespace()));
+        }
     }
 }

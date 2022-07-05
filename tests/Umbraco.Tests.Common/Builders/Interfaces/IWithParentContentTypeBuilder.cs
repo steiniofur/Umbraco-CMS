@@ -3,9 +3,10 @@
 
 using Umbraco.Cms.Core.Models;
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithParentContentTypeBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    IContentTypeComposition Parent { get; set; }
+    public interface IWithParentContentTypeBuilder
+    {
+        IContentTypeComposition Parent { get; set; }
+    }
 }

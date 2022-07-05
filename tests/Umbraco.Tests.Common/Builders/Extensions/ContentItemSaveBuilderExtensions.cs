@@ -3,49 +3,50 @@
 
 using Umbraco.Cms.Core.Models;
 
-namespace Umbraco.Cms.Tests.Common.Builders.Extensions;
-
-public static class ContentItemSaveBuilderExtensions
+namespace Umbraco.Cms.Tests.Common.Builders.Extensions
 {
-    public static ContentItemSaveBuilder WithContent(this ContentItemSaveBuilder builder, IContent content)
+    public static class ContentItemSaveBuilderExtensions
     {
-        builder.WithId(content.Id);
-        builder.WithContentTypeAlias(content.ContentType.Alias);
-
-        if (content.CultureInfos.Count == 0)
+        public static ContentItemSaveBuilder WithContent(this ContentItemSaveBuilder builder, IContent content)
         {
-            var variantBuilder = builder.AddVariant();
-            variantBuilder.WithName(content.Name);
+            builder.WithId(content.Id);
+            builder.WithContentTypeAlias(content.ContentType.Alias);
 
-            foreach (var contentProperty in content.Properties)
+            if (content.CultureInfos.Count == 0)
             {
-                AddInvariantProperty(variantBuilder, contentProperty);
-            }
-        }
-        else
-        {
-            foreach (var contentCultureInfos in content.CultureInfos)
-            {
-                var variantBuilder = builder.AddVariant();
+                ContentVariantSaveBuilder<ContentItemSaveBuilder> variantBuilder = builder.AddVariant();
+                variantBuilder.WithName(content.Name);
 
-                variantBuilder.WithName(contentCultureInfos.Name);
-                variantBuilder.WithCultureInfo(contentCultureInfos.Culture);
-
-                foreach (var contentProperty in content.Properties)
+                foreach (IProperty contentProperty in content.Properties)
                 {
                     AddInvariantProperty(variantBuilder, contentProperty);
                 }
             }
+            else
+            {
+                foreach (ContentCultureInfos contentCultureInfos in content.CultureInfos)
+                {
+                    ContentVariantSaveBuilder<ContentItemSaveBuilder> variantBuilder = builder.AddVariant();
+
+                    variantBuilder.WithName(contentCultureInfos.Name);
+                    variantBuilder.WithCultureInfo(contentCultureInfos.Culture);
+
+                    foreach (IProperty contentProperty in content.Properties)
+                    {
+                        AddInvariantProperty(variantBuilder, contentProperty);
+                    }
+                }
+            }
+
+            return builder;
         }
 
-        return builder;
+        private static void AddInvariantProperty(ContentVariantSaveBuilder<ContentItemSaveBuilder> variantBuilder, IProperty contentProperty) =>
+            variantBuilder
+                .AddProperty()
+                .WithId(contentProperty.Id)
+                .WithAlias(contentProperty.Alias)
+                .WithValue(contentProperty.GetValue())
+                .Done();
     }
-
-    private static void AddInvariantProperty(ContentVariantSaveBuilder<ContentItemSaveBuilder> variantBuilder, IProperty contentProperty) =>
-        variantBuilder
-            .AddProperty()
-            .WithId(contentProperty.Id)
-            .WithAlias(contentProperty.Alias)
-            .WithValue(contentProperty.GetValue())
-            .Done();
 }

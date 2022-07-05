@@ -3,19 +3,20 @@ using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Mapping;
 using Umbraco.Cms.Web.BackOffice.Mapping;
 
-namespace Umbraco.Extensions;
-
-public static class WebMappingProfiles
+namespace Umbraco.Extensions
 {
-    public static IUmbracoBuilder AddWebMappingProfiles(this IUmbracoBuilder builder)
+    public static class WebMappingProfiles
     {
-        builder.WithCollectionBuilder<MapDefinitionCollectionBuilder>()
-            .Add<ContentMapDefinition>()
-            .Add<MediaMapDefinition>()
-            .Add<MemberMapDefinition>();
+        public static IUmbracoBuilder AddWebMappingProfiles(this IUmbracoBuilder builder)
+        {
+            builder.WithCollectionBuilder<MapDefinitionCollectionBuilder>()
+                .Add<ContentMapDefinition>()
+                .Add<MediaMapDefinition>()
+                .Add<MemberMapDefinition>();
 
-        builder.Services.AddTransient<CommonTreeNodeMapper>();
+            builder.Services.AddTransient<CommonTreeNodeMapper>();
 
-        return builder;
+            return builder;
+        }
     }
 }

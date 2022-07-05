@@ -1,30 +1,36 @@
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
-namespace Umbraco.Cms.Web.BackOffice.Controllers;
-
-public class AnalyticsController : UmbracoAuthorizedJsonController
+namespace Umbraco.Cms.Web.BackOffice.Controllers
 {
-    private readonly IMetricsConsentService _metricsConsentService;
-
-    public AnalyticsController(IMetricsConsentService metricsConsentService) =>
-        _metricsConsentService = metricsConsentService;
-
-    public TelemetryLevel GetConsentLevel() => _metricsConsentService.GetConsentLevel();
-
-    [HttpPost]
-    public IActionResult SetConsentLevel([FromBody] TelemetryResource telemetryResource)
+    public class AnalyticsController : UmbracoAuthorizedJsonController
     {
-        if (!ModelState.IsValid)
+        private readonly IMetricsConsentService _metricsConsentService;
+        public AnalyticsController(IMetricsConsentService metricsConsentService)
         {
-            return BadRequest();
+            _metricsConsentService = metricsConsentService;
         }
 
-        _metricsConsentService.SetConsentLevel(telemetryResource.TelemetryLevel);
-        return Ok();
-    }
+        public TelemetryLevel GetConsentLevel()
+        {
+            return _metricsConsentService.GetConsentLevel();
+        }
 
-    public IEnumerable<TelemetryLevel> GetAllLevels() =>
-        new[] { TelemetryLevel.Minimal, TelemetryLevel.Basic, TelemetryLevel.Detailed };
+        [HttpPost]
+        public IActionResult SetConsentLevel([FromBody]TelemetryResource telemetryResource)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            _metricsConsentService.SetConsentLevel(telemetryResource.TelemetryLevel);
+            return Ok();
+        }
+
+        public IEnumerable<TelemetryLevel> GetAllLevels() => new[] { TelemetryLevel.Minimal, TelemetryLevel.Basic, TelemetryLevel.Detailed };
+    }
 }

@@ -8,106 +8,108 @@ using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Routing;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Routing;
-
-// FIXME: not testing virtual directory!
-[TestFixture]
-public class UriUtilityTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Routing
 {
-    // test normal urls
-    [TestCase("http://LocalHost/", "http://localhost/")]
-    [TestCase("http://LocalHost/?x=y", "http://localhost/?x=y")]
-    [TestCase("http://LocalHost/Home", "http://localhost/home")]
-    [TestCase("http://LocalHost/Home?x=y", "http://localhost/home?x=y")]
-    [TestCase("http://LocalHost/Home/Sub1", "http://localhost/home/sub1")]
-    [TestCase("http://LocalHost/Home/Sub1?x=y", "http://localhost/home/sub1?x=y")]
+    // FIXME: not testing virtual directory!
 
-    // test that the trailing slash goes but not on hostname
-    [TestCase("http://LocalHost/", "http://localhost/")]
-    [TestCase("http://LocalHost/Home/", "http://localhost/home")]
-    [TestCase("http://LocalHost/Home/?x=y", "http://localhost/home?x=y")]
-    [TestCase("http://LocalHost/Home/Sub1/", "http://localhost/home/sub1")]
-    [TestCase("http://LocalHost/Home/Sub1/?x=y", "http://localhost/home/sub1?x=y")]
-    public void Uri_To_Umbraco(string sourceUrl, string expectedUrl)
+    [TestFixture]
+    public class UriUtilityTests
     {
-        // Arrange
-        var sourceUri = new Uri(sourceUrl);
-        var uriUtility = BuildUriUtility("/");
+        // test normal urls
+        [TestCase("http://LocalHost/", "http://localhost/")]
+        [TestCase("http://LocalHost/?x=y", "http://localhost/?x=y")]
+        [TestCase("http://LocalHost/Home", "http://localhost/home")]
+        [TestCase("http://LocalHost/Home?x=y", "http://localhost/home?x=y")]
+        [TestCase("http://LocalHost/Home/Sub1", "http://localhost/home/sub1")]
+        [TestCase("http://LocalHost/Home/Sub1?x=y", "http://localhost/home/sub1?x=y")]
 
-        // Act
-        var resultUri = uriUtility.UriToUmbraco(sourceUri);
+        // test that the trailing slash goes but not on hostname
+        [TestCase("http://LocalHost/", "http://localhost/")]
+        [TestCase("http://LocalHost/Home/", "http://localhost/home")]
+        [TestCase("http://LocalHost/Home/?x=y", "http://localhost/home?x=y")]
+        [TestCase("http://LocalHost/Home/Sub1/", "http://localhost/home/sub1")]
+        [TestCase("http://LocalHost/Home/Sub1/?x=y", "http://localhost/home/sub1?x=y")]
+        public void Uri_To_Umbraco(string sourceUrl, string expectedUrl)
+        {
+            // Arrange
+            var sourceUri = new Uri(sourceUrl);
+            UriUtility uriUtility = BuildUriUtility("/");
 
-        // Assert
-        var expectedUri = new Uri(expectedUrl);
-        Assert.AreEqual(expectedUri.ToString(), resultUri.ToString());
-    }
+            // Act
+            Uri resultUri = uriUtility.UriToUmbraco(sourceUri);
 
-    // test directoryUrl true, trailingSlash false
-    [TestCase("/", "/", false)]
-    [TestCase("/home", "/home", false)]
-    [TestCase("/home/sub1", "/home/sub1", false)]
+            // Assert
+            var expectedUri = new Uri(expectedUrl);
+            Assert.AreEqual(expectedUri.ToString(), resultUri.ToString());
+        }
 
-    // test directoryUrl true, trailingSlash true
-    [TestCase("/", "/", true)]
-    [TestCase("/home", "/home/", true)]
-    [TestCase("/home/sub1", "/home/sub1/", true)]
-    public void Uri_From_Umbraco(string sourceUrl, string expectedUrl, bool trailingSlash)
-    {
-        // Arrange
-        var sourceUri = new Uri(sourceUrl, UriKind.Relative);
-        var requestHandlerSettings = new RequestHandlerSettings { AddTrailingSlash = trailingSlash };
-        var uriUtility = BuildUriUtility("/");
+        // test directoryUrl true, trailingSlash false
+        [TestCase("/", "/", false)]
+        [TestCase("/home", "/home", false)]
+        [TestCase("/home/sub1", "/home/sub1", false)]
 
-        // Act
-        var resultUri = uriUtility.UriFromUmbraco(sourceUri, requestHandlerSettings);
+        // test directoryUrl true, trailingSlash true
+        [TestCase("/", "/", true)]
+        [TestCase("/home", "/home/", true)]
+        [TestCase("/home/sub1", "/home/sub1/", true)]
+        public void Uri_From_Umbraco(string sourceUrl, string expectedUrl, bool trailingSlash)
+        {
+            // Arrange
+            var sourceUri = new Uri(sourceUrl, UriKind.Relative);
+            var requestHandlerSettings = new RequestHandlerSettings { AddTrailingSlash = trailingSlash };
+            UriUtility uriUtility = BuildUriUtility("/");
 
-        // Assert
-        var expectedUri = new Uri(expectedUrl, UriKind.Relative);
-        Assert.AreEqual(expectedUri.ToString(), resultUri.ToString());
-    }
+            // Act
+            Uri resultUri = uriUtility.UriFromUmbraco(sourceUri, requestHandlerSettings);
 
-    [TestCase("/", "/", "/")]
-    [TestCase("/", "/foo", "/foo")]
-    [TestCase("/", "~/foo", "/foo")]
-    [TestCase("/vdir", "/", "/vdir/")]
-    [TestCase("/vdir", "/foo", "/vdir/foo")]
-    [TestCase("/vdir", "/foo/", "/vdir/foo/")]
-    [TestCase("/vdir", "~/foo", "/vdir/foo")]
-    public void Uri_To_Absolute(string virtualPath, string sourceUrl, string expectedUrl)
-    {
-        // Arrange
-        var uriUtility = BuildUriUtility(virtualPath);
+            // Assert
+            var expectedUri = new Uri(expectedUrl, UriKind.Relative);
+            Assert.AreEqual(expectedUri.ToString(), resultUri.ToString());
+        }
 
-        // Act
-        var resultUrl = uriUtility.ToAbsolute(sourceUrl);
+        [TestCase("/", "/", "/")]
+        [TestCase("/", "/foo", "/foo")]
+        [TestCase("/", "~/foo", "/foo")]
+        [TestCase("/vdir", "/", "/vdir/")]
+        [TestCase("/vdir", "/foo", "/vdir/foo")]
+        [TestCase("/vdir", "/foo/", "/vdir/foo/")]
+        [TestCase("/vdir", "~/foo", "/vdir/foo")]
+        public void Uri_To_Absolute(string virtualPath, string sourceUrl, string expectedUrl)
+        {
+            // Arrange
+            UriUtility uriUtility = BuildUriUtility(virtualPath);
 
-        // Assert
-        Assert.AreEqual(expectedUrl, resultUrl);
-    }
+            // Act
+            var resultUrl = uriUtility.ToAbsolute(sourceUrl);
 
-    [TestCase("/", "/", "/")]
-    [TestCase("/", "/foo", "/foo")]
-    [TestCase("/", "/foo/", "/foo/")]
-    [TestCase("/vdir", "/vdir", "/")]
-    [TestCase("/vdir", "/vdir/", "/")]
-    [TestCase("/vdir", "/vdir/foo", "/foo")]
-    [TestCase("/vdir", "/vdir/foo/", "/foo/")]
-    public void Url_To_App_Relative(string virtualPath, string sourceUrl, string expectedUrl)
-    {
-        // Arrange
-        var uriUtility = BuildUriUtility(virtualPath);
+            // Assert
+            Assert.AreEqual(expectedUrl, resultUrl);
+        }
 
-        // Act
-        var resultUrl = uriUtility.ToAppRelative(sourceUrl);
+        [TestCase("/", "/", "/")]
+        [TestCase("/", "/foo", "/foo")]
+        [TestCase("/", "/foo/", "/foo/")]
+        [TestCase("/vdir", "/vdir", "/")]
+        [TestCase("/vdir", "/vdir/", "/")]
+        [TestCase("/vdir", "/vdir/foo", "/foo")]
+        [TestCase("/vdir", "/vdir/foo/", "/foo/")]
+        public void Url_To_App_Relative(string virtualPath, string sourceUrl, string expectedUrl)
+        {
+            // Arrange
+            UriUtility uriUtility = BuildUriUtility(virtualPath);
 
-        // Assert
-        Assert.AreEqual(expectedUrl, resultUrl);
-    }
+            // Act
+            var resultUrl = uriUtility.ToAppRelative(sourceUrl);
 
-    private UriUtility BuildUriUtility(string virtualPath)
-    {
-        var mockHostingEnvironment = new Mock<IHostingEnvironment>();
-        mockHostingEnvironment.Setup(x => x.ApplicationVirtualPath).Returns(virtualPath);
-        return new UriUtility(mockHostingEnvironment.Object);
+            // Assert
+            Assert.AreEqual(expectedUrl, resultUrl);
+        }
+
+        private UriUtility BuildUriUtility(string virtualPath)
+        {
+            var mockHostingEnvironment = new Mock<IHostingEnvironment>();
+            mockHostingEnvironment.Setup(x => x.ApplicationVirtualPath).Returns(virtualPath);
+            return new UriUtility(mockHostingEnvironment.Object);
+        }
     }
 }

@@ -12,58 +12,63 @@ using Umbraco.Cms.Infrastructure.Scoping;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repositories;
-
-[TestFixture]
-[UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest)]
-public class KeyValueRepositoryTests : UmbracoIntegrationTest
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence.Repositories
 {
-    [Test]
-    public void CanSetAndGet()
+    [TestFixture]
+    [UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest)]
+    public class KeyValueRepositoryTests : UmbracoIntegrationTest
     {
-        ICoreScopeProvider provider = ScopeProvider;
-
-        // Insert new key/value
-        using (var scope = provider.CreateCoreScope())
+        [Test]
+        public void CanSetAndGet()
         {
-            var keyValue = new KeyValue { Identifier = "foo", Value = "bar", UpdateDate = DateTime.Now };
-            var repo = CreateRepository(provider);
-            repo.Save(keyValue);
-            scope.Complete();
+            ICoreScopeProvider provider = ScopeProvider;
+
+            // Insert new key/value
+            using (ICoreScope scope = provider.CreateCoreScope())
+            {
+                var keyValue = new KeyValue
+                {
+                    Identifier = "foo",
+                    Value = "bar",
+                    UpdateDate = DateTime.Now,
+                };
+                IKeyValueRepository repo = CreateRepository(provider);
+                repo.Save(keyValue);
+                scope.Complete();
+            }
+
+            // Retrieve key/value
+            using (ICoreScope scope = provider.CreateCoreScope())
+            {
+                IKeyValueRepository repo = CreateRepository(provider);
+                IKeyValue keyValue = repo.Get("foo");
+                scope.Complete();
+
+                Assert.AreEqual("bar", keyValue.Value);
+            }
+
+            // Update value
+            using (ICoreScope scope = provider.CreateCoreScope())
+            {
+                IKeyValueRepository repo = CreateRepository(provider);
+                IKeyValue keyValue = repo.Get("foo");
+                keyValue.Value = "buzz";
+                keyValue.UpdateDate = DateTime.Now;
+                repo.Save(keyValue);
+                scope.Complete();
+            }
+
+            // Retrieve key/value again
+            using (ICoreScope scope = provider.CreateCoreScope())
+            {
+                IKeyValueRepository repo = CreateRepository(provider);
+                IKeyValue keyValue = repo.Get("foo");
+                scope.Complete();
+
+                Assert.AreEqual("buzz", keyValue.Value);
+            }
         }
 
-        // Retrieve key/value
-        using (var scope = provider.CreateCoreScope())
-        {
-            var repo = CreateRepository(provider);
-            var keyValue = repo.Get("foo");
-            scope.Complete();
-
-            Assert.AreEqual("bar", keyValue.Value);
-        }
-
-        // Update value
-        using (var scope = provider.CreateCoreScope())
-        {
-            var repo = CreateRepository(provider);
-            var keyValue = repo.Get("foo");
-            keyValue.Value = "buzz";
-            keyValue.UpdateDate = DateTime.Now;
-            repo.Save(keyValue);
-            scope.Complete();
-        }
-
-        // Retrieve key/value again
-        using (var scope = provider.CreateCoreScope())
-        {
-            var repo = CreateRepository(provider);
-            var keyValue = repo.Get("foo");
-            scope.Complete();
-
-            Assert.AreEqual("buzz", keyValue.Value);
-        }
+        private IKeyValueRepository CreateRepository(ICoreScopeProvider provider) => new KeyValueRepository((IScopeAccessor)provider, LoggerFactory.CreateLogger<KeyValueRepository>());
     }
-
-    private IKeyValueRepository CreateRepository(ICoreScopeProvider provider) =>
-        new KeyValueRepository((IScopeAccessor)provider, LoggerFactory.CreateLogger<KeyValueRepository>());
 }

@@ -1,6 +1,10 @@
-namespace Umbraco.Cms.Web.BackOffice.Security;
+﻿using System;
 
-public class DefaultBackOfficeTwoFactorOptions : IBackOfficeTwoFactorOptions
+namespace Umbraco.Cms.Web.BackOffice.Security
 {
-    public string GetTwoFactorView(string username) => "views\\common\\login-2fa.html";
+    public class DefaultBackOfficeTwoFactorOptions : IBackOfficeTwoFactorOptions
+    {
+        public string GetTwoFactorView(string username) => "views\\common\\login-2fa.html";
+    }
+
 }

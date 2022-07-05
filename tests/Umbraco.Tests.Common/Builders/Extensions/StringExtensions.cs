@@ -1,22 +1,23 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Extensions;
-
-public static class StringExtensions
+namespace Umbraco.Cms.Tests.Common.Builders.Extensions
 {
-    public static string ToCamelCase(this string s)
+    public static class StringExtensions
     {
-        if (string.IsNullOrWhiteSpace(s))
+        public static string ToCamelCase(this string s)
         {
-            return string.Empty;
-        }
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return string.Empty;
+            }
 
-        if (s.Length == 1)
-        {
-            return s.ToLowerInvariant();
-        }
+            if (s.Length == 1)
+            {
+                return s.ToLowerInvariant();
+            }
 
-        return char.ToLowerInvariant(s[0]) + s.Substring(1);
+            return char.ToLowerInvariant(s[0]) + s.Substring(1);
+        }
     }
 }

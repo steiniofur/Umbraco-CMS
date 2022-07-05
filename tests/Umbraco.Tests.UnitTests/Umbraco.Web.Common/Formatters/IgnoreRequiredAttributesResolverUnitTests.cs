@@ -6,35 +6,39 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Umbraco.Cms.Web.Common.Formatters;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.Formatters;
-
-[TestFixture]
-public class IgnoreRequiredAttributesResolverUnitTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Common.Formatters
 {
-    [Test]
-    public void Test()
+    [TestFixture]
+    public class IgnoreRequiredAttributesResolverUnitTests
     {
-        const string emptyJsonObject = "{}";
-
-        Assert.Multiple(() =>
+        [Test]
+        public void Test()
         {
-            // Ensure the deserialization throws if using default settings
-            Assert.Throws<JsonSerializationException>(() =>
-                JsonConvert.DeserializeObject<ObjectWithRequiredProperty>(emptyJsonObject));
+            const string emptyJsonObject = "{}";
 
-            var actual = JsonConvert.DeserializeObject<ObjectWithRequiredProperty>(
-                emptyJsonObject,
-                new JsonSerializerSettings { ContractResolver = new IgnoreRequiredAttributesResolver() });
+            Assert.Multiple(() =>
+            {
+                // Ensure the deserialization throws if using default settings
+                Assert.Throws<JsonSerializationException>(() =>
+                    JsonConvert.DeserializeObject<ObjectWithRequiredProperty>(emptyJsonObject));
 
-            Assert.IsNotNull(actual);
-            Assert.IsNull(actual.Property);
-        });
-    }
+                ObjectWithRequiredProperty actual = JsonConvert.DeserializeObject<ObjectWithRequiredProperty>(
+                    emptyJsonObject,
+                    new JsonSerializerSettings
+                    {
+                        ContractResolver = new IgnoreRequiredAttributesResolver()
+                    });
 
-    [DataContract(Name = "objectWithRequiredProperty", Namespace = "")]
-    private class ObjectWithRequiredProperty
-    {
-        [DataMember(Name = "property", IsRequired = true)]
-        public string Property { get; set; }
+                Assert.IsNotNull(actual);
+                Assert.IsNull(actual.Property);
+            });
+        }
+
+        [DataContract(Name = "objectWithRequiredProperty", Namespace = "")]
+        private class ObjectWithRequiredProperty
+        {
+            [DataMember(Name = "property", IsRequired = true)]
+            public string Property { get; set; }
+        }
     }
 }

@@ -12,102 +12,111 @@ using Umbraco.Cms.Core.Models.Entities;
 using Umbraco.Cms.Tests.Common;
 using Umbraco.Extensions;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Cache;
-
-[TestFixture]
-public class DeepCloneAppCacheTests : RuntimeAppCacheTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Cache
 {
-    public override void Setup()
+    [TestFixture]
+    public class DeepCloneAppCacheTests : RuntimeAppCacheTests
     {
-        base.Setup();
-        _memberCache = new ObjectCacheAppCache();
+        private DeepCloneAppCache _provider;
+        private ObjectCacheAppCache _memberCache;
 
-        _provider = new DeepCloneAppCache(_memberCache);
-    }
+        protected override int GetTotalItemCount => _memberCache.MemoryCache.Count();
 
-    private DeepCloneAppCache _provider;
-    private ObjectCacheAppCache _memberCache;
-
-    protected override int GetTotalItemCount => _memberCache.MemoryCache.Count();
-
-    internal override IAppCache AppCache => _provider;
-
-    internal override IAppPolicyCache AppPolicyCache => _provider;
-
-    [Test]
-    public void Clones_List()
-    {
-        var original = new DeepCloneableList<TestClone>(ListCloneBehavior.Always) { new(), new(), new() };
-
-        var val = _provider.GetCacheItem("test", () => original);
-
-        Assert.AreEqual(original.Count, val.Count);
-        foreach (var item in val)
+        public override void Setup()
         {
-            Assert.IsTrue(item.IsClone);
-        }
-    }
+            base.Setup();
+            _memberCache = new ObjectCacheAppCache();
 
-    [Test]
-    public void Ensures_Cloned_And_Reset()
-    {
-        var original = new TestClass { Name = "hello" };
-        Assert.IsTrue(original.IsDirty());
-
-        var val = _provider.GetCacheItem("test", () => original);
-
-        Assert.AreNotEqual(original.CloneId, val.CloneId);
-        Assert.IsFalse(val.IsDirty());
-    }
-
-    [Test]
-    public void DoesNotCacheExceptions()
-    {
-        string value;
-        Assert.Throws<Exception>(() => { value = (string)_provider.Get("key", () => GetValue(1)); });
-        Assert.Throws<Exception>(() => { value = (string)_provider.Get("key", () => GetValue(2)); });
-
-        // does not throw
-        value = (string)_provider.Get("key", () => GetValue(3));
-        Assert.AreEqual("succ3", value);
-
-        // cache
-        value = (string)_provider.Get("key", () => GetValue(4));
-        Assert.AreEqual("succ3", value);
-    }
-
-    private static string GetValue(int i)
-    {
-        Debug.Print("get" + i);
-        if (i < 3)
-        {
-            throw new Exception("fail");
+            _provider = new DeepCloneAppCache(_memberCache);
         }
 
-        return "succ" + i;
-    }
+        internal override IAppCache AppCache => _provider;
 
-    private class TestClass : BeingDirtyBase, IDeepCloneable
-    {
-        private string _name;
+        internal override IAppPolicyCache AppPolicyCache => _provider;
 
-        public TestClass() => CloneId = Guid.NewGuid();
-
-        public string Name
+        [Test]
+        public void Clones_List()
         {
-            get => _name;
+            var original = new DeepCloneableList<TestClone>(ListCloneBehavior.Always)
+            {
+                new TestClone(),
+                new TestClone(),
+                new TestClone()
+            };
 
-            set => SetPropertyValueAndDetectChanges(value, ref _name, nameof(Name));
+            DeepCloneableList<TestClone> val = _provider.GetCacheItem("test", () => original);
+
+            Assert.AreEqual(original.Count, val.Count);
+            foreach (TestClone item in val)
+            {
+                Assert.IsTrue(item.IsClone);
+            }
         }
 
-        public Guid CloneId { get; set; }
-
-        public object DeepClone()
+        [Test]
+        public void Ensures_Cloned_And_Reset()
         {
-            var shallowClone = (TestClass)MemberwiseClone();
-            DeepCloneHelper.DeepCloneRefProperties(this, shallowClone);
-            shallowClone.CloneId = Guid.NewGuid();
-            return shallowClone;
+            var original = new TestClass()
+            {
+                Name = "hello"
+            };
+            Assert.IsTrue(original.IsDirty());
+
+            var val = _provider.GetCacheItem("test", () => original);
+
+            Assert.AreNotEqual(original.CloneId, val.CloneId);
+            Assert.IsFalse(val.IsDirty());
+        }
+
+        [Test]
+        public void DoesNotCacheExceptions()
+        {
+            string value;
+            Assert.Throws<Exception>(() => { value = (string)_provider.Get("key", () => GetValue(1)); });
+            Assert.Throws<Exception>(() => { value = (string)_provider.Get("key", () => GetValue(2)); });
+
+            // does not throw
+            value = (string)_provider.Get("key", () => GetValue(3));
+            Assert.AreEqual("succ3", value);
+
+            // cache
+            value = (string)_provider.Get("key", () => GetValue(4));
+            Assert.AreEqual("succ3", value);
+        }
+
+        private static string GetValue(int i)
+        {
+            Debug.Print("get" + i);
+            if (i < 3)
+            {
+                throw new Exception("fail");
+            }
+
+            return "succ" + i;
+        }
+
+        private class TestClass : BeingDirtyBase, IDeepCloneable
+        {
+            public TestClass() => CloneId = Guid.NewGuid();
+
+            private string _name;
+
+            public string Name
+            {
+                get => _name;
+
+                set => SetPropertyValueAndDetectChanges(value, ref _name, nameof(Name));
+            }
+
+            public Guid CloneId { get; set; }
+
+            public object DeepClone()
+            {
+                var shallowClone = (TestClass)MemberwiseClone();
+                DeepCloneHelper.DeepCloneRefProperties(this, shallowClone);
+                shallowClone.CloneId = Guid.NewGuid();
+                return shallowClone;
+            }
         }
     }
 }

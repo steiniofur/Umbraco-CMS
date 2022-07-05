@@ -2,8 +2,11 @@
 // See LICENSE for more details.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Castle.Core.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -29,6 +32,7 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Scoping
         [SetUp]
         public void SetUp() => Assert.IsNull(ScopeProvider.AmbientScope); // gone
 
+
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             // Need to have a mockable request cache for tests
@@ -39,6 +43,7 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Scoping
 
             services.AddUnique(appCaches);
         }
+
 
         [Test]
         public void GivenUncompletedScopeOnChildThread_WhenTheParentCompletes_TheTransactionIsRolledBack()
@@ -66,6 +71,7 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Scoping
         public void GivenNonDisposedChildScope_WhenTheParentDisposes_ThenInvalidOperationExceptionThrows()
         {
             // this all runs in the same execution context so the AmbientScope reference isn't a copy
+
             ScopeProvider scopeProvider = ScopeProvider;
 
             Assert.IsNull(ScopeProvider.AmbientScope);
@@ -88,7 +94,6 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Scoping
             var t = Task.Run(() =>
             {
                 Console.WriteLine("Child Task start: " + scopeProvider.AmbientScope.InstanceId);
-
                 // This will push the child scope to the top of the Stack
                 IScope nested = scopeProvider.CreateScope();
                 Console.WriteLine("Child Task scope created: " + scopeProvider.AmbientScope.InstanceId);
@@ -100,10 +105,8 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Scoping
 
             // provide some time for the child thread to start so the ambient context is copied in AsyncLocal
             Thread.Sleep(2000);
-
             // now dispose the main without waiting for the child thread to join
             Console.WriteLine("Parent Task disposing: " + scopeProvider.AmbientScope.InstanceId);
-
             // This will throw because at this stage a child scope has been created which means
             // it is the Ambient (top) scope but here we're trying to dispose the non top scope.
             Assert.Throws<InvalidOperationException>(() => mainScope.Dispose());
@@ -218,6 +221,56 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Scoping
                     Assert.AreSame(nested, scopeProvider.AmbientScope);
                     Assert.AreSame(scope, ((Scope)nested).ParentScope);
                 }
+            }
+
+            Assert.IsNull(scopeProvider.AmbientScope);
+        }
+
+        [Test]
+        public void NestedMigrateScope()
+        {
+            // Get the request cache mock and re-configure it to be available and used
+            var requestCacheDictionary = new Dictionary<string, object>();            
+            IRequestCache requestCache = AppCaches.RequestCache;
+            var requestCacheMock = Mock.Get(requestCache);
+            requestCacheMock
+                .Setup(x => x.IsAvailable)
+                .Returns(true);
+            requestCacheMock
+                .Setup(x => x.Set(It.IsAny<string>(), It.IsAny<object>()))
+                .Returns((string key, object val) =>
+                {
+                    requestCacheDictionary.Add(key, val);
+                    return true;
+                });
+            requestCacheMock
+                .Setup(x => x.Get(It.IsAny<string>()))
+                .Returns((string key) => requestCacheDictionary.TryGetValue(key, out var val) ? val : null);
+
+            ScopeProvider scopeProvider = ScopeProvider;
+            Assert.IsNull(scopeProvider.AmbientScope);
+
+            using (IScope scope = scopeProvider.CreateScope())
+            {
+                Assert.IsInstanceOf<Scope>(scope);
+                Assert.IsNotNull(scopeProvider.AmbientScope);
+                Assert.AreSame(scope, scopeProvider.AmbientScope);
+
+                using (IScope nested = scopeProvider.CreateScope(callContext: true))
+                {
+                    Assert.IsInstanceOf<Scope>(nested);
+                    Assert.IsNotNull(scopeProvider.AmbientScope);
+                    Assert.AreSame(nested, scopeProvider.AmbientScope);
+                    Assert.AreSame(scope, ((Scope)nested).ParentScope);
+
+                    // it's moved over to call context
+                    ConcurrentStack<IScope> callContextScope = scopeProvider.GetCallContextScopeValue();
+
+                    Assert.IsNotNull(callContextScope);
+                    Assert.AreEqual(2, callContextScope.Count);
+                }
+
+                // it's naturally back in http context
             }
 
             Assert.IsNull(scopeProvider.AmbientScope);

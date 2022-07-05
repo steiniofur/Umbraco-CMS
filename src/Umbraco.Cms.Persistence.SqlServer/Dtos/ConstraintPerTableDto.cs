@@ -1,12 +1,13 @@
 using NPoco;
 
-namespace Umbraco.Cms.Persistence.SqlServer.Dtos;
-
-internal class ConstraintPerTableDto
+namespace Umbraco.Cms.Persistence.SqlServer.Dtos
 {
-    [Column("TABLE_NAME")]
-    public string TableName { get; set; } = null!;
+    internal class ConstraintPerTableDto
+    {
+        [Column("TABLE_NAME")]
+        public string TableName { get; set; } = null!;
 
-    [Column("CONSTRAINT_NAME")]
-    public string ConstraintName { get; set; } = null!;
+        [Column("CONSTRAINT_NAME")]
+        public string ConstraintName { get; set; } = null!;
+    }
 }

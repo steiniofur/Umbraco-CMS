@@ -1,7 +1,11 @@
-namespace Umbraco.Cms.Web.BackOffice.Security;
+﻿using System;
 
-[Obsolete("Not used anymore")]
-public class NoopBackOfficeTwoFactorOptions : IBackOfficeTwoFactorOptions
+namespace Umbraco.Cms.Web.BackOffice.Security
 {
-    public string? GetTwoFactorView(string username) => null;
+    [Obsolete("Not used anymore")]
+    public class NoopBackOfficeTwoFactorOptions : IBackOfficeTwoFactorOptions
+    {
+        public string? GetTwoFactorView(string username) => null;
+    }
+
 }

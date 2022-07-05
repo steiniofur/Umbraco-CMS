@@ -1,10 +1,11 @@
+﻿using System.Collections.Generic;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
-namespace Umbraco.Cms.Infrastructure.PublishedCache.Navigable;
-
-internal interface INavigableData
+namespace Umbraco.Cms.Infrastructure.PublishedCache.Navigable
 {
-    IPublishedContent? GetById(bool preview, int contentId);
-
-    IEnumerable<IPublishedContent> GetAtRoot(bool preview);
+    internal interface INavigableData
+    {
+        IPublishedContent? GetById(bool preview, int contentId);
+        IEnumerable<IPublishedContent> GetAtRoot(bool preview);
+    }
 }

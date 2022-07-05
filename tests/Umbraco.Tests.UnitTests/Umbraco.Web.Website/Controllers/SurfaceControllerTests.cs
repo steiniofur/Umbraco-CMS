@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Routing;
@@ -22,155 +23,161 @@ using Umbraco.Cms.Tests.UnitTests.TestHelpers.Objects;
 using Umbraco.Cms.Web.Common.Routing;
 using Umbraco.Cms.Web.Website.Controllers;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Website.Controllers;
-
-[TestFixture]
-[UmbracoTest(WithApplication = true)]
-public class SurfaceControllerTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Web.Website.Controllers
 {
-    [SetUp]
-    public void SetUp() => _umbracoContextAccessor = new TestUmbracoContextAccessor();
-
-    private IUmbracoContextAccessor _umbracoContextAccessor;
-
-    [Test]
-    public void Can_Construct_And_Get_Result()
+    [TestFixture]
+    [UmbracoTest(WithApplication = true)]
+    public class SurfaceControllerTests
     {
-        var backofficeSecurityAccessor = Mock.Of<IBackOfficeSecurityAccessor>();
-        Mock.Get(backofficeSecurityAccessor).Setup(x => x.BackOfficeSecurity).Returns(Mock.Of<IBackOfficeSecurity>());
-        var globalSettings = new GlobalSettings();
+        private IUmbracoContextAccessor _umbracoContextAccessor;
 
-        var umbracoContextFactory = TestUmbracoContextFactory.Create(globalSettings, _umbracoContextAccessor);
+        [SetUp]
+        public void SetUp() => _umbracoContextAccessor = new TestUmbracoContextAccessor();
 
-        var umbracoContextReference = umbracoContextFactory.EnsureUmbracoContext();
-        var umbracoContext = umbracoContextReference.UmbracoContext;
+        [Test]
+        public void Can_Construct_And_Get_Result()
+        {
+            IHostingEnvironment hostingEnvironment = Mock.Of<IHostingEnvironment>();
+            IBackOfficeSecurityAccessor backofficeSecurityAccessor = Mock.Of<IBackOfficeSecurityAccessor>();
+            Mock.Get(backofficeSecurityAccessor).Setup(x => x.BackOfficeSecurity).Returns(Mock.Of<IBackOfficeSecurity>());
+            var globalSettings = new GlobalSettings();
 
-        var umbracoContextAccessor = new TestUmbracoContextAccessor(umbracoContext);
+            var umbracoContextFactory = TestUmbracoContextFactory.Create(globalSettings, _umbracoContextAccessor);
 
-        var ctrl = new TestSurfaceController(umbracoContextAccessor, Mock.Of<IPublishedContentQuery>(), Mock.Of<IPublishedUrlProvider>());
+            UmbracoContextReference umbracoContextReference = umbracoContextFactory.EnsureUmbracoContext();
+            IUmbracoContext umbracoContext = umbracoContextReference.UmbracoContext;
 
-        var result = ctrl.Index();
+            var umbracoContextAccessor = new TestUmbracoContextAccessor(umbracoContext);
 
-        Assert.IsNotNull(result);
-    }
+            var ctrl = new TestSurfaceController(umbracoContextAccessor, Mock.Of<IPublishedContentQuery>(), Mock.Of<IPublishedUrlProvider>());
 
-    [Test]
-    public void Umbraco_Context_Not_Null()
-    {
-        var globalSettings = new GlobalSettings();
-        var backofficeSecurityAccessor = Mock.Of<IBackOfficeSecurityAccessor>();
-        Mock.Get(backofficeSecurityAccessor).Setup(x => x.BackOfficeSecurity).Returns(Mock.Of<IBackOfficeSecurity>());
-        var umbracoContextFactory = TestUmbracoContextFactory.Create(globalSettings, _umbracoContextAccessor);
+            IActionResult result = ctrl.Index();
 
-        var umbracoContextReference = umbracoContextFactory.EnsureUmbracoContext();
-        var umbCtx = umbracoContextReference.UmbracoContext;
+            Assert.IsNotNull(result);
+        }
 
-        var umbracoContextAccessor = new TestUmbracoContextAccessor(umbCtx);
+        [Test]
+        public void Umbraco_Context_Not_Null()
+        {
+            var globalSettings = new GlobalSettings();
+            IHostingEnvironment hostingEnvironment = Mock.Of<IHostingEnvironment>();
+            IBackOfficeSecurityAccessor backofficeSecurityAccessor = Mock.Of<IBackOfficeSecurityAccessor>();
+            Mock.Get(backofficeSecurityAccessor).Setup(x => x.BackOfficeSecurity).Returns(Mock.Of<IBackOfficeSecurity>());
+            var umbracoContextFactory = TestUmbracoContextFactory.Create(globalSettings, _umbracoContextAccessor);
 
-        var ctrl = new TestSurfaceController(umbracoContextAccessor, Mock.Of<IPublishedContentQuery>(), Mock.Of<IPublishedUrlProvider>());
+            UmbracoContextReference umbracoContextReference = umbracoContextFactory.EnsureUmbracoContext();
+            IUmbracoContext umbCtx = umbracoContextReference.UmbracoContext;
 
-        Assert.IsNotNull(ctrl.UmbracoContext);
-    }
+            var umbracoContextAccessor = new TestUmbracoContextAccessor(umbCtx);
 
-    [Test]
-    public void Can_Lookup_Content()
-    {
-        var publishedSnapshot = new Mock<IPublishedSnapshot>();
-        publishedSnapshot.Setup(x => x.Members).Returns(Mock.Of<IPublishedMemberCache>());
-        var content = new Mock<IPublishedContent>();
-        content.Setup(x => x.Id).Returns(2);
-        var backofficeSecurityAccessor = Mock.Of<IBackOfficeSecurityAccessor>();
-        Mock.Get(backofficeSecurityAccessor).Setup(x => x.BackOfficeSecurity).Returns(Mock.Of<IBackOfficeSecurity>());
-        var globalSettings = new GlobalSettings();
+            var ctrl = new TestSurfaceController(umbracoContextAccessor, Mock.Of<IPublishedContentQuery>(), Mock.Of<IPublishedUrlProvider>());
 
-        var umbracoContextFactory = TestUmbracoContextFactory.Create(globalSettings, _umbracoContextAccessor);
+            Assert.IsNotNull(ctrl.UmbracoContext);
+        }
 
-        var umbracoContextReference = umbracoContextFactory.EnsureUmbracoContext();
-        var umbracoContext = umbracoContextReference.UmbracoContext;
+        [Test]
+        public void Can_Lookup_Content()
+        {
+            var publishedSnapshot = new Mock<IPublishedSnapshot>();
+            publishedSnapshot.Setup(x => x.Members).Returns(Mock.Of<IPublishedMemberCache>());
+            var content = new Mock<IPublishedContent>();
+            content.Setup(x => x.Id).Returns(2);
+            IBackOfficeSecurityAccessor backofficeSecurityAccessor = Mock.Of<IBackOfficeSecurityAccessor>();
+            Mock.Get(backofficeSecurityAccessor).Setup(x => x.BackOfficeSecurity).Returns(Mock.Of<IBackOfficeSecurity>());
+            var publishedSnapshotService = new Mock<IPublishedSnapshotService>();
+            IHostingEnvironment hostingEnvironment = Mock.Of<IHostingEnvironment>();
+            var globalSettings = new GlobalSettings();
 
-        var umbracoContextAccessor = new TestUmbracoContextAccessor(umbracoContext);
+            var umbracoContextFactory = TestUmbracoContextFactory.Create(globalSettings, _umbracoContextAccessor);
 
-        var publishedContentQuery = Mock.Of<IPublishedContentQuery>(query => query.Content(2) == content.Object);
+            UmbracoContextReference umbracoContextReference = umbracoContextFactory.EnsureUmbracoContext();
+            IUmbracoContext umbracoContext = umbracoContextReference.UmbracoContext;
 
-        var ctrl = new TestSurfaceController(umbracoContextAccessor, publishedContentQuery, Mock.Of<IPublishedUrlProvider>());
-        var result = ctrl.GetContent(2) as PublishedContentResult;
+            var umbracoContextAccessor = new TestUmbracoContextAccessor(umbracoContext);
 
-        Assert.IsNotNull(result);
-        Assert.IsNotNull(result.Content);
-        Assert.AreEqual(2, result.Content.Id);
-    }
+            IPublishedContentQuery publishedContentQuery = Mock.Of<IPublishedContentQuery>(query => query.Content(2) == content.Object);
 
-    [Test]
-    public void Mock_Current_Page()
-    {
-        var globalSettings = new GlobalSettings();
-        var backofficeSecurityAccessor = Mock.Of<IBackOfficeSecurityAccessor>();
-        Mock.Get(backofficeSecurityAccessor).Setup(x => x.BackOfficeSecurity).Returns(Mock.Of<IBackOfficeSecurity>());
-        var umbracoContextFactory = TestUmbracoContextFactory.Create(globalSettings, _umbracoContextAccessor);
+            var ctrl = new TestSurfaceController(umbracoContextAccessor, publishedContentQuery, Mock.Of<IPublishedUrlProvider>());
+            var result = ctrl.GetContent(2) as PublishedContentResult;
 
-        var umbracoContextReference = umbracoContextFactory.EnsureUmbracoContext();
-        var umbracoContext = umbracoContextReference.UmbracoContext;
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Content);
+            Assert.AreEqual(2, result.Content.Id);
+        }
 
-        var umbracoContextAccessor = new TestUmbracoContextAccessor(umbracoContext);
+        [Test]
+        public void Mock_Current_Page()
+        {
+            var globalSettings = new GlobalSettings();
+            IHostingEnvironment hostingEnvironment = Mock.Of<IHostingEnvironment>();
+            IBackOfficeSecurityAccessor backofficeSecurityAccessor = Mock.Of<IBackOfficeSecurityAccessor>();
+            Mock.Get(backofficeSecurityAccessor).Setup(x => x.BackOfficeSecurity).Returns(Mock.Of<IBackOfficeSecurity>());
+            var umbracoContextFactory = TestUmbracoContextFactory.Create(globalSettings, _umbracoContextAccessor);
 
-        var content = Mock.Of<IPublishedContent>(publishedContent => publishedContent.Id == 12345);
-        var builder = new PublishedRequestBuilder(umbracoContext.CleanedUmbracoUrl, Mock.Of<IFileService>());
-        builder.SetPublishedContent(content);
-        var publishedRequest = builder.Build();
+            UmbracoContextReference umbracoContextReference = umbracoContextFactory.EnsureUmbracoContext();
+            IUmbracoContext umbracoContext = umbracoContextReference.UmbracoContext;
 
-        var routeDefinition = new UmbracoRouteValues(publishedRequest, null);
+            var umbracoContextAccessor = new TestUmbracoContextAccessor(umbracoContext);
 
-        var httpContext = new DefaultHttpContext();
-        httpContext.Features.Set(routeDefinition);
+            IPublishedContent content = Mock.Of<IPublishedContent>(publishedContent => publishedContent.Id == 12345);
+            var builder = new PublishedRequestBuilder(umbracoContext.CleanedUmbracoUrl, Mock.Of<IFileService>());
+            builder.SetPublishedContent(content);
+            IPublishedRequest publishedRequest = builder.Build();
 
-        var ctrl =
-            new TestSurfaceController(umbracoContextAccessor, Mock.Of<IPublishedContentQuery>(), Mock.Of<IPublishedUrlProvider>())
+            var routeDefinition = new UmbracoRouteValues(publishedRequest, null);
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Features.Set(routeDefinition);
+
+            var ctrl = new TestSurfaceController(umbracoContextAccessor, Mock.Of<IPublishedContentQuery>(), Mock.Of<IPublishedUrlProvider>())
             {
-                ControllerContext = new ControllerContext { HttpContext = httpContext, RouteData = new RouteData() },
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = httpContext,
+                    RouteData = new RouteData()
+                }
             };
 
-        var result = ctrl.GetContentFromCurrentPage() as PublishedContentResult;
+            var result = ctrl.GetContentFromCurrentPage() as PublishedContentResult;
 
-        Assert.AreEqual(12345, result.Content.Id);
-    }
-
-    public class TestSurfaceController : SurfaceController
-    {
-        private readonly IPublishedContentQuery _publishedContentQuery;
-
-        public TestSurfaceController(
-            IUmbracoContextAccessor umbracoContextAccessor,
-            IPublishedContentQuery publishedContentQuery,
-            IPublishedUrlProvider publishedUrlProvider)
-            : base(umbracoContextAccessor, null, ServiceContext.CreatePartial(), AppCaches.Disabled, null, publishedUrlProvider) =>
-            _publishedContentQuery = publishedContentQuery;
-
-        public IActionResult Index() =>
-
-            // ReSharper disable once Mvc.ViewNotResolved
-            View();
-
-        public IActionResult GetContent(int id)
-        {
-            var content = _publishedContentQuery.Content(id);
-
-            return new PublishedContentResult(content);
+            Assert.AreEqual(12345, result.Content.Id);
         }
 
-        public IActionResult GetContentFromCurrentPage()
+        public class TestSurfaceController : SurfaceController
         {
-            var content = CurrentPage;
+            private readonly IPublishedContentQuery _publishedContentQuery;
 
-            return new PublishedContentResult(content);
+            public TestSurfaceController(IUmbracoContextAccessor umbracoContextAccessor, IPublishedContentQuery publishedContentQuery, IPublishedUrlProvider publishedUrlProvider)
+                : base(umbracoContextAccessor, null, ServiceContext.CreatePartial(), AppCaches.Disabled, null, publishedUrlProvider) =>
+                _publishedContentQuery = publishedContentQuery;
+
+            public IActionResult Index() =>
+
+                // ReSharper disable once Mvc.ViewNotResolved
+                View();
+
+            public IActionResult GetContent(int id)
+            {
+                IPublishedContent content = _publishedContentQuery.Content(id);
+
+                return new PublishedContentResult(content);
+            }
+
+            public IActionResult GetContentFromCurrentPage()
+            {
+                IPublishedContent content = CurrentPage;
+
+                return new PublishedContentResult(content);
+            }
         }
-    }
 
-    public class PublishedContentResult : IActionResult
-    {
-        public PublishedContentResult(IPublishedContent content) => Content = content;
+        public class PublishedContentResult : IActionResult
+        {
+            public IPublishedContent Content { get; set; }
 
-        public IPublishedContent Content { get; set; }
+            public PublishedContentResult(IPublishedContent content) => Content = content;
 
-        public Task ExecuteResultAsync(ActionContext context) => Task.CompletedTask;
+            public Task ExecuteResultAsync(ActionContext context) => Task.CompletedTask;
+        }
     }
 }

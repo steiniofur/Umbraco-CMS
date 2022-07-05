@@ -3,9 +3,10 @@
 
 using System;
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithUpdateDateBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    DateTime? UpdateDate { get; set; }
+    public interface IWithUpdateDateBuilder
+    {
+        DateTime? UpdateDate { get; set; }
+    }
 }

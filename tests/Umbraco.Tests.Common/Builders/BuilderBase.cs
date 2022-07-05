@@ -3,19 +3,20 @@
 
 using System;
 
-namespace Umbraco.Cms.Tests.Common.Builders;
-
-public abstract class BuilderBase<T>
+namespace Umbraco.Cms.Tests.Common.Builders
 {
-    public abstract T Build();
-
-    protected static string RandomAlias(string alias, bool randomizeAliases)
+    public abstract class BuilderBase<T>
     {
-        if (randomizeAliases)
-        {
-            return string.Concat(alias, Guid.NewGuid().ToString("N"));
-        }
+        public abstract T Build();
 
-        return alias;
+        protected static string RandomAlias(string alias, bool randomizeAliases)
+        {
+            if (randomizeAliases)
+            {
+                return string.Concat(alias, Guid.NewGuid().ToString("N"));
+            }
+
+            return alias;
+        }
     }
 }

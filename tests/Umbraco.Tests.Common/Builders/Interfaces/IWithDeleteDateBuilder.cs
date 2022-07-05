@@ -3,9 +3,10 @@
 
 using System;
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithDeleteDateBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    DateTime? DeleteDate { get; set; }
+    public interface IWithDeleteDateBuilder
+    {
+        DateTime? DeleteDate { get; set; }
+    }
 }

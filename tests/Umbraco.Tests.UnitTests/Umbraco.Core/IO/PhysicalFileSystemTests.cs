@@ -4,123 +4,120 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Tests.UnitTests.TestHelpers;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.IO;
-
-[TestFixture]
-public class PhysicalFileSystemTests : AbstractFileSystemTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.IO
 {
-    [SetUp]
-    public void Setup()
+    [TestFixture]
+    public class PhysicalFileSystemTests : AbstractFileSystemTests
     {
-    }
-
-    [TearDown]
-    public void TearDown()
-    {
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FileSysTests");
-        if (Directory.Exists(path) == false)
+        public PhysicalFileSystemTests()
+            : base(new PhysicalFileSystem(TestHelper.IOHelper, TestHelper.GetHostingEnvironment(), Mock.Of<ILogger<PhysicalFileSystem>>(), Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FileSysTests"), "/Media/"))
         {
-            return;
         }
 
-        var files = Directory.GetFiles(path);
-        foreach (var f in files)
+        [SetUp]
+        public void Setup()
         {
-            File.Delete(f);
         }
 
-        Directory.Delete(path, true);
-    }
-
-    public PhysicalFileSystemTests()
-        : base(new PhysicalFileSystem(
-            TestHelper.IOHelper,
-            TestHelper.GetHostingEnvironment(),
-            Mock.Of<ILogger<PhysicalFileSystem>>(),
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FileSysTests"),
-            "/Media/"))
-    {
-    }
-
-    protected override string ConstructUrl(string path) => "/Media/" + path;
-
-    private string Repeat(string pattern, int count)
-    {
-        var text = new StringBuilder();
-        for (var i = 0; i < count; i++)
+        [TearDown]
+        public void TearDown()
         {
-            text.Append(pattern);
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FileSysTests");
+            if (Directory.Exists(path) == false)
+            {
+                return;
+            }
+
+            var files = Directory.GetFiles(path);
+            foreach (var f in files)
+            {
+                File.Delete(f);
+            }
+
+            Directory.Delete(path, true);
         }
 
-        return text.ToString();
-    }
+        protected override string ConstructUrl(string path) => "/Media/" + path;
 
-    [Test]
-    public void SaveFileTest()
-    {
-        var basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FileSysTests");
-
-        using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("foo")))
+        private string Repeat(string pattern, int count)
         {
-            _fileSystem.AddFile("sub/f3.txt", ms);
+            var text = new StringBuilder();
+            for (var i = 0; i < count; i++)
+            {
+                text.Append(pattern);
+            }
+
+            return text.ToString();
         }
 
-        Assert.IsTrue(File.Exists(Path.Combine(basePath, "sub/f3.txt")));
-
-        var path = Repeat("bah/bah/", 50);
-        Assert.Less(260, path.Length);
-
-        Assert.Throws<PathTooLongException>(() =>
+        [Test]
+        public void SaveFileTest()
         {
-            using var ms = new MemoryStream(Encoding.UTF8.GetBytes("foo"));
-            _fileSystem.AddFile(path + "f3.txt", ms);
-        });
-    }
+            var basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FileSysTests");
 
-    [Test]
-    public void GetFullPathTest()
-    {
-        // outside of tests, one initializes the PhysicalFileSystem with eg ~/Dir
-        // and then, rootPath = /path/to/Dir and rootUrl = /Dir/
-        // here we initialize the PhysicalFileSystem with
-        // rootPath = /path/to/FileSysTests
-        // rootUrl = /Media/
-        var basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FileSysTests");
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes("foo")))
+            {
+                _fileSystem.AddFile("sub/f3.txt", ms);
+            }
 
-        // ensure that GetFullPath
-        // - does return the proper full path
-        // - does properly normalize separators
-        // - does throw on invalid paths
-        // works
-        var path = _fileSystem.GetFullPath("foo.tmp");
-        Assert.AreEqual(Path.Combine(basePath, @"foo.tmp"), path);
+            Assert.IsTrue(File.Exists(Path.Combine(basePath, "sub/f3.txt")));
 
-        // a very long relative path, which ends up being a short path, works
-        path = Repeat("bah/../", 50);
-        Assert.Less(260, path.Length);
-        path = _fileSystem.GetFullPath(path + "foo.tmp");
-        Assert.AreEqual(Path.Combine(basePath, @"foo.tmp"), path);
+            var path = Repeat("bah/bah/", 50);
+            Assert.Less(260, path.Length);
 
-        // works too
-        path = _fileSystem.GetFullPath("foo/bar.tmp");
-        Assert.AreEqual(Path.Combine(basePath, @$"foo{Path.DirectorySeparatorChar}bar.tmp"), path);
+            Assert.Throws<PathTooLongException>(() =>
+            {
+                using var ms = new MemoryStream(Encoding.UTF8.GetBytes("foo"));
+                _fileSystem.AddFile(path + "f3.txt", ms);
+            });
+        }
 
-        // that path is invalid as it would be outside the root directory
-        Assert.Throws<UnauthorizedAccessException>(() => _fileSystem.GetFullPath("../../foo.tmp"));
-
-        // a very long path, which ends up being very long, works
-        path = Repeat("bah/bah/", 50);
-        Assert.Less(260, path.Length);
-        Assert.Throws<PathTooLongException>(() =>
+        [Test]
+        public void GetFullPathTest()
         {
+            // outside of tests, one initializes the PhysicalFileSystem with eg ~/Dir
+            // and then, rootPath = /path/to/Dir and rootUrl = /Dir/
+            // here we initialize the PhysicalFileSystem with
+            // rootPath = /path/to/FileSysTests
+            // rootUrl = /Media/
+            var basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FileSysTests");
+
+            // ensure that GetFullPath
+            // - does return the proper full path
+            // - does properly normalize separators
+            // - does throw on invalid paths
+            // works
+            var path = _fileSystem.GetFullPath("foo.tmp");
+            Assert.AreEqual(Path.Combine(basePath, @"foo.tmp"), path);
+
+            // a very long relative path, which ends up being a short path, works
+            path = Repeat("bah/../", 50);
+            Assert.Less(260, path.Length);
             path = _fileSystem.GetFullPath(path + "foo.tmp");
-            Assert.Less(260, path.Length); // gets a >260 path and it's fine (but Windows will not like it)
-        });
+            Assert.AreEqual(Path.Combine(basePath, @"foo.tmp"), path);
+
+            // works too
+            path = _fileSystem.GetFullPath("foo/bar.tmp");
+            Assert.AreEqual(Path.Combine(basePath, @$"foo{Path.DirectorySeparatorChar}bar.tmp"), path);
+
+            // that path is invalid as it would be outside the root directory
+            Assert.Throws<UnauthorizedAccessException>(() => _fileSystem.GetFullPath("../../foo.tmp"));
+
+            // a very long path, which ends up being very long, works
+            path = Repeat("bah/bah/", 50);
+            Assert.Less(260, path.Length);
+            Assert.Throws<PathTooLongException>(() =>
+            {
+                path = _fileSystem.GetFullPath(path + "foo.tmp");
+                Assert.Less(260, path.Length); // gets a >260 path and it's fine (but Windows will not like it)
+            });
+        }
     }
 }

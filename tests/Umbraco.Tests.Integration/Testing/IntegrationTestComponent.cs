@@ -5,33 +5,34 @@ using Examine;
 using Examine.Lucene.Providers;
 using Umbraco.Cms.Core.Composing;
 
-namespace Umbraco.Cms.Tests.Integration.Testing;
-
-/// <summary>
-///     A component to customize some services to work nicely with integration tests
-/// </summary>
-public class IntegrationTestComponent : IComponent
+namespace Umbraco.Cms.Tests.Integration.Testing
 {
-    private readonly IExamineManager _examineManager;
-
-    public IntegrationTestComponent(IExamineManager examineManager) => _examineManager = examineManager;
-
-    public void Initialize() => ConfigureExamineIndexes();
-
-    public void Terminate()
-    {
-    }
-
     /// <summary>
-    ///     Configure all indexes to run sync (non-backbround threads) and to use RAMDirectory
+    /// A component to customize some services to work nicely with integration tests
     /// </summary>
-    private void ConfigureExamineIndexes()
+    public class IntegrationTestComponent : IComponent
     {
-        foreach (var index in _examineManager.Indexes)
+        private readonly IExamineManager _examineManager;
+
+        public IntegrationTestComponent(IExamineManager examineManager) => _examineManager = examineManager;
+
+        public void Initialize() => ConfigureExamineIndexes();
+
+        public void Terminate()
         {
-            if (index is LuceneIndex luceneIndex)
+        }
+
+        /// <summary>
+        /// Configure all indexes to run sync (non-backbround threads) and to use RAMDirectory
+        /// </summary>
+        private void ConfigureExamineIndexes()
+        {
+            foreach (IIndex index in _examineManager.Indexes)
             {
-                luceneIndex.WithThreadingMode(IndexThreadingMode.Synchronous);
+                if (index is LuceneIndex luceneIndex)
+                {
+                    luceneIndex.WithThreadingMode(IndexThreadingMode.Synchronous);
+                }
             }
         }
     }

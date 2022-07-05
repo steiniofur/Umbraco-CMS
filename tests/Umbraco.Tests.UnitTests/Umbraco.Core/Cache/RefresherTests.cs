@@ -7,75 +7,63 @@ using NUnit.Framework;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Services.Changes;
 
-namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Cache;
-
-[TestFixture]
-public class RefresherTests
+namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Cache
 {
-    [Test]
-    public void MediaCacheRefresherCanDeserializeJsonPayload()
+    [TestFixture]
+    public class RefresherTests
     {
-        MediaCacheRefresher.JsonPayload[] source =
+        [Test]
+        public void MediaCacheRefresherCanDeserializeJsonPayload()
         {
-            new MediaCacheRefresher.JsonPayload(1234, Guid.NewGuid(), TreeChangeTypes.None),
-        };
-        var json = JsonConvert.SerializeObject(source);
-        var payload = JsonConvert.DeserializeObject<MediaCacheRefresher.JsonPayload[]>(json);
-        Assert.AreEqual(source[0].Id, payload[0].Id);
-        Assert.AreEqual(source[0].Key, payload[0].Key);
-        Assert.AreEqual(source[0].ChangeTypes, payload[0].ChangeTypes);
-    }
+            MediaCacheRefresher.JsonPayload[] source = new[] { new MediaCacheRefresher.JsonPayload(1234, Guid.NewGuid(), TreeChangeTypes.None) };
+            var json = JsonConvert.SerializeObject(source);
+            MediaCacheRefresher.JsonPayload[] payload = JsonConvert.DeserializeObject<MediaCacheRefresher.JsonPayload[]>(json);
+            Assert.AreEqual(source[0].Id, payload[0].Id);
+            Assert.AreEqual(source[0].Key, payload[0].Key);
+            Assert.AreEqual(source[0].ChangeTypes, payload[0].ChangeTypes);
+        }
 
-    [Test]
-    public void ContentCacheRefresherCanDeserializeJsonPayload()
-    {
-        ContentCacheRefresher.JsonPayload[] source =
+        [Test]
+        public void ContentCacheRefresherCanDeserializeJsonPayload()
         {
-            new ContentCacheRefresher.JsonPayload(1234, Guid.NewGuid(), TreeChangeTypes.None),
-        };
-        var json = JsonConvert.SerializeObject(source);
-        var payload = JsonConvert.DeserializeObject<ContentCacheRefresher.JsonPayload[]>(json);
-        Assert.AreEqual(source[0].Id, payload[0].Id);
-        Assert.AreEqual(source[0].Key, payload[0].Key);
-        Assert.AreEqual(source[0].ChangeTypes, payload[0].ChangeTypes);
-    }
+            ContentCacheRefresher.JsonPayload[] source = new[] { new ContentCacheRefresher.JsonPayload(1234, Guid.NewGuid(), TreeChangeTypes.None) };
+            var json = JsonConvert.SerializeObject(source);
+            ContentCacheRefresher.JsonPayload[] payload = JsonConvert.DeserializeObject<ContentCacheRefresher.JsonPayload[]>(json);
+            Assert.AreEqual(source[0].Id, payload[0].Id);
+            Assert.AreEqual(source[0].Key, payload[0].Key);
+            Assert.AreEqual(source[0].ChangeTypes, payload[0].ChangeTypes);
+        }
 
-    [Test]
-    public void ContentTypeCacheRefresherCanDeserializeJsonPayload()
-    {
-        ContentTypeCacheRefresher.JsonPayload[] source =
+        [Test]
+        public void ContentTypeCacheRefresherCanDeserializeJsonPayload()
         {
-            new ContentTypeCacheRefresher.JsonPayload("xxx", 1234, ContentTypeChangeTypes.None),
-        };
-        var json = JsonConvert.SerializeObject(source);
-        var payload = JsonConvert.DeserializeObject<ContentTypeCacheRefresher.JsonPayload[]>(json);
-        Assert.AreEqual(source[0].ItemType, payload[0].ItemType);
-        Assert.AreEqual(source[0].Id, payload[0].Id);
-        Assert.AreEqual(source[0].ChangeTypes, payload[0].ChangeTypes);
-    }
+            ContentTypeCacheRefresher.JsonPayload[] source = new[] { new ContentTypeCacheRefresher.JsonPayload("xxx", 1234, ContentTypeChangeTypes.None) };
+            var json = JsonConvert.SerializeObject(source);
+            ContentTypeCacheRefresher.JsonPayload[] payload = JsonConvert.DeserializeObject<ContentTypeCacheRefresher.JsonPayload[]>(json);
+            Assert.AreEqual(source[0].ItemType, payload[0].ItemType);
+            Assert.AreEqual(source[0].Id, payload[0].Id);
+            Assert.AreEqual(source[0].ChangeTypes, payload[0].ChangeTypes);
+        }
 
-    [Test]
-    public void DataTypeCacheRefresherCanDeserializeJsonPayload()
-    {
-        DataTypeCacheRefresher.JsonPayload[] source =
+        [Test]
+        public void DataTypeCacheRefresherCanDeserializeJsonPayload()
         {
-            new DataTypeCacheRefresher.JsonPayload(1234, Guid.NewGuid(), true),
-        };
-        var json = JsonConvert.SerializeObject(source);
-        var payload = JsonConvert.DeserializeObject<DataTypeCacheRefresher.JsonPayload[]>(json);
-        Assert.AreEqual(source[0].Id, payload[0].Id);
-        Assert.AreEqual(source[0].Key, payload[0].Key);
-        Assert.AreEqual(source[0].Removed, payload[0].Removed);
-    }
+            DataTypeCacheRefresher.JsonPayload[] source = new[] { new DataTypeCacheRefresher.JsonPayload(1234, Guid.NewGuid(), true) };
+            var json = JsonConvert.SerializeObject(source);
+            DataTypeCacheRefresher.JsonPayload[] payload = JsonConvert.DeserializeObject<DataTypeCacheRefresher.JsonPayload[]>(json);
+            Assert.AreEqual(source[0].Id, payload[0].Id);
+            Assert.AreEqual(source[0].Key, payload[0].Key);
+            Assert.AreEqual(source[0].Removed, payload[0].Removed);
+        }
 
-    [Test]
-    public void DomainCacheRefresherCanDeserializeJsonPayload()
-    {
-        DomainCacheRefresher.JsonPayload[]
-            source = { new DomainCacheRefresher.JsonPayload(1234, DomainChangeTypes.None) };
-        var json = JsonConvert.SerializeObject(source);
-        var payload = JsonConvert.DeserializeObject<DomainCacheRefresher.JsonPayload[]>(json);
-        Assert.AreEqual(source[0].Id, payload[0].Id);
-        Assert.AreEqual(source[0].ChangeType, payload[0].ChangeType);
+        [Test]
+        public void DomainCacheRefresherCanDeserializeJsonPayload()
+        {
+            DomainCacheRefresher.JsonPayload[] source = new[] { new DomainCacheRefresher.JsonPayload(1234, DomainChangeTypes.None) };
+            var json = JsonConvert.SerializeObject(source);
+            DomainCacheRefresher.JsonPayload[] payload = JsonConvert.DeserializeObject<DomainCacheRefresher.JsonPayload[]>(json);
+            Assert.AreEqual(source[0].Id, payload[0].Id);
+            Assert.AreEqual(source[0].ChangeType, payload[0].ChangeType);
+        }
     }
 }

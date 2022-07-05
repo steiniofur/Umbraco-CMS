@@ -1,9 +1,10 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-namespace Umbraco.Cms.Tests.Common.Builders.Interfaces;
-
-public interface IWithNameBuilder
+namespace Umbraco.Cms.Tests.Common.Builders.Interfaces
 {
-    string Name { get; set; }
+    public interface IWithNameBuilder
+    {
+        string Name { get; set; }
+    }
 }

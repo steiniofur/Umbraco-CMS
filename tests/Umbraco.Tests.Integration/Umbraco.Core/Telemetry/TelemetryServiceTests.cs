@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -11,62 +11,67 @@ using Umbraco.Cms.Core.Telemetry;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
 
-namespace Umbraco.Cms.Tests.Integration.Umbraco.Core.Telemetry;
-
-[TestFixture]
-[UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest)]
-public class TelemetryServiceTests : UmbracoIntegrationTest
+namespace Umbraco.Cms.Tests.Integration.Umbraco.Core.Telemetry
 {
-    protected override void CustomTestSetup(IUmbracoBuilder builder) =>
-        builder.Services.Configure<GlobalSettings>(options => options.Id = Guid.NewGuid().ToString());
 
-    private ITelemetryService TelemetryService => GetRequiredService<ITelemetryService>();
-    private IMetricsConsentService MetricsConsentService => GetRequiredService<IMetricsConsentService>();
-
-    [Test]
-    public void Expected_Detailed_Telemetry_Exists()
+    [TestFixture]
+    [UmbracoTest(Database = UmbracoTestOptions.Database.NewSchemaPerTest)]
+    public class TelemetryServiceTests : UmbracoIntegrationTest
     {
-        var expectedData = new[]
+        protected override void CustomTestSetup(IUmbracoBuilder builder)
         {
-            Constants.Telemetry.RootCount,
-            Constants.Telemetry.DomainCount,
-            Constants.Telemetry.ExamineIndexCount,
-            Constants.Telemetry.LanguageCount,
-            Constants.Telemetry.MacroCount,
-            Constants.Telemetry.MediaCount,
-            Constants.Telemetry.MediaCount,
-            Constants.Telemetry.TemplateCount,
-            Constants.Telemetry.ContentCount,
-            Constants.Telemetry.DocumentTypeCount,
-            Constants.Telemetry.Properties,
-            Constants.Telemetry.UserCount,
-            Constants.Telemetry.UserGroupCount,
-            Constants.Telemetry.ServerOs,
-            Constants.Telemetry.ServerFramework,
-            Constants.Telemetry.OsLanguage,
-            Constants.Telemetry.WebServer,
-            Constants.Telemetry.ModelsBuilderMode,
-            Constants.Telemetry.CustomUmbracoPath,
-            Constants.Telemetry.AspEnvironment,
-            Constants.Telemetry.IsDebug,
-            Constants.Telemetry.DatabaseProvider,
-        };
+            builder.Services.Configure<GlobalSettings>(options => options.Id = Guid.NewGuid().ToString());
+        }
 
-        MetricsConsentService.SetConsentLevel(TelemetryLevel.Detailed);
-        var success = TelemetryService.TryGetTelemetryReportData(out var telemetryReportData);
-        var detailed = telemetryReportData.Detailed.ToArray();
+        private ITelemetryService TelemetryService => GetRequiredService<ITelemetryService>();
+        private IMetricsConsentService MetricsConsentService => GetRequiredService<IMetricsConsentService>();
 
-        Assert.IsTrue(success);
-        Assert.Multiple(() =>
+        [Test]
+        public void Expected_Detailed_Telemetry_Exists()
         {
-            Assert.IsNotNull(detailed);
-            Assert.AreEqual(expectedData.Length, detailed.Length);
-
-            foreach (var expectedInfo in expectedData)
+            var expectedData = new string[]
             {
-                var expected = detailed.FirstOrDefault(x => x.Name == expectedInfo);
-                Assert.IsNotNull(expected, $"Expected {expectedInfo} to exists in the detailed list");
-            }
-        });
+                Constants.Telemetry.RootCount,
+                Constants.Telemetry.DomainCount,
+                Constants.Telemetry.ExamineIndexCount,
+                Constants.Telemetry.LanguageCount,
+                Constants.Telemetry.MacroCount,
+                Constants.Telemetry.MediaCount,
+                Constants.Telemetry.MediaCount,
+                Constants.Telemetry.TemplateCount,
+                Constants.Telemetry.ContentCount,
+                Constants.Telemetry.DocumentTypeCount,
+                Constants.Telemetry.Properties,
+                Constants.Telemetry.UserCount,
+                Constants.Telemetry.UserGroupCount,
+                Constants.Telemetry.ServerOs,
+                Constants.Telemetry.ServerFramework,
+                Constants.Telemetry.OsLanguage,
+                Constants.Telemetry.WebServer,
+                Constants.Telemetry.ModelsBuilderMode,
+                Constants.Telemetry.CustomUmbracoPath,
+                Constants.Telemetry.AspEnvironment,
+                Constants.Telemetry.IsDebug,
+                Constants.Telemetry.DatabaseProvider,
+            };
+
+            MetricsConsentService.SetConsentLevel(TelemetryLevel.Detailed);
+            var success = TelemetryService.TryGetTelemetryReportData(out var telemetryReportData);
+            var detailed = telemetryReportData.Detailed.ToArray();
+
+            Assert.IsTrue(success);
+            Assert.Multiple(() =>
+            {
+                Assert.IsNotNull(detailed);
+                Assert.AreEqual(expectedData.Length, detailed.Length);
+
+                foreach (var expectedInfo in expectedData)
+                {
+                    var expected = detailed.FirstOrDefault(x => x.Name == expectedInfo);
+                    Assert.IsNotNull(expected, $"Expected {expectedInfo} to exists in the detailed list");
+                }
+            });
+        }
+
     }
 }
