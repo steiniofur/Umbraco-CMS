@@ -69,7 +69,7 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Extensions
         public void CanParseSQLiteConnectionStringWithDataDirectory()
         {
             const string ConfiguredConnectionString = "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True";
-            const string ConfiguredProviderName = "Microsoft.Data.SQLite";
+            const string ConfiguredProviderName = "Microsoft.Data.Sqlite";
 
             Mock<IConfiguration> mockedConfig = CreateConfig(ConfiguredConnectionString, ConfiguredProviderName);
             SetDataDirectory();
@@ -78,7 +78,7 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Extensions
 
             AssertResults(
                 @"Data Source=C:\Data/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True",
-                "Microsoft.Data.SQLite",
+                "Microsoft.Data.Sqlite",
                 connectionString,
                 providerName);
         }
