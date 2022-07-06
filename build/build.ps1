@@ -40,6 +40,12 @@
     @{ Continue = $continue })
   if ($ubuild.OnError()) { return }
 
+  $nugetPackages = $env:NUGET_PACKAGES
+  if (-not $nugetPackages)
+  {
+    $nugetPackages = "$($this.SolutionRoot)\src\packages"
+  }
+  
   Write-Host "Umbraco Cms Build"
   Write-Host "Umbraco.Build v$($ubuild.BuildVersion)"
 
@@ -224,6 +230,11 @@
       Write-Host "Create bin directory"
       mkdir "$($this.BuildTemp)\tests\bin" > $null
     }
+	
+    # copy libs
+    Write-Host "Copy SqlCE libraries"
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\tests\x86")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\tests\amd64")
   })
 
   $ubuild.DefineMethod("CompileTests",
@@ -314,17 +325,10 @@
 
     # copy libs
     Write-Host "Copy SqlCE libraries"
-    $nugetPackages = $env:NUGET_PACKAGES
-    if (-not $nugetPackages)
-    {
-	  $nugetPackages = "$($this.SolutionRoot)\src\packages"
-    }
     $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\bin\x86")
     $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\bin\amd64")
     $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\WebApp\bin\x86")
     $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\WebApp\bin\amd64")
-    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\tests\bin\x86")
-    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\tests\bin\amd64")
 
     # copy Belle
     Write-Host "Copy Belle"
