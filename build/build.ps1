@@ -317,12 +317,12 @@
     $nugetPackages = $env:NUGET_PACKAGES
     if (-not $nugetPackages)
     {
-      $nugetPackages = [System.Environment]::ExpandEnvironmentVariables("%userprofile%\.nuget\packages")
+	  $nugetPackages = "$($this.SolutionRoot)\src\packages"
     }
-    $this.CopyFiles("$nugetPackages\sqlserverce\4.0.0.1\runtimes\win-x86\native", "*.*", "$tmp\bin\x86")
-    $this.CopyFiles("$nugetPackages\sqlserverce\4.0.0.1\runtimes\win-x64\native", "*.*", "$tmp\bin\amd64")
-    $this.CopyFiles("$nugetPackages\sqlserverce\4.0.0.1\runtimes\win-x86\native", "*.*", "$tmp\WebApp\bin\x86")
-    $this.CopyFiles("$nugetPackages\sqlserverce\4.0.0.1\runtimes\win-x64\native", "*.*", "$tmp\WebApp\bin\amd64")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\bin\x86")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\bin\amd64")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\WebApp\bin\x86")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\WebApp\bin\amd64")
 
     # copy Belle
     Write-Host "Copy Belle"
