@@ -218,6 +218,21 @@
     }
     $this.CopyFiles("$($this.SolutionRoot)\src\Umbraco.Tests\Packaging\Packages", "*", "$($this.BuildTemp)\tests\Packaging\Packages")
 
+    # copy libs
+    Write-Host "Copy SqlCE libraries"
+
+    $nugetPackages = $env:NUGET_PACKAGES
+    if (-not $nugetPackages)
+    {
+	  $nugetPackages = "$($this.SolutionRoot)\src\packages"
+    }	
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\bin\x86")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\bin\amd64")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\WebApp\bin\x86")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\WebApp\bin\amd64")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\tests\bin\x86")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\tests\bin\amd64")
+
     # required for package install tests
     if (-not (Test-Path -Path "$($this.BuildTemp)\tests\bin" ))
     {
@@ -311,21 +326,6 @@
       $_.CreationTime = $_.CreationTime.AddHours(-11)
       $_.LastWriteTime = $_.LastWriteTime.AddHours(-11)
     }
-
-    # copy libs
-    Write-Host "Copy SqlCE libraries"
-    $nugetPackages = $env:NUGET_PACKAGES
-    if (-not $nugetPackages)
-    {
-	  $nugetPackages = "$($this.SolutionRoot)\src\packages"
-    }
-    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\bin\x86")
-    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\bin\amd64")
-    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\WebApp\bin\x86")
-    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\WebApp\bin\amd64")
-    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\tests\bin\x86")
-    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\tests\bin\amd64")
-
     # copy Belle
     Write-Host "Copy Belle"
     $this.CopyFiles("$src\Umbraco.Web.UI\umbraco\assets", "*", "$tmp\WebApp\umbraco\assets")
