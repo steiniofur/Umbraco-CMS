@@ -323,6 +323,8 @@
     $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\bin\amd64")
     $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\WebApp\bin\x86")
     $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\WebApp\bin\amd64")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\x86", "*.*", "$tmp\tests\bin\x86")
+    $this.CopyFiles("$nugetPackages\SqlServerCE.4.0.0.1\amd64", "*.*", "$tmp\tests\bin\amd64")
 
     # copy Belle
     Write-Host "Copy Belle"
