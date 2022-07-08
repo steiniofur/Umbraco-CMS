@@ -49,4 +49,7 @@ public static class InstallerBuilderExtensions
 
     public static NewInstallStepCollectionBuilder InstallSteps(this IUmbracoBuilder builder)
         => builder.WithCollectionBuilder<NewInstallStepCollectionBuilder>();
+
+    public static CustomInstallStepCollectionBuilder CustomInstallSteps(this IUmbracoBuilder builder)
+        => builder.WithCollectionBuilder<CustomInstallStepCollectionBuilder>();
 }

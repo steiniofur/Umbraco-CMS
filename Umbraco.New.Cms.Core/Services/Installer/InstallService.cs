@@ -10,15 +10,18 @@ public class InstallService : IInstallService
 {
     private readonly ILogger<InstallService> _logger;
     private readonly NewInstallStepCollection _installSteps;
+    private readonly CustomInstallStepCollection _customInstallSteps;
     private readonly IRuntimeState _runtimeState;
 
     public InstallService(
         ILogger<InstallService> logger,
         NewInstallStepCollection installSteps,
+        CustomInstallStepCollection customInstallSteps,
         IRuntimeState runtimeState)
     {
         _logger = logger;
         _installSteps = installSteps;
+        _customInstallSteps = customInstallSteps;
         _runtimeState = runtimeState;
     }
 
@@ -31,6 +34,22 @@ public class InstallService : IInstallService
 
         IEnumerable<IInstallStep> steps = _installSteps.GetInstallSteps();
         await RunSteps(steps, model);
+
+        // Run custom steps.
+        foreach (ICustomInstallStep customStep in _customInstallSteps.GetInstallSteps())
+        {
+            ICustomInstallStepModel? stepModel = model.CustomModels.FirstOrDefault(x => x.StepKey == customStep.StepKey);
+            if (stepModel is null)
+            {
+                _logger.LogWarning("Unable to find step model with key: {StepKey}", customStep.StepKey);
+                continue;
+            }
+
+            if (await customStep.RequiresExecutionAsync(stepModel))
+            {
+                await customStep.ExecuteAsync(stepModel);
+            }
+        }
     }
 
     public async Task Upgrade()

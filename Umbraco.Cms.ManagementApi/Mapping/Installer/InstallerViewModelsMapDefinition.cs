@@ -27,6 +27,7 @@ public class InstallerViewModelsMapDefinition : IMapDefinition
         target.TelemetryLevel = source.TelemetryLevel;
         target.User = context.Map<UserInstallData>(source.User)!;
         target.Database = context.Map<DatabaseInstallData>(source.Database)!;
+        target.CustomModels = source.BoundCustomModels;
     }
 
     // Umbraco.Code.MapAll

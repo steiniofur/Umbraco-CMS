@@ -12,6 +12,7 @@ using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Hosting;
+using Umbraco.Cms.ManagementApi.Binding;
 using Umbraco.Cms.ManagementApi.DependencyInjection;
 using Umbraco.Cms.Web.Common.ApplicationBuilder;
 using Umbraco.Extensions;
@@ -66,6 +67,7 @@ public class ManagementApiComposer : IComposer
         services.AddControllers(options =>
         {
             options.Conventions.Add(new UmbracoBackofficeToken(Constants.Web.AttributeRouting.BackofficeToken, backofficePath));
+            // options.ModelBinderProviders.Insert(0, new CustomInstallStepModelBinderProvider());
         });
 
         builder.Services.Configure<UmbracoPipelineOptions>(options =>
