@@ -19,14 +19,14 @@ namespace Umbraco.Cms.Web.Common.Media;
 /// <seealso cref="IImageUrlGenerator" />
 public class ImageSharpImageUrlGenerator : IImageUrlGenerator
 {
-    private readonly ImageSharpRequestAuthorizationUtilities? _requestAuthorizationUtilities;
+    private readonly RequestAuthorizationUtilities? _requestAuthorizationUtilities;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ImageSharpImageUrlGenerator" /> class.
     /// </summary>
     /// <param name="configuration">The ImageSharp configuration.</param>
     /// <param name="requestAuthorizationUtilities">Contains helpers that allow authorization of image requests.</param>
-    public ImageSharpImageUrlGenerator(Configuration configuration, ImageSharpRequestAuthorizationUtilities? requestAuthorizationUtilities)
+    public ImageSharpImageUrlGenerator(Configuration configuration, RequestAuthorizationUtilities? requestAuthorizationUtilities)
         : this(configuration.ImageFormats.SelectMany(f => f.FileExtensions).ToArray(), requestAuthorizationUtilities)
     { }
 
@@ -36,7 +36,7 @@ public class ImageSharpImageUrlGenerator : IImageUrlGenerator
     /// <param name="configuration">The ImageSharp configuration.</param>
     [Obsolete("Use ctor with all params - This will be removed in Umbraco 12.")]
     public ImageSharpImageUrlGenerator(Configuration configuration)
-        : this(configuration, StaticServiceProvider.Instance.GetService<ImageSharpRequestAuthorizationUtilities>())
+        : this(configuration, StaticServiceProvider.Instance.GetService<RequestAuthorizationUtilities>())
     { }
 
     /// <summary>
@@ -47,7 +47,7 @@ public class ImageSharpImageUrlGenerator : IImageUrlGenerator
     /// <remarks>
     /// This constructor is only used for testing.
     /// </remarks>
-    internal ImageSharpImageUrlGenerator(IEnumerable<string> supportedImageFileTypes, ImageSharpRequestAuthorizationUtilities? requestAuthorizationUtilities = null)
+    internal ImageSharpImageUrlGenerator(IEnumerable<string> supportedImageFileTypes, RequestAuthorizationUtilities? requestAuthorizationUtilities = null)
     {
         SupportedImageFileTypes = supportedImageFileTypes;
         _requestAuthorizationUtilities = requestAuthorizationUtilities;
@@ -116,7 +116,7 @@ public class ImageSharpImageUrlGenerator : IImageUrlGenerator
             var uri = QueryHelpers.AddQueryString(options.ImageUrl, queryString);
             if (_requestAuthorizationUtilities.ComputeHMAC(uri, CommandHandling.Sanitize) is string token && !string.IsNullOrEmpty(token))
             {
-                queryString.Add(ImageSharpRequestAuthorizationUtilities.TokenCommand, token);
+                queryString.Add(RequestAuthorizationUtilities.TokenCommand, token);
             }
         }
 
