@@ -47,7 +47,7 @@ namespace Umbraco.Cms.Core.Manifest
         /// using system directory separators.</para>
         /// </remarks>
         [IgnoreDataMember]
-        public string Source { get; set; } = null!;
+        public required string Source { get; set; }
 
         /// <summary>
         /// Gets or sets the version of the package

@@ -139,7 +139,10 @@ namespace Umbraco.Cms.Infrastructure.Migrations.Install
                 providerMeta = _databaseProviderMetadata.GetAvailable(true).FirstOrDefault();
                 databaseSettings = new DatabaseModel
                 {
-                    DatabaseName = providerMeta?.DefaultDatabaseName!
+                    DatabaseName = providerMeta?.DefaultDatabaseName!,
+                    Server = string.Empty,
+                    Login = string.Empty,
+                    Password = string.Empty,
                 };
             }
             else

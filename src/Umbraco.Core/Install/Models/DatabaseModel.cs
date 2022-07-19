@@ -13,16 +13,16 @@ namespace Umbraco.Cms.Core.Install.Models
         public string? ProviderName { get; set; }
 
         [DataMember(Name = "server")]
-        public string Server { get; set; } = null!;
+        public required string Server { get; set; }
 
         [DataMember(Name = "databaseName")]
-        public string DatabaseName { get; set; } = null!;
+        public required string DatabaseName { get; set; }
 
         [DataMember(Name = "login")]
-        public string Login { get; set; } = null!;
+        public required string Login { get; set; }
 
         [DataMember(Name = "password")]
-        public string Password { get; set; } = null!;
+        public required string Password { get; set; }
 
         [DataMember(Name = "integratedAuth")]
         public bool IntegratedAuth { get; set; }

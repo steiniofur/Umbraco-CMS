@@ -17,7 +17,7 @@ namespace Umbraco.Cms.Core.Configuration.Models
         /// Gets or sets a value for the assemblies that accept load exceptions during type finder operations.
         /// </summary>
         [Required]
-        public string AssembliesAcceptingLoadExceptions { get; set; } = null!;
+        public required string AssembliesAcceptingLoadExceptions { get; set; }
 
         /// <summary>
         /// By default the entry assemblies for scanning plugin types is the Umbraco DLLs. If you require

@@ -64,8 +64,8 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Telemetry
             var noVersionPackageName = "NoVersionPackage";
             PackageManifest[] manifests =
             {
-                new () { PackageName = versionPackageName, Version = packageVersion },
-                new () { PackageName = noVersionPackageName }
+                new () { PackageName = versionPackageName, Version = packageVersion, Source = string.Empty },
+                new () { PackageName = noVersionPackageName, Source = string.Empty }
             };
             var manifestParser = CreateManifestParser(manifests);
             var metricsConsentService = new Mock<IMetricsConsentService>();
@@ -94,8 +94,8 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Telemetry
             var version = CreateUmbracoVersion(9, 1, 1);
             PackageManifest[] manifests =
             {
-                new () { PackageName = "DoNotTrack", AllowPackageTelemetry = false },
-                new () { PackageName = "TrackingAllowed", AllowPackageTelemetry = true },
+                new () { PackageName = "DoNotTrack", AllowPackageTelemetry = false, Source = string.Empty },
+                new () { PackageName = "TrackingAllowed", AllowPackageTelemetry = true, Source = string.Empty },
             };
             var manifestParser = CreateManifestParser(manifests);
             var metricsConsentService = new Mock<IMetricsConsentService>();
