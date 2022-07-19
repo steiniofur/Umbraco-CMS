@@ -17,7 +17,7 @@ namespace Umbraco.Cms.Core.Models.Mapping
 
         public void DefineMaps(IUmbracoMapper mapper)
         {
-            mapper.Define<ISection, Section>((source, context) => new Section(), Map);
+            mapper.Define<ISection, Section>((source, context) => new Section { Name = string.Empty, Alias = string.Empty }, Map);
 
             // this is for AutoMapper ReverseMap - but really?
             mapper.Define<Section, ContentSection>();

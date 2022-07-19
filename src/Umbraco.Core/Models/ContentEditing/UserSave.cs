@@ -25,20 +25,20 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
 
         [DataMember(Name = "username", IsRequired = true)]
         [Required]
-        public string Username { get; set; } = null!;
+        public required string Username { get; set; }
 
         [DataMember(Name = "culture", IsRequired = true)]
         [Required]
-        public string Culture { get; set; } = null!;
+        public required string Culture { get; set; }
 
         [DataMember(Name = "email", IsRequired = true)]
         [Required]
         [EmailAddress]
-        public string Email { get; set; } = null!;
+        public required string Email { get; set; }
 
         [DataMember(Name = "userGroups")]
         [Required]
-        public IEnumerable<string> UserGroups { get; set; } = null!;
+        public required IEnumerable<string> UserGroups { get; set; }
 
         [DataMember(Name = "startContentIds")]
         public int[]? StartContentIds { get; set; }

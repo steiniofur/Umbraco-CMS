@@ -30,7 +30,7 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
 
         [DataMember(Name = "contentTypeAlias", IsRequired = true)]
         [Required(AllowEmptyStrings = false)]
-        public string ContentTypeAlias { get; set; } = null!;
+        public required string ContentTypeAlias { get; set; }
 
         /// <summary>
         /// The template alias to save

@@ -21,9 +21,9 @@ namespace Umbraco.Cms.Core.Models.Mapping
         public void DefineMaps(IUmbracoMapper mapper)
         {
             mapper.Define<IMacro, EntityBasic>((source, context) => new EntityBasic(), Map);
-            mapper.Define<IMacro, MacroDisplay>((source, context) => new MacroDisplay(), Map);
+            mapper.Define<IMacro, MacroDisplay>((source, context) => new MacroDisplay { View = string.Empty}, Map);
             mapper.Define<IMacro, IEnumerable<MacroParameter>>((source, context) => context.MapEnumerable<IMacroProperty, MacroParameter>(source.Properties.Values).WhereNotNull());
-            mapper.Define<IMacroProperty, MacroParameter>((source, context) => new MacroParameter(), Map);
+            mapper.Define<IMacroProperty, MacroParameter>((source, context) => new MacroParameter { Alias = string.Empty }, Map);
         }
 
         // Umbraco.Code.MapAll -Trashed -AdditionalData

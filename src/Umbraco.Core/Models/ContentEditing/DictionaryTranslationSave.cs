@@ -18,7 +18,7 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
         /// Gets or sets the translation.
         /// </summary>
         [DataMember(Name = "translation")]
-        public string Translation { get; set; } = null!;
+        public required string Translation { get; set; }
 
         /// <summary>
         /// Gets or sets the language id.

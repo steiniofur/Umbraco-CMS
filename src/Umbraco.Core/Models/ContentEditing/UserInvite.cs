@@ -17,12 +17,12 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
     {
         [DataMember(Name = "userGroups")]
         [Required]
-        public IEnumerable<string> UserGroups { get; set; } = null!;
+        public required IEnumerable<string> UserGroups { get; set; }
 
         [DataMember(Name = "email", IsRequired = true)]
         [Required]
         [EmailAddress]
-        public string Email { get; set; } = null!;
+        public required string Email { get; set; }
 
         [DataMember(Name = "username")]
         public string? Username { get; set; }

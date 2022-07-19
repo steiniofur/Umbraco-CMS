@@ -13,12 +13,12 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
 
         [DataMember(Name = "username", IsRequired = true)]
         [RequiredForPersistence(AllowEmptyStrings = false, ErrorMessage = "Required")]
-        public string Username { get; set; } = null!;
+        public required string Username { get; set; }
 
         [DataMember(Name = "email", IsRequired = true)]
         [RequiredForPersistence(AllowEmptyStrings = false, ErrorMessage = "Required")]
         [EmailAddress]
-        public string Email { get; set; } = null!;
+        public required string Email { get; set; }
 
         [DataMember(Name = "password")]
         public ChangingPasswordModel? Password { get; set; }

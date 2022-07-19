@@ -39,7 +39,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                 return Enumerable.Empty<StylesheetRule>();
             }
 
-            return css.Properties.Select(x => new StylesheetRule() { Name = x.Name, Selector = x.Alias });
+            return css.Properties.Select(x => new StylesheetRule { Name = x.Name, Selector = x.Alias, Styles = string.Empty});
         }
     }
 

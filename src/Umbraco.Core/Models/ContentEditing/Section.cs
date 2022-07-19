@@ -9,10 +9,10 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
     public class Section
     {
         [DataMember(Name = "name")]
-        public string Name { get; set; } = null!;
+        public required string Name { get; set; }
 
         [DataMember(Name = "alias")]
-        public string Alias { get; set; } = null!;
+        public required string Alias { get; set; }
 
         /// <summary>
         /// In some cases a custom route path can be specified so that when clicking on a section it goes to this

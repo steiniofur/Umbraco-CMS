@@ -11,7 +11,7 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
 
         [DataMember(Name = "culture", IsRequired = true)]
         [Required(AllowEmptyStrings = false)]
-        public string IsoCode { get; set; } = null!;
+        public required string IsoCode { get; set; }
 
         [DataMember(Name = "name")]
         public string? Name { get; set; }

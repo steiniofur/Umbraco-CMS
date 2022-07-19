@@ -37,7 +37,7 @@ namespace Umbraco.Cms.Core.Models.Mapping
         public void DefineMaps(IUmbracoMapper mapper)
         {
             mapper.Define<IDataEditor, PropertyEditorBasic>((source, context) => new PropertyEditorBasic(), Map);
-            mapper.Define<ConfigurationField, DataTypeConfigurationFieldDisplay>((source, context) => new DataTypeConfigurationFieldDisplay(), Map);
+            mapper.Define<ConfigurationField, DataTypeConfigurationFieldDisplay>((source, context) => new DataTypeConfigurationFieldDisplay { Key = string.Empty }, Map);
             mapper.Define<IDataEditor, DataTypeBasic>((source, context) => new DataTypeBasic(), Map);
             mapper.Define<IDataType, DataTypeBasic>((source, context) => new DataTypeBasic(), Map);
             mapper.Define<IDataType, DataTypeDisplay>((source, context) => new DataTypeDisplay(), Map);

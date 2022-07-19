@@ -12,7 +12,7 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
         /// Gets or sets the key.
         /// </summary>
         [DataMember(Name = "key")]
-        public string Key { get; set; } = null!;
+        public required string Key { get; set; }
 
         /// <summary>
         /// Gets or sets the label.
@@ -24,7 +24,7 @@ namespace Umbraco.Cms.Core.Models.ContentEditing
         /// Gets or sets the editor.
         /// </summary>
         [DataMember(Name = "editor")]
-        public string Editor { get; set; } = null!;
+        public required string Editor { get; set; }
 
         /// <summary>
         /// Gets or sets the id.

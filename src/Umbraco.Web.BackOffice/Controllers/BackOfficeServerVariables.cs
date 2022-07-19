@@ -190,7 +190,14 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                         },
                         {
                             "userApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<UsersController>(
-                                controller => controller.PostSaveUser(new UserSave()))
+                                controller => controller.PostSaveUser(
+                                    new UserSave
+                                    {
+                                        Username = string.Empty,
+                                        Culture = string.Empty,
+                                        Email = string.Empty,
+                                        UserGroups = Enumerable.Empty<string>(),
+                                    }))
                         },
                         {
                             "userGroupsApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<UserGroupsController>(
@@ -198,7 +205,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                         },
                         {
                             "contentApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<ContentController>(
-                                controller => controller.PostSave(new ContentItemSave()))
+                                controller => controller.PostSave(new ContentItemSave() { ContentTypeAlias = string.Empty}))
                         },
                         {
                             "publicAccessApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<PublicAccessController>(
