@@ -5,12 +5,12 @@ namespace Umbraco.Cms.Persistence.SqlServer.Dtos
     internal class ConstraintPerColumnDto
     {
         [Column("TABLE_NAME")]
-        public string TableName { get; set; } = null!;
+        public required string TableName { get; set; }
 
         [Column("COLUMN_NAME")]
-        public string ColumnName { get; set; } = null!;
+        public required string ColumnName { get; set; }
 
         [Column("CONSTRAINT_NAME")]
-        public string ConstraintName { get; set; } = null!;
+        public required string ConstraintName { get; set; }
     }
 }

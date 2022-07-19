@@ -409,16 +409,16 @@ public class SqliteSyntaxProvider : SqlSyntaxProviderBase<SqliteSyntaxProvider>
 
     private class SqliteMaster
     {
-        public string Type { get; set; } = null!;
-        public string Name { get; set; } = null!;
-        public string Sql { get; set; } = null!;
+        public required string Type { get; set; }
+        public required string Name { get; set; }
+        public required string Sql { get; set; }
     }
 
     private class IndexMeta
     {
-        public string TableName { get; set; } = null!;
-        public string IndexName { get; set; } = null!;
-        public string ColumnName { get; set; } = null!;
+        public required string TableName { get; set; }
+        public required string IndexName { get; set; }
+        public required string ColumnName { get; set; }
         public bool IsUnique { get; set; }
     }
 }

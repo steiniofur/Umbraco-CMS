@@ -54,7 +54,7 @@ namespace Umbraco.Cms.Core.Configuration.Models
         /// </summary>
         [Required]
         [EmailAddress]
-        public string From { get; set; } = null!;
+        public required string From { get; set; }
 
         /// <summary>
         /// Gets or sets a value for the SMTP host.

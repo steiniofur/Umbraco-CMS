@@ -19,7 +19,7 @@ namespace Umbraco.Tests.Benchmarks
         protected Lazy<ISqlContext> MockSqlContext()
         {
             var sqlContext = Mock.Of<ISqlContext>();
-            var syntax = new SqlServerSyntaxProvider(Options.Create(new GlobalSettings()));
+            var syntax = new SqlServerSyntaxProvider(Options.Create(new GlobalSettings{ UmbracoMediaPhysicalRootPath = string.Empty }));
             Mock.Get(sqlContext).Setup(x => x.SqlSyntax).Returns(syntax);
             return new Lazy<ISqlContext>(() => sqlContext);
         }
@@ -36,7 +36,7 @@ namespace Umbraco.Tests.Benchmarks
             _mapperCollection = mapperCollection.Object;
         }
 
-        private readonly ISqlSyntaxProvider _syntaxProvider = new SqlServerSyntaxProvider(Options.Create(new GlobalSettings()));
+        private readonly ISqlSyntaxProvider _syntaxProvider = new SqlServerSyntaxProvider(Options.Create(new GlobalSettings{ UmbracoMediaPhysicalRootPath = string.Empty}));
         private readonly CachedExpression _cachedExpression;
         private readonly IMapperCollection _mapperCollection;
 

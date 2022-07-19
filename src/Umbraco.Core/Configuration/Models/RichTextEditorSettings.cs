@@ -99,10 +99,10 @@ namespace Umbraco.Cms.Core.Configuration.Models
         public class RichTextEditorCommand
         {
             [Required]
-            public string Alias { get; set; } = null!;
+            public required string Alias { get; set; }
 
             [Required]
-            public string Name { get; set; } = null!;
+            public required string Name { get; set; }
 
             [Required]
             public RichTextEditorCommandMode Mode { get; set; }

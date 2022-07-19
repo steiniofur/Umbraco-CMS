@@ -250,7 +250,7 @@ namespace Umbraco.Cms.Web.BackOffice.Controllers
                         },
                         {
                             "currentUserApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<CurrentUserController>(
-                                controller => controller.PostChangePassword(new ChangingPasswordModel()))
+                                controller => controller.PostChangePassword(new ChangingPasswordModel(){ NewPassword = "", OldPassword = "" }))
                         },
                         {
                             "entityApiBaseUrl", _linkGenerator.GetUmbracoApiServiceBaseUrl<EntityController>(

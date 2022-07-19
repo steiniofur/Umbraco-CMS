@@ -46,7 +46,7 @@ namespace Umbraco.Cms.Core.Configuration.Models
         /// Gets or sets a value for the content culture.
         /// </summary>
         [Required]
-        public string Culture { get; set; } = null!;
+        public required string Culture { get; set; }
 
         internal override bool IsValid() =>
             base.IsValid() &&

@@ -181,7 +181,7 @@ public static class ServiceCollectionExtensions
     {
         TypeFinderSettings typeFinderSettings =
             configuration.GetSection(Constants.Configuration.ConfigTypeFinder).Get<TypeFinderSettings>() ??
-            new TypeFinderSettings();
+            new TypeFinderSettings{ AssembliesAcceptingLoadExceptions = string.Empty };
 
         var assemblyProvider = new DefaultUmbracoAssemblyProvider(
             entryAssembly,
