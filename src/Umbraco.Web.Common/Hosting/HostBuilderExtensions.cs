@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Web.Common.DependencyInjection;
 using Umbraco.Cms.Web.Common.Hosting;
 
@@ -24,6 +25,26 @@ public static class HostBuilderExtensions
                 true));
 
 #endif
+        // Get runtime mode from RuntimeHostConfigurationOption
+        builder.ConfigureHostOptions((context, options) =>
+        {
+            if (string.IsNullOrEmpty(context.Configuration[Constants.Configuration.ConfigRuntimeMode]))
+            {
+                var runtimeMode = AppContext.GetData("Umbraco.Cms.RuntimeMode")?.ToString();
+                if (bool.TryParse(runtimeMode, out var useRuntimeMode) && useRuntimeMode)
+                {
+                    var mode = context.HostingEnvironment.EnvironmentName switch
+                    {
+                        "Production" => "Production",
+                        "Staging" => "Production",
+                        _ => "Development"
+                    };
+
+                    context.Configuration[Constants.Configuration.ConfigRuntimeMode] = mode;
+                }
+            }
+        });
+
         builder.ConfigureLogging(x => x.ClearProviders());
 
         return new UmbracoHostBuilderDecorator(builder, OnHostBuilt);

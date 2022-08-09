@@ -9,4 +9,16 @@
     <Using Include="Umbraco.Cms.Core.DependencyInjection" />
     <Using Include="Umbraco.Extensions" />
   </ItemGroup>
+  <ItemGroup Condition="'$(UmbracoRuntimeMode)' != ''">
+    <RuntimeHostConfigurationOption Include="Umbraco.Cms.RuntimeMode" Value="true" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(UmbracoRuntimeMode)' == '' or '$(UmbracoRuntimeMode)' == 'false'">
+    <!-- Only disable Razor compilation when using BackofficeDevelopment runtime mode -->
+    <RazorCompileOnBuild>false</RazorCompileOnBuild>
+    <RazorCompileOnPublish>false</RazorCompileOnPublish>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Razor files are needed for the backoffice to work correctly -->
+    <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
+  </PropertyGroup>
 </Project>

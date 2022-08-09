@@ -17,14 +17,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <!-- Razor files are needed for the backoffice to work correctly -->
-    <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- Remove RazorCompileOnBuild and RazorCompileOnPublish when not using ModelsMode InMemoryAuto -->
-    <RazorCompileOnBuild>false</RazorCompileOnBuild>
-    <RazorCompileOnPublish>false</RazorCompileOnPublish>
+    <UmbracoRuntimeMode>true</UmbracoRuntimeMode>
   </PropertyGroup>
 
   <Import Project="..\PACKAGE_PROJECT_NAME_FROM_TEMPLATE\build\PACKAGE_PROJECT_NAME_FROM_TEMPLATE.targets" Condition="'$(PackageProjectName)' != ''" />

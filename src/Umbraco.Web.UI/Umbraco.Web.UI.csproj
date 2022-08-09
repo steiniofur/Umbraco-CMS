@@ -15,7 +15,7 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="all" />
     <PackageReference Include="Umbraco.Code" Version="2.0.0" PrivateAssets="all" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <!-- Opt-in to app-local ICU to ensure consistent globalization APIs across different platforms -->
     <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="68.2.0.9" />
@@ -23,16 +23,9 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <!-- Razor files are needed for the backoffice to work correctly -->
-    <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
+    <UmbracoRuntimeMode>true</UmbracoRuntimeMode>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- Remove RazorCompileOnBuild and RazorCompileOnPublish when not using ModelsMode InMemoryAuto -->
-    <RazorCompileOnBuild>false</RazorCompileOnBuild>
-    <RazorCompileOnPublish>false</RazorCompileOnPublish>
-  </PropertyGroup>
-
+  
   <PropertyGroup>
     <JsonSchemaPath>$(ProjectDir)appsettings-schema.json</JsonSchemaPath>
     <JsonSchemaProjectPath>$(ProjectDir)../JsonSchema/JsonSchema.csproj</JsonSchemaProjectPath>
