@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <UmbracoRuntimeMode>true</UmbracoRuntimeMode>
+    <UmbracoRuntimeMode>false</UmbracoRuntimeMode>
   </PropertyGroup>
   
   <PropertyGroup>

@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <UmbracoRuntimeMode>true</UmbracoRuntimeMode>
+    <UmbracoRuntimeMode>false</UmbracoRuntimeMode>
   </PropertyGroup>
 
   <Import Project="..\PACKAGE_PROJECT_NAME_FROM_TEMPLATE\build\PACKAGE_PROJECT_NAME_FROM_TEMPLATE.targets" Condition="'$(PackageProjectName)' != ''" />
