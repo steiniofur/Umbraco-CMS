@@ -70,6 +70,12 @@ public class UmbracoRequestPaths
         var fullUrlPath = absPath.TrimStart(Constants.CharArrays.ForwardSlash);
         var urlPath = fullUrlPath.TrimStart(_appPath).EnsureStartsWith('/');
 
+        // TODO: DO NOT UNDER ANY CIRCUMSTANCE MERGE THIS INTO DEV!
+        if (urlPath.Contains("/umbraco/api/v1.0/"))
+        {
+            return true;
+        }
+
         // check if this is in the umbraco back office
         var isUmbracoPath = urlPath.InvariantStartsWith(_backOfficePath);
 
