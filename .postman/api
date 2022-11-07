@@ -5,7 +5,8 @@ id = bb411b9e-26df-412f-9b49-c713b47f7638
 
 [relations.collections]
 rootDirectory = postman/collections
-files[] = {"id":"17446886-1a0cbca3-67f1-488a-9c49-580dfd71a80c","path":"Umbraco Backoffice API.json","metaData":{}}
+files[] = {"id":"17446886-7f5a059c-8e00-41bc-99ee-784d1fa7a81c","path":"New Definition.json","metaData":{}}
+files[] = {"id":"17446886-2a8ff1cc-a278-45b7-bc28-d050fcad8ec7","path":"Umbraco Management API.json","metaData":{}}
 
 [relations.collections.metaData]
 
@@ -15,4 +16,3 @@ files[] = {"path":"OpenApi.json","metaData":{}}
 
 [relations.apiDefinition.metaData]
 type = openapi:3
-rootFiles[] = OpenApi.json
