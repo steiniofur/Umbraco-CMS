@@ -2267,6 +2267,7 @@ Mange hilsner fra Umbraco robotten
     <key alias="actionEnterSortMode">Sortings tilstand</key>
     <key alias="actionExitSortMode">Afslut sortings tilstand</key>
     <key alias="areaAliasIsNotUnique">Dette område alias skal være unikt sammenlignet med andre områder af denne Blok.</key>
+    <key alias="transferBlockTypesFromPersistedPreValues">Overfør %0% blok konfigurationer fra eksisterende konfiguration.</key>
   </area>
   <area alias="contentTemplatesDashboard">
     <key alias="whatHeadline">Hvad er Indholdsskabeloner?</key>

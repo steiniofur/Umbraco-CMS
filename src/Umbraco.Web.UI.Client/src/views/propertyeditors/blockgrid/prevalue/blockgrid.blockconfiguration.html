@@ -31,12 +31,16 @@
                 </div>
             </umb-block-card>
 
-            <uui-button id="{{model.alias}}" look="{{(model.value.length === 0 && vm.blockGroups.length === 0) ? 'primary' : 'placeholder'}}" color="primary" ng-click="vm.openAddDialog()">
+            <uui-button id="{{model.alias}}" look="{{(model.value.length === 0 && vm.blockGroups.length === 0 && vm.hasPersistedBlocks === false) ? 'primary' : 'placeholder'}}" color="primary" ng-click="vm.openAddDialog()">
                 <localize key="blockEditor_addBlockType">Add Block</localize>
             </uui-button>
 
-            <uui-button ng-if="!vm.showSampleDataCTA && model.value.length === 0 && vm.blockGroups.length === 0" look="placeholder" color="primary" ng-click="vm.setupSample()">
+            <uui-button ng-if="!vm.hasPersistedBlocks && !vm.showSampleDataCTA && model.value.length === 0 && vm.blockGroups.length === 0" look="placeholder" color="primary" ng-click="vm.setupSample()">
                 <localize key="blockEditor_getSampleHeadline">Install demo Blocks</localize>
+            </uui-button>
+
+            <uui-button ng-if="vm.hasPersistedBlocks && model.value.length === 0 && vm.blockGroups.length === 0" look="primary" color="primary" ng-click="vm.transferPersistedBlocks()">
+                <localize key="blockEditor_transferBlockTypesFrompersistedPreValues" tokens="[vm.persistedBlocks.length]">Transfer BlockTypes from existing configuration</localize>
             </uui-button>
 
         </div>

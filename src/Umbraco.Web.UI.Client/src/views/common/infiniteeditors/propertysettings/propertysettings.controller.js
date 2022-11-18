@@ -19,6 +19,7 @@
         vm.allowChangeDataType = false;
         vm.changeDataTypeHelpTextIsVisible = false;
         vm.propertyTypeHasValues = false;
+        vm.persistedPreValues = {};
 
         vm.showValidationPattern = false;
         vm.focusOnPatternField = false;
@@ -61,6 +62,9 @@
             } else {
                 vm.allowChangeDataType = true;
             }
+
+            // store the saved version of preValues.
+            vm.persistedPreValues = Utilities.copy($scope.model.property.config);
 
             //make the default the same as the content type
             if (!$scope.model.property.dataTypeId) {
@@ -135,6 +139,7 @@
 
             var dataTypePicker = {
                 property: $scope.model.property,
+                persistedPreValues: vm.persistedPreValues,
                 contentTypeName: $scope.model.contentTypeName,
                 view: "views/common/infiniteeditors/datatypepicker/datatypepicker.html",
                 size: "medium",
@@ -168,6 +173,7 @@
             vm.focusOnMandatoryField = false;
 
             var dataTypeSettings = {
+                persistedPreValues: vm.persistedPreValues,
                 view: "views/common/infiniteeditors/datatypesettings/datatypesettings.html",
                 id: property.dataTypeId,
                 submit: function(model) {
@@ -179,6 +185,9 @@
                         property.dataTypeId = model.dataType.id;
                         property.dataTypeIcon = model.dataType.icon;
                         property.dataTypeName = model.dataType.name;
+
+                        // updated storage of the saved version of preValues.
+                        vm.persistedPreValues = Utilities.copy(property.config);
 
                         // set flag to update same data types
                         $scope.model.updateSameDataTypes = true;

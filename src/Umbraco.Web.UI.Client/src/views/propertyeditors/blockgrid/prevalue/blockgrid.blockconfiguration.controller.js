@@ -51,6 +51,9 @@
 
             $element.closest('.umb-control-group').addClass('-no-border');
 
+            vm.persistedBlocks = $scope.persistedPreValues.blocks;
+            vm.hasPersistedBlocks = vm.persistedBlocks?.length > 0;
+
             // Somehow the preValues models are different, so we will try to match either key or alias.
             vm.gridColumnsPreValue = $scope.preValues.find(x => x.key ? x.key === "gridColumns" : x.alias === "gridColumns");
             const blockGroupModel = $scope.preValues.find(x => x.key ? x.key === "blockGroups" : x.alias === "blockGroups");
@@ -63,6 +66,13 @@
                 $scope.model.value = [];
             }
 
+            
+            ensureGoodData();
+            loadElementTypes();
+
+        }
+
+        function ensureGoodData() {
             // Ensure good values:
             $scope.model.value.forEach(block => {
                 block.columnSpanOptions = block.columnSpanOptions || [];
@@ -70,10 +80,8 @@
             $scope.model.value.forEach(block => {
                 block.areas = block.areas || [];
             });
-
-            loadElementTypes();
-
         }
+
 
 
         function loadElementTypes() {
@@ -416,6 +424,25 @@
                     });
                     
                 });
+        }
+
+
+
+        vm.transferPersistedBlocks = function() {
+            vm.persistedBlocks.forEach(blockType => {
+                const transferredBlockType = Utilities.copy({ ...DEFAULT_BLOCKTYPE_OBJECT, ...blockType});
+
+                // If areas: then make new keys:
+                transferredBlockType.areas = transferredBlockType.areas || [];
+                transferredBlockType.areas.forEach(area => area.key = String.CreateGuid());
+
+                console.log("transferredBlockType", transferredBlockType);
+
+                if ($scope.model.value.find(X => X.contentElementTypeKey === transferredBlockType.key) === undefined) {
+                    $scope.model.value.push(transferredBlockType);
+                }
+            });
+            ensureGoodData();
         }
 
 

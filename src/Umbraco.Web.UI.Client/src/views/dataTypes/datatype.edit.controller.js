@@ -36,13 +36,20 @@ function DataTypeEditController($scope, $routeParams, appState, navigationServic
 
     //setup the pre-values as props
     vm.preValues = [];
-
+    vm.persistedPreValues = {};
 
     //method used to configure the pre-values when we retrieve them from the server
-    function createPreValueProps(preVals) {
+    function createPreValueProps(preVals, isPersisted) {
         vm.preValues = dataTypeHelper.createPreValueProps(preVals);
-    }
+        if(isPersisted) {
+            // Store the PreValues, to enable preValue-editor to transfer preValues.
+            vm.persistedPreValues = {};
 
+            for (var i = 0; i < preVals.length; i++) {
+                vm.persistedPreValues[(preVals[i].key != undefined ? preVals[i].key : preVals[i].alias)] = Utilities.copy(preVals[i].value);
+            }
+        }
+    }
 
     function setHeaderNameState(content) {
         if(content.isSystem == 1) {
@@ -63,7 +70,7 @@ function DataTypeEditController($scope, $routeParams, appState, navigationServic
                 vm.preValuesLoaded = true;
                 vm.content = data;
 
-                createPreValueProps(vm.content.preValues);
+                createPreValueProps(vm.content.preValues, true);
 
                 setHeaderNameState(vm.content);
 
@@ -101,7 +108,7 @@ function DataTypeEditController($scope, $routeParams, appState, navigationServic
                         scope: $scope,
                         savedContent: data,
                         rebindCallback: function() {
-                            createPreValueProps(data.preValues);
+                            createPreValueProps(data.preValues, true);
                         }
                     });
 
@@ -161,7 +168,7 @@ function DataTypeEditController($scope, $routeParams, appState, navigationServic
                     .then(function (data) {
                         vm.preValuesLoaded = true;
                         vm.content.preValues = data;
-                        createPreValueProps(vm.content.preValues);
+                        createPreValueProps(vm.content.preValues, false);
 
                         setHeaderNameState(vm.content);
 

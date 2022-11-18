@@ -59,6 +59,7 @@
         function newDataType() {
 
             var dataTypeSettings = {
+                persistedPreValues: $scope.model.persistedPreValues,
                 propertyEditor: $scope.model.editor,
                 property: $scope.model.property,
                 contentTypeName: $scope.model.contentTypeName,

@@ -15,6 +15,7 @@
 
     var vm = this;
 
+    vm.persistedPreValues = {};
     vm.dataType = {};
     vm.loadingDataType = false;
     vm.saveButtonState = "init";
@@ -25,6 +26,8 @@
     function onInit() {
 
       setTitle();
+
+      vm.persistedPreValues = $scope.model.persistedPreValues || {};
 
       if($scope.model.create) {
         createNewDataType();

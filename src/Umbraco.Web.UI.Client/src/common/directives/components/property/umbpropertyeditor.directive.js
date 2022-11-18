@@ -11,7 +11,8 @@ function umbPropEditor(umbPropEditorHelper, localizationService) {
         return {
             scope: {
                 model: "=",
-                preValues: "<",
+                preValues: "<?",
+                persistedPreValues: "<?",
                 node: "<",
                 isPreValue: "@",
                 preview: "<",

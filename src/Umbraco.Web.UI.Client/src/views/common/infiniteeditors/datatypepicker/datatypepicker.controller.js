@@ -109,6 +109,7 @@
         function viewOptionsForEditor(editor) {
             
             var dataTypeConfigurationPicker = {
+                persistedPreValues: $scope.model.persistedPreValues,
                 editor: editor,
                 property: $scope.model.property,
                 contentTypeName: $scope.model.contentTypeName,
@@ -140,6 +141,7 @@
         function pickEditor(propertyEditor) {
 
             var dataTypeSettings = {
+                persistedPreValues: $scope.model.persistedPreValues,
                 propertyEditor: propertyEditor,
                 property: $scope.model.property,
                 contentTypeName: $scope.model.contentTypeName,
