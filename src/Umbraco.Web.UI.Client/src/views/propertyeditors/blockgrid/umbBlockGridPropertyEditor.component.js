@@ -263,6 +263,16 @@
                 vm.umbProperty.setPropertyActions(propertyActions);
             }
 
+            if(vm.model.value.layout) {
+                // support transferring layout data from Block List Editor:
+                if(vm.model.value.layout["Umbraco.BlockList"]) {
+                    // Move it to the new editor (no need to change/adapt data as everything List can do is compatible with Grid).
+                    vm.model.value.layout[vm.model.editor] = vm.model.value.layout["Umbraco.BlockList"];
+                    delete vm.model.value.layout["Umbraco.BlockList"]; // get rid of the BlockList data.
+                }
+                console.log("vm.model.value.layout:", vm.model.value.layout);
+            }
+
             // Create Model Object, to manage our data for this Block Editor.
             modelObject = blockEditorService.createModelObject(vm.model.value, vm.model.editor, vm.model.config.blocks, scopeOfExistence, $scope);
 
