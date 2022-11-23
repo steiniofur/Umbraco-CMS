@@ -1,5 +1,7 @@
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,16 +51,23 @@ namespace Umbraco.Cms.Web.Common.Middleware
                     // If we've gotten this far it means a preview cookie has been set and a front-end umbraco document request is executing.
                     // In this case, authentication will not have occurred for an Umbraco back office User, however we need to perform the authentication
                     // for the user here so that the preview capability can be authorized otherwise only the non-preview page will be rendered.
-                    if (request.Cookies.TryGetValue(cookieOptions.Cookie.Name, out var cookie))
+                    if (cookieOptions.Cookie.Name != null)
                     {
-                        var unprotected = cookieOptions.TicketDataFormat.Unprotect(cookie);
-                        var backOfficeIdentity = unprotected?.Principal.GetUmbracoIdentity();
-                        if (backOfficeIdentity != null)
+                        var chunkingCookieManager = new ChunkingCookieManager();
+                        var cookie = chunkingCookieManager.GetRequestCookie(context, cookieOptions.Cookie.Name);
+
+                        if (!string.IsNullOrEmpty(cookie))
                         {
-                            // Ok, we've got a real ticket, now we can add this ticket's identity to the current
-                            // Principal, this means we'll have 2 identities assigned to the principal which we can
-                            // use to authorize the preview and allow for a back office User.
-                            context.User.AddIdentity(backOfficeIdentity);
+                            AuthenticationTicket? unprotected = cookieOptions.TicketDataFormat.Unprotect(cookie);
+                            ClaimsIdentity? backOfficeIdentity = unprotected?.Principal.GetUmbracoIdentity();
+
+                            if (backOfficeIdentity != null)
+                            {
+                                // Ok, we've got a real ticket, now we can add this ticket's identity to the current
+                                // Principal, this means we'll have 2 identities assigned to the principal which we can
+                                // use to authorize the preview and allow for a back office User.
+                                context.User.AddIdentity(backOfficeIdentity);
+                            }
                         }
                     }
 
