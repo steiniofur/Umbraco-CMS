@@ -253,7 +253,7 @@ stages:
               projects: '**/*.Tests.UnitTests.csproj'
               arguments: '--configuration $(buildConfiguration) --no-build'
               testRunTitle: Unit Tests - $(Agent.OS)
-
+              publishTestResults: true
   - stage: Integration
     displayName: Integration Tests
     dependsOn: Build
@@ -283,12 +283,19 @@ stages:
               version: $(dotnetVersion)
               includePreviewVersions: $(dotnetIncludePreviewVersions)
           - task: DotNetCoreCLI@2
-            displayName: Run dotnet test
+            displayName: Run dotnet test (Integration + Unit + Coverage)
             inputs:
               command: test
-              projects: '**/*.Tests.Integration.csproj'
-              arguments: '--configuration $(buildConfiguration) --no-build'
+              projects: |
+                **/Umbraco.Tests.UnitTests.csproj
+                **/Umbraco.Tests.Integration.csproj
+              arguments: '--configuration $(buildConfiguration) --no-build --collect:"XPlat Code Coverage"'
               testRunTitle: Integration Tests SQLite - $(Agent.OS)
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish code coverage'
+            inputs:
+              codeCoverageTool: 'Cobertura' # Available options: 'JaCoCo', 'Cobertura'
+              summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
             env:
               Tests__Database__DatabaseType: 'Sqlite'
               Umbraco__CMS__Global__MainDomLock: 'FileSystemMainDomLock'
