@@ -2,7 +2,9 @@ using System.Data;
 using System.Data.Common;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NPoco;
+using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Infrastructure.Migrations.Install;
 using Umbraco.Extensions;
 
@@ -23,6 +25,7 @@ public class UmbracoDatabase : Database, IUmbracoDatabase
     private readonly ILogger<UmbracoDatabase> _logger;
     private readonly IBulkSqlInsertProvider? _bulkSqlInsertProvider;
     private readonly DatabaseSchemaCreatorFactory? _databaseSchemaCreatorFactory;
+    private readonly IOptions<GlobalSettings> _globalSettings;
     private readonly IEnumerable<IMapper>? _mapperCollection;
     private readonly Guid _instanceGuid = Guid.NewGuid();
     private List<CommandInfo>? _commands;
@@ -43,13 +46,16 @@ public class UmbracoDatabase : Database, IUmbracoDatabase
         ILogger<UmbracoDatabase> logger,
         IBulkSqlInsertProvider? bulkSqlInsertProvider,
         DatabaseSchemaCreatorFactory databaseSchemaCreatorFactory,
-        IEnumerable<IMapper>? mapperCollection = null)
+        IOptions<GlobalSettings> globalSettings,
+        IEnumerable<IMapper>? mapperCollection = null
+        )
         : base(connectionString, sqlContext.DatabaseType, provider, sqlContext.SqlSyntax.DefaultIsolationLevel)
     {
         SqlContext = sqlContext;
         _logger = logger;
         _bulkSqlInsertProvider = bulkSqlInsertProvider;
         _databaseSchemaCreatorFactory = databaseSchemaCreatorFactory;
+        _globalSettings = globalSettings;
         _mapperCollection = mapperCollection;
 
         Init();
@@ -63,12 +69,14 @@ public class UmbracoDatabase : Database, IUmbracoDatabase
         DbConnection connection,
         ISqlContext sqlContext,
         ILogger<UmbracoDatabase> logger,
-        IBulkSqlInsertProvider bulkSqlInsertProvider)
+        IBulkSqlInsertProvider bulkSqlInsertProvider,
+        IOptions<GlobalSettings> globalSettings)
         : base(connection, sqlContext.DatabaseType, sqlContext.SqlSyntax.DefaultIsolationLevel)
     {
         SqlContext = sqlContext;
         _logger = logger;
         _bulkSqlInsertProvider = bulkSqlInsertProvider;
+        _globalSettings = globalSettings;
 
         Init();
     }
@@ -245,6 +253,10 @@ public class UmbracoDatabase : Database, IUmbracoDatabase
         if (OneTimeCommandTimeout == 0 && CommandTimeout == 0 && cmd.Connection?.ConnectionTimeout > 30)
         {
             cmd.CommandTimeout = cmd.Connection.ConnectionTimeout;
+        }
+        else
+        {
+            cmd.CommandTimeout = _globalSettings.Value.DbConnectionTimeout;
         }
 
         if (EnableSqlTrace)

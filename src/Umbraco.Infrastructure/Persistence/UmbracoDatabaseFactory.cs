@@ -286,6 +286,7 @@ public class UmbracoDatabaseFactory : DisposableObjectSlim, IUmbracoDatabaseFact
             _loggerFactory.CreateLogger<UmbracoDatabase>(),
             _bulkSqlInsertProvider,
             _databaseSchemaCreatorFactory,
+            _globalSettings,
             _pocoMappers);
     }
 

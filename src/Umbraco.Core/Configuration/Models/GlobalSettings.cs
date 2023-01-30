@@ -33,6 +33,7 @@ public class GlobalSettings
     internal const bool StaticSanitizeTinyMce = false;
     internal const int StaticMainDomReleaseSignalPollingInterval = 2000;
     private const bool StaticForceCombineUrlPathLeftToRight = true;
+    internal const int StaticDbConnectionTimeout = 30;
 
     /// <summary>
     ///     Gets or sets a value for the reserved URLs (must end with a comma).
@@ -252,4 +253,10 @@ public class GlobalSettings
     /// </example>
     [DefaultValue(StaticForceCombineUrlPathLeftToRight)]
     public bool ForceCombineUrlPathLeftToRight { get; set; }  = StaticForceCombineUrlPathLeftToRight;
+
+    /// <summary>
+    /// Gets or sets a value representing how long the database connection timeout should be.
+    /// </summary>
+    [DefaultValue(StaticDbConnectionTimeout)]
+    public int DbConnectionTimeout { get; set; } = StaticDbConnectionTimeout;
 }
