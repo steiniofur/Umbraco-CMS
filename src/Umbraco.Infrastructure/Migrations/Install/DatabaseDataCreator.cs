@@ -1755,10 +1755,12 @@ internal class DatabaseDataCreator
         InstallDefaultDataSettings? languageInstallDefaultDataSettings = _installDefaultDataSettings.Get(Constants.Configuration.NamedOptions.InstallDefaultData.Languages);
         if (languageInstallDefaultDataSettings?.InstallData == InstallDefaultDataOption.Values)
         {
+            short id = 0;
             // Insert the specified languages, ensuring the first is marked as default.
             bool isDefault = true;
             foreach (var isoCode in languageInstallDefaultDataSettings.Values)
             {
+                id++;
                 if (!TryCreateCulture(isoCode, out CultureInfo? culture))
                 {
                     continue;
@@ -1769,6 +1771,7 @@ internal class DatabaseDataCreator
                     IsoCode = culture.Name,
                     CultureName = culture.EnglishName,
                     IsDefault = isDefault,
+                    Id = id,
                 };
                 _database.Insert(Constants.DatabaseSchema.Tables.Language, "id", true, dto);
                 isDefault = false;
