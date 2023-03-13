@@ -1,10 +1,11 @@
 using CSharpTest.Net.Collections;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
-using Umbraco.Cms.Core.Hosting;
+using Umbraco.Cms.Core.Extensions;
 using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -19,6 +20,7 @@ using Umbraco.Cms.Infrastructure.PublishedCache.DataSource;
 using Umbraco.Cms.Infrastructure.PublishedCache.Persistence;
 using Umbraco.Extensions;
 using File = System.IO.File;
+using IHostingEnvironment = Umbraco.Cms.Core.Hosting.IHostingEnvironment;
 using IScope = Umbraco.Cms.Infrastructure.Scoping.IScope;
 using IScopeProvider = Umbraco.Cms.Infrastructure.Scoping.IScopeProvider;
 
@@ -33,6 +35,7 @@ internal class PublishedSnapshotService : IPublishedSnapshotService
     public static readonly bool FullCacheWhenPreviewing = true;
     private readonly NuCacheSettings _config;
     private readonly ContentDataSerializer _contentDataSerializer;
+    private readonly IHostEnvironment _hostEnvironment;
     private readonly IDefaultCultureAccessor _defaultCultureAccessor;
     private readonly object _elementsLock = new();
     private readonly GlobalSettings _globalSettings;
@@ -87,7 +90,8 @@ internal class PublishedSnapshotService : IPublishedSnapshotService
         IPublishedModelFactory publishedModelFactory,
         IHostingEnvironment hostingEnvironment,
         IOptions<NuCacheSettings> config,
-        ContentDataSerializer contentDataSerializer)
+        ContentDataSerializer contentDataSerializer,
+        IHostEnvironment hostEnvironment)
     {
         _options = options;
         _syncBootStateAccessor = syncBootStateAccessor;
@@ -105,6 +109,7 @@ internal class PublishedSnapshotService : IPublishedSnapshotService
         _globalSettings = globalSettings.Value;
         _hostingEnvironment = hostingEnvironment;
         _contentDataSerializer = contentDataSerializer;
+        _hostEnvironment = hostEnvironment;
         _config = config.Value;
         _publishedModelFactory = publishedModelFactory;
     }
@@ -640,7 +645,8 @@ internal class PublishedSnapshotService : IPublishedSnapshotService
 
     private string GetLocalFilesPath()
     {
-        var path = Path.Combine(_hostingEnvironment.LocalTempPath, "NuCache");
+        var path = _hostEnvironment.MapPathContentRoot(Path.Combine(Core.Constants.SystemDirectories.TempData, "NuCache"));
+       // var path = Path.Combine(_hostingEnvironment.LocalTempPath, "NuCache");
 
         if (!Directory.Exists(path))
         {
