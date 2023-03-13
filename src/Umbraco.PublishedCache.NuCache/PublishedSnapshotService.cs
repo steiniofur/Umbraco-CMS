@@ -35,7 +35,6 @@ internal class PublishedSnapshotService : IPublishedSnapshotService
     public static readonly bool FullCacheWhenPreviewing = true;
     private readonly NuCacheSettings _config;
     private readonly ContentDataSerializer _contentDataSerializer;
-    private readonly IHostEnvironment _hostEnvironment;
     private readonly IDefaultCultureAccessor _defaultCultureAccessor;
     private readonly object _elementsLock = new();
     private readonly GlobalSettings _globalSettings;
@@ -90,8 +89,7 @@ internal class PublishedSnapshotService : IPublishedSnapshotService
         IPublishedModelFactory publishedModelFactory,
         IHostingEnvironment hostingEnvironment,
         IOptions<NuCacheSettings> config,
-        ContentDataSerializer contentDataSerializer,
-        IHostEnvironment hostEnvironment)
+        ContentDataSerializer contentDataSerializer)
     {
         _options = options;
         _syncBootStateAccessor = syncBootStateAccessor;
@@ -109,7 +107,6 @@ internal class PublishedSnapshotService : IPublishedSnapshotService
         _globalSettings = globalSettings.Value;
         _hostingEnvironment = hostingEnvironment;
         _contentDataSerializer = contentDataSerializer;
-        _hostEnvironment = hostEnvironment;
         _config = config.Value;
         _publishedModelFactory = publishedModelFactory;
     }
@@ -645,7 +642,7 @@ internal class PublishedSnapshotService : IPublishedSnapshotService
 
     private string GetLocalFilesPath()
     {
-        var path = _hostEnvironment.MapPathContentRoot(Path.Combine(Core.Constants.SystemDirectories.TempData, "NuCache"));
+        var path = _hostingEnvironment.MapPathContentRoot(Path.Combine(Core.Constants.SystemDirectories.TempData, "NuCache"));
        // var path = Path.Combine(_hostingEnvironment.LocalTempPath, "NuCache");
 
         if (!Directory.Exists(path))
