@@ -3,6 +3,7 @@
 
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Membership;
 using Umbraco.Cms.Core.Services.Changes;
 
 namespace Umbraco.Extensions;
@@ -21,14 +22,17 @@ public static class DistributedCacheExtensions
 
     #region UserCacheRefresher
 
-    public static void RemoveUserCache(this DistributedCache dc, int userId)
-        => dc.Remove(UserCacheRefresher.UniqueId, userId);
+    public static void RefreshAllUserCache(this DistributedCache dc)
+        => dc.RefreshAll(UserCacheRefresher.UniqueId);
 
     public static void RefreshUserCache(this DistributedCache dc, int userId)
         => dc.Refresh(UserCacheRefresher.UniqueId, userId);
 
-    public static void RefreshAllUserCache(this DistributedCache dc)
-        => dc.RefreshAll(UserCacheRefresher.UniqueId);
+    public static void RefreshUserCache(this DistributedCache dc, IEnumerable<IUser> users)
+        => dc.RefreshByPayload(UserCacheRefresher.UniqueId, users.Select(x => new UserCacheRefresher.JsonPayload(x.Id)));
+
+    public static void RemoveUserCache(this DistributedCache dc, int userId)
+        => dc.Remove(UserCacheRefresher.UniqueId, userId);
 
     #endregion
 
