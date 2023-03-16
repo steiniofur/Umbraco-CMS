@@ -38,14 +38,17 @@ public static class DistributedCacheExtensions
 
     #region UserGroupCacheRefresher
 
-    public static void RemoveUserGroupCache(this DistributedCache dc, int userId)
-        => dc.Remove(UserGroupCacheRefresher.UniqueId, userId);
+    public static void RefreshAllUserGroupCache(this DistributedCache dc)
+        => dc.RefreshAll(UserGroupCacheRefresher.UniqueId);
 
     public static void RefreshUserGroupCache(this DistributedCache dc, int userId)
         => dc.Refresh(UserGroupCacheRefresher.UniqueId, userId);
 
-    public static void RefreshAllUserGroupCache(this DistributedCache dc)
-        => dc.RefreshAll(UserGroupCacheRefresher.UniqueId);
+    public static void RefreshUserGroupCache(this DistributedCache dc, IEnumerable<IUserGroup> userGroups)
+        => dc.RefreshByPayload(UserGroupCacheRefresher.UniqueId, userGroups.Select(x => new UserGroupCacheRefresher.JsonPayload(x.Id)));
+
+    public static void RemoveUserGroupCache(this DistributedCache dc, int userId)
+        => dc.Remove(UserGroupCacheRefresher.UniqueId, userId);
 
     #endregion
 
