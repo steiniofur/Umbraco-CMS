@@ -133,6 +133,9 @@ public static class DistributedCacheExtensions
 
     #region MemberGroupCacheRefresher
 
+    public static void RefreshAllMemberGroupCache(this DistributedCache dc)
+        => dc.RefreshAll(MemberGroupCacheRefresher.UniqueId);
+
     public static void RefreshMemberGroupCache(this DistributedCache dc, int memberGroupId)
         => dc.Refresh(MemberGroupCacheRefresher.UniqueId, memberGroupId);
 
