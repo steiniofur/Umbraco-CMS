@@ -1,18 +1,28 @@
+using Microsoft.Extensions.DependencyInjection;
+using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Persistence.Repositories;
+using Umbraco.Cms.Core.Serialization;
+using Umbraco.Extensions;
 
 namespace Umbraco.Cms.Core.Cache;
 
-public sealed class RelationTypeCacheRefresher : CacheRefresherBase<RelationTypeCacheRefresherNotification>
+public sealed class RelationTypeCacheRefresher : PayloadCacheRefresherBase<RelationTypeCacheRefresherNotification, RelationTypeCacheRefresher.JsonPayload>
 {
+    public static readonly Guid UniqueId = Guid.Parse("D8375ABA-4FB3-4F86-B505-92FBA1B6F7C9");
+
+    [Obsolete("Use the constructor that takes all parameters instead.")]
     public RelationTypeCacheRefresher(AppCaches appCaches, IEventAggregator eventAggregator, ICacheRefresherNotificationFactory factory)
-        : base(appCaches, eventAggregator, factory)
+       : this(appCaches, StaticServiceProvider.Instance.GetRequiredService<IJsonSerializer>(), eventAggregator, factory)
     {
     }
 
-    public static readonly Guid UniqueId = Guid.Parse("D8375ABA-4FB3-4F86-B505-92FBA1B6F7C9");
+    public RelationTypeCacheRefresher(AppCaches appCaches, IJsonSerializer jsonSerializer, IEventAggregator eventAggregator, ICacheRefresherNotificationFactory factory)
+        : base(appCaches, jsonSerializer, eventAggregator, factory)
+    {
+    }
 
     public override Guid RefresherUniqueId => UniqueId;
 
@@ -21,31 +31,50 @@ public sealed class RelationTypeCacheRefresher : CacheRefresherBase<RelationType
     public override void RefreshAll()
     {
         ClearAllIsolatedCacheByEntityType<IRelationType>();
+
         base.RefreshAll();
     }
 
     public override void Refresh(int id)
     {
-        Attempt<IAppPolicyCache?> cache = AppCaches.IsolatedCaches.Get<IRelationType>();
-        if (cache.Success)
-        {
-            cache.Result?.Clear(RepositoryCacheKeys.GetKey<IRelationType, int>(id));
-        }
+        ClearCache(id.Yield());
 
         base.Refresh(id);
     }
 
     public override void Refresh(Guid id) => throw new NotSupportedException();
 
-    // base.Refresh(id);
+    public override void Refresh(JsonPayload[] payloads)
+    {
+        ClearCache(payloads.Select(x => x.Id));
+
+        base.Refresh(payloads);
+    }
+
     public override void Remove(int id)
     {
-        Attempt<IAppPolicyCache?> cache = AppCaches.IsolatedCaches.Get<IRelationType>();
-        if (cache.Success)
-        {
-            cache.Result?.Clear(RepositoryCacheKeys.GetKey<IRelationType, int>(id));
-        }
+        ClearCache(id.Yield());
 
         base.Remove(id);
+    }
+
+    private void ClearCache(IEnumerable<int> ids)
+    {
+        Attempt<IAppPolicyCache?> appCache = AppCaches.IsolatedCaches.Get<IRelationType>();
+        if (appCache.Success && appCache.Result is not null)
+        {
+            foreach (var id in ids)
+            {
+                appCache.Result.Clear(RepositoryCacheKeys.GetKey<IRelationType, int>(id));
+            }
+        }
+    }
+
+    public class JsonPayload
+    {
+        public JsonPayload(int id)
+            => Id = id;
+
+        public int Id { get; }
     }
 }
