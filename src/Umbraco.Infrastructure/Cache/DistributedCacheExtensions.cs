@@ -57,8 +57,14 @@ public static class DistributedCacheExtensions
     public static void RefreshTemplateCache(this DistributedCache dc, int templateId)
         => dc.Refresh(TemplateCacheRefresher.UniqueId, templateId);
 
+    public static void RefreshTemplateCache(this DistributedCache dc, IEnumerable<ITemplate> templates)
+        => dc.RefreshByPayload(TemplateCacheRefresher.UniqueId, templates.Select(x => new TemplateCacheRefresher.JsonPayload(x.Id, false)));
+
     public static void RemoveTemplateCache(this DistributedCache dc, int templateId)
         => dc.Remove(TemplateCacheRefresher.UniqueId, templateId);
+
+    public static void RemoveTemplateCache(this DistributedCache dc, IEnumerable<ITemplate> templates)
+        => dc.RefreshByPayload(TemplateCacheRefresher.UniqueId, templates.Select(x => new TemplateCacheRefresher.JsonPayload(x.Id, true)));
 
     #endregion
 
