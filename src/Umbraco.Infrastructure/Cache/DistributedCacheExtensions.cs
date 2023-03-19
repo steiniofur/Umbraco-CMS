@@ -70,6 +70,9 @@ public static class DistributedCacheExtensions
 
     #region DictionaryCacheRefresher
 
+    public static void RefreshAllDictionaryCache(this DistributedCache dc)
+        => dc.RefreshAll(DictionaryCacheRefresher.UniqueId);
+
     public static void RefreshDictionaryCache(this DistributedCache dc, int dictionaryItemId)
         => dc.Refresh(DictionaryCacheRefresher.UniqueId, dictionaryItemId);
 

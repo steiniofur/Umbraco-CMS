@@ -17,15 +17,29 @@ public sealed class DictionaryCacheRefresher : CacheRefresherBase<DictionaryCach
 
     public override string Name => "Dictionary Cache Refresher";
 
+    public override void RefreshAll()
+    {
+        ClearCache();
+
+        base.RefreshAll();
+    }
+
     public override void Refresh(int id)
     {
-        ClearAllIsolatedCacheByEntityType<IDictionaryItem>();
+        ClearCache();
+
         base.Refresh(id);
     }
 
+    public override void Refresh(Guid id) => throw new NotSupportedException();
+
     public override void Remove(int id)
     {
-        ClearAllIsolatedCacheByEntityType<IDictionaryItem>();
+        ClearCache();
+
         base.Remove(id);
     }
+
+    private void ClearCache()
+        => ClearAllIsolatedCacheByEntityType<IDictionaryItem>();
 }
