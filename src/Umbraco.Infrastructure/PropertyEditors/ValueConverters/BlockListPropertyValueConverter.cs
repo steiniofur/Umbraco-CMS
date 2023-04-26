@@ -1,7 +1,6 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Umbraco.Cms.Core.DeliveryApi;
 using Umbraco.Cms.Core.Logging;
@@ -10,6 +9,7 @@ using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.DeliveryApi;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors.DeliveryApi;
+using Umbraco.Cms.Core.Serialization;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Web.Common.DependencyInjection;
 using Umbraco.Extensions;
@@ -18,11 +18,12 @@ using static Umbraco.Cms.Core.PropertyEditors.BlockListConfiguration;
 namespace Umbraco.Cms.Core.PropertyEditors.ValueConverters;
 
 [DefaultPropertyValueConverter(typeof(JsonValueConverter))]
-public class BlockListPropertyValueConverter : BlockPropertyValueConverterBase<BlockListModel, BlockListItem, BlockListLayoutItem, BlockConfiguration>, IDeliveryApiPropertyValueConverter
+public class BlockListPropertyValueConverter : BlockPropertyValueConverterBase<BlockListModel, BlockListItem, BlockListLayoutItem, BlockConfiguration, BlockListValue>, IDeliveryApiPropertyValueConverter
 {
     private readonly IContentTypeService _contentTypeService;
     private readonly IProfilingLogger _proflog;
     private readonly IApiElementBuilder _apiElementBuilder;
+    private readonly IJsonSerializer _jsonSerializer;
 
     [Obsolete("Use the constructor that takes all parameters, scheduled for removal in V14")]
     public BlockListPropertyValueConverter(IProfilingLogger proflog, BlockEditorConverter blockConverter)
@@ -36,12 +37,19 @@ public class BlockListPropertyValueConverter : BlockPropertyValueConverterBase<B
     {
     }
 
+    [Obsolete("Use the constructor that takes all parameters, scheduled for removal in V15")]
     public BlockListPropertyValueConverter(IProfilingLogger proflog, BlockEditorConverter blockConverter, IContentTypeService contentTypeService, IApiElementBuilder apiElementBuilder)
+        : this(proflog, blockConverter, contentTypeService, apiElementBuilder, StaticServiceProvider.Instance.GetRequiredService<IJsonSerializer>())
+    {
+    }
+
+    public BlockListPropertyValueConverter(IProfilingLogger proflog, BlockEditorConverter blockConverter, IContentTypeService contentTypeService, IApiElementBuilder apiElementBuilder, IJsonSerializer jsonSerializer)
         : base(blockConverter)
     {
         _proflog = proflog;
         _contentTypeService = contentTypeService;
         _apiElementBuilder = apiElementBuilder;
+        _jsonSerializer = jsonSerializer;
     }
 
     /// <inheritdoc />
@@ -55,7 +63,7 @@ public class BlockListPropertyValueConverter : BlockPropertyValueConverterBase<B
         if (isSingleBlockMode)
         {
             BlockListConfiguration.BlockConfiguration? block =
-                ConfigurationEditor.ConfigurationAs<BlockListConfiguration>(propertyType.DataType.Configuration)?.Blocks.FirstOrDefault();
+                ConfigurationEditor.ConfigurationAs<BlockListConfiguration>(propertyType.DataType.ConfigurationObject)?.Blocks.FirstOrDefault();
 
             ModelType? contentElementType = block?.ContentElementTypeKey is Guid contentElementTypeKey && _contentTypeService.Get(contentElementTypeKey) is IContentType contentType ? ModelType.For(contentType.Alias) : null;
             ModelType? settingsElementType = block?.SettingsElementTypeKey is Guid settingsElementTypeKey && _contentTypeService.Get(settingsElementTypeKey) is IContentType settingsType ? ModelType.For(settingsType.Alias) : null;
@@ -79,7 +87,7 @@ public class BlockListPropertyValueConverter : BlockPropertyValueConverterBase<B
     private bool IsSingleBlockMode(PublishedDataType dataType)
     {
         BlockListConfiguration? config =
-            ConfigurationEditor.ConfigurationAs<BlockListConfiguration>(dataType.Configuration);
+            ConfigurationEditor.ConfigurationAs<BlockListConfiguration>(dataType.ConfigurationObject);
         return (config?.UseSingleBlockMode ?? false) && config?.Blocks.Length == 1 && config?.ValidationLimit?.Min == 1 && config?.ValidationLimit?.Max == 1;
     }
 
@@ -153,7 +161,7 @@ public class BlockListPropertyValueConverter : BlockPropertyValueConverterBase<B
         }
     }
 
-    protected override BlockEditorDataConverter CreateBlockEditorDataConverter() => new BlockListEditorDataConverter();
+    protected override BlockListEditorDataConverter CreateBlockEditorDataConverter() => new(_jsonSerializer);
 
     protected override BlockItemActivator<BlockListItem> CreateBlockItemActivator() => new BlockListItemActivator(BlockEditorConverter);
 
