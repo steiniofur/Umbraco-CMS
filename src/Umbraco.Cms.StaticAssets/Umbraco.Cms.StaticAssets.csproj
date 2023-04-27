@@ -39,8 +39,8 @@
   </Target>
 
   <Target Name="BuildBackOffice">
-    <Exec WorkingDirectory="$(ProjectDir)..\Umbraco.Web.UI.New.Client\" Command="npm ci --no-fund --no-audit --prefer-offline" />
-    <Exec WorkingDirectory="$(ProjectDir)..\Umbraco.Web.UI.New.Client\" Command="npm run build:for:cms" />
+<!--    <Exec WorkingDirectory="$(ProjectDir)..\Umbraco.Web.UI.New.Client\" Command="npm ci &#45;&#45;no-fund &#45;&#45;no-audit &#45;&#45;prefer-offline" />-->
+<!--    <Exec WorkingDirectory="$(ProjectDir)..\Umbraco.Web.UI.New.Client\" Command="npm run build:for:cms" />-->
   </Target>
 
   <Target Name="CleanBellePreconditions" AfterTargets="Clean" Condition="'$(UmbracoBuild)' == ''">
