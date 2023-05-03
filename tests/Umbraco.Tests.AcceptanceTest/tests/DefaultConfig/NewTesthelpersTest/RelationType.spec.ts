@@ -1,53 +1,77 @@
 import {test} from '@umbraco/playwright-testhelpers';
 import {expect} from "@playwright/test";
 
-test.describe('New test file description', () => {
-
-  const relationTypeKey = '9f93e414-5abe-36ec-a6bb-516e56f12258';
-  const parentTypeKey = 'c66ba18e-eaf3-4cff-8a22-41b16d66a972';
-  const childTypeKey = 'c66ba18e-eaf3-4cff-8a22-41b16d66a972';
+test.describe('Relation Type tests', () => {
+  const relationTypeName = 'Tester';
+  const parentTypeId = 'c66ba18e-eaf3-4cff-8a22-41b16d66a972';
+  const childTypeId = 'c66ba18e-eaf3-4cff-8a22-41b16d66a972';
 
   test.beforeEach(async ({page, umbracoApi}) => {
-    await umbracoApi.relationType.ensureRelationTypeNotExists(relationTypeKey);
-   });
+    await umbracoApi.relationType.ensureRelationTypeNameNotExistsAtRoot(relationTypeName);
+  });
 
   test.afterEach(async ({page, umbracoApi}) => {
-    await umbracoApi.relationType.ensureRelationTypeNotExists(relationTypeKey);
+    await umbracoApi.relationType.ensureRelationTypeNameNotExistsAtRoot(relationTypeName);
   });
-  
+
   test('can create a new relation type', async ({page, umbracoApi, umbracoUi}) => {
-    await umbracoApi.relationType.createRelationType('Tester', relationTypeKey, false, true, parentTypeKey, childTypeKey);
+    await umbracoApi.relationType.createRelationType(relationTypeName, null, false, true, parentTypeId, childTypeId);
 
     // Assert
-    // Checks if the relationType was created
-    await expect(umbracoApi.relationType.getRelationTypeByKey(relationTypeKey)).toBeTruthy();
+    await expect(umbracoApi.relationType.doesRelationTypeWithNameExistAtRoot(relationTypeName)).toBeTruthy();
   });
 
   test('can update name of relation type', async ({page, umbracoApi, umbracoUi}) => {
-    await umbracoApi.relationType.createRelationType('Tester', relationTypeKey, false, true, parentTypeKey, childTypeKey);
+    await umbracoApi.relationType.createRelationType('WrongName', null, false, true, parentTypeId, childTypeId);
 
-    const updatedName = 'TestRelationTypeName';
+    const relationType = await umbracoApi.relationType.getRelationTypeByNameAtRoot('WrongName');
 
     // Updates the name of the relationType
-    const relationType = await umbracoApi.relationType.getRelationTypeByKey(relationTypeKey);
-    relationType.name = updatedName;
-    await umbracoApi.relationType.updateRelationType(relationTypeKey, relationType);
-  
+    relationType.name = relationTypeName;
+    await umbracoApi.relationType.updateRelationType(relationType.id, relationType);
+
     // Assert
-    const updatedRelationType = await umbracoApi.relationType.getRelationTypeByKey(relationTypeKey);
     // Checks if the updated relationType contains the update name
-    await expect(updatedRelationType.name == updatedName).toBeTruthy();
+    const updatedRelationType = await umbracoApi.relationType.getRelationTypeById(relationType.id);
+    await expect(updatedRelationType.name == relationTypeName).toBeTruthy();
   });
 
   test('can delete a relation type', async ({page, umbracoApi, umbracoUi}) => {
-    await umbracoApi.relationType.createRelationType('Tester', relationTypeKey, false, true, parentTypeKey, childTypeKey);
+    await umbracoApi.relationType.createRelationType(relationTypeName, null, false, true, parentTypeId, childTypeId);
 
-    // Deletes the relationType
-    await umbracoApi.relationType.deleteRelationType(relationTypeKey);
-    
+    const relationType = await umbracoApi.relationType.getRelationTypeByNameAtRoot(relationTypeName);
+
+    await umbracoApi.relationType.deleteRelationType(relationType.id);
+
     // Assert
-    // Checks if the relationType was actually deleted
-    const doesExist = await umbracoApi.relationType.doesRelationTypeWithKeyExist(relationTypeKey);
-    await expect(doesExist).not.toBeTruthy();
+    await expect(await umbracoApi.relationType.doesRelationTypeWithNameExistAtRoot(relationTypeName)).toBeFalsy();
+  });
+
+  test('can get relation type items', async ({page, umbracoApi, umbracoUi}) => {
+    const anotherRelationTypeName = 'AnotherRelationType';
+
+    await umbracoApi.relationType.ensureRelationTypeNameNotExistsAtRoot(anotherRelationTypeName);
+
+    await umbracoApi.relationType.createRelationType(relationTypeName, null, false, true, parentTypeId, childTypeId);
+
+    await umbracoApi.relationType.createRelationType(anotherRelationTypeName, null, false, true, parentTypeId, childTypeId);
+
+    // Gets the first created relation type
+    const relationType = await umbracoApi.relationType.getRelationTypeByNameAtRoot(relationTypeName);
+
+    // Gets another created relation type
+    const anotherRelationType = await umbracoApi.relationType.getRelationTypeByNameAtRoot(anotherRelationTypeName);
+
+    const items = [relationType.id, anotherRelationType.id];
+
+    // Gets the relation type items
+    const getITheItems = await umbracoApi.relationType.getRelationTypeItems(items);
+
+    // Assert
+    // Checks if the items contain the correct names;
+    await expect(getITheItems[0].name == relationTypeName && getITheItems[1].name == anotherRelationTypeName).toBeTruthy();
+
+    // Clean
+    await umbracoApi.relationType.ensureRelationTypeNameNotExistsAtRoot(anotherRelationTypeName);
   });
 });
