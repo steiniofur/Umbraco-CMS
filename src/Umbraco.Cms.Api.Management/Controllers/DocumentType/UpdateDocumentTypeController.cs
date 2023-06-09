@@ -27,7 +27,7 @@ public class UpdateDocumentTypeController : CreateUpdateDocumentTypeControllerBa
     {
         if (requestModel.Compositions.Any())
         {
-            return await Task.FromResult(BadRequest("Compositions and inheritance is not yet supported by this endpoint"));
+            return BadRequest("Compositions and inheritance is not yet supported by this endpoint");
         }
 
         IContentType? contentType = _contentTypeService.Get(id);
@@ -36,7 +36,7 @@ public class UpdateDocumentTypeController : CreateUpdateDocumentTypeControllerBa
             return NotFound();
         }
 
-        ContentTypeOperationStatus result = HandleRequest<UpdateDocumentTypeRequestModel, UpdateDocumentTypePropertyTypeRequestModel, UpdateDocumentTypePropertyTypeContainerRequestModel>(contentType, requestModel);
+        ContentTypeOperationStatus result = await HandleRequest<UpdateDocumentTypeRequestModel, UpdateDocumentTypePropertyTypeRequestModel, UpdateDocumentTypePropertyTypeContainerRequestModel>(contentType, requestModel);
 
         return result == ContentTypeOperationStatus.Success
             ? Ok()

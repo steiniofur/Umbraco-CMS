@@ -27,7 +27,7 @@ public abstract class CreateUpdateDocumentTypeControllerBase : DocumentTypeContr
         _templateService = templateService;
     }
 
-    protected ContentTypeOperationStatus HandleRequest<TRequestModel, TPropertyType, TPropertyTypeContainer>(IContentType contentType, TRequestModel requestModel)
+    protected async Task<ContentTypeOperationStatus> HandleRequest<TRequestModel, TPropertyType, TPropertyTypeContainer>(IContentType contentType, TRequestModel requestModel)
         where TRequestModel : ContentTypeModelBase<TPropertyType, TPropertyTypeContainer>, IDocumentTypeRequestModel
         where TPropertyType : PropertyTypeModelBase
         where TPropertyTypeContainer : PropertyTypeContainerModelBase
@@ -65,16 +65,17 @@ public abstract class CreateUpdateDocumentTypeControllerBase : DocumentTypeContr
         }
 
         // validate property data types
-        Guid[] dataTypeKeys = requestModel.Properties.Select(property => property.DataTypeId).ToArray();
-        var dataTypesByKey = dataTypeKeys
-            // FIXME: create GetAllAsync(params Guid[] keys) method on IDataTypeService
-            .Select(async key => await _dataTypeService.GetAsync(key))
-            .Select(t => t.Result)
-            .WhereNotNull()
-            .ToDictionary(dataType => dataType.Key);
-        if (dataTypeKeys.Length != dataTypesByKey.Count())
+        Guid[] dataTypeKeys = requestModel.Properties.Select(property => property.DataTypeId).Distinct().ToArray();
+        var dataTypesByKey = new Dictionary<Guid, IDataType>();
+        foreach (Guid dataTypeKey in dataTypeKeys)
         {
-            return ContentTypeOperationStatus.InvalidDataType;
+            IDataType? dataType = await _dataTypeService.GetAsync(dataTypeKey);
+            if (dataType is null)
+            {
+                return ContentTypeOperationStatus.InvalidDataType;
+            }
+
+            dataTypesByKey[dataTypeKey] = dataType;
         }
 
         // filter out properties and containers with no name/alias
