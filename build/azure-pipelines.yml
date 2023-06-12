@@ -111,7 +111,7 @@ stages:
               minor="$(echo $version | cut -d '.' -f 2)"
               echo "Minor version: $minor"
 
-              patch="$(echo $version | cut -d '.' -f 2)"
+              patch="$(echo $version | cut -d '.' -f 3)"
               echo "Patch version: $patch"
 
               echo "##vso[task.setvariable variable=majorVersion;isOutput=true]$major"
