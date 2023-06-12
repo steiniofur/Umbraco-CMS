@@ -583,8 +583,9 @@ stages:
             inputs:
               artifact: npm
           - task: ExtractFiles@1
+            displayName: Extract .tgz npm files
             inputs:
-              archiveFilePatterns: 'npm/*.tgz'
+              archiveFilePatterns: '**/*.tgz'
               destinationFolder: dist-npm
           - task: Npm@1
             displayName: Publish to MyGet
