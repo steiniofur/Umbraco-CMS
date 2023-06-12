@@ -125,7 +125,7 @@ stages:
               mkdir dist-npm
               npm pack --pack-destination ./dist-npm
             env:
-              MAJOR_VERSION: $(majorVersion)
+              MAJOR_VERSION: $(determineMajorVersion.majorVersion)
             displayName: Update and pack Backoffice
             workingDirectory: src/Umbraco.Web.UI.New.Client
           - task: PublishPipelineArtifact@1
@@ -577,7 +577,7 @@ stages:
               artifact: npm
           - task: ExtractFiles@1
             inputs:
-              archiveFilePatterns: "*.tgz"
+              archiveFilePatterns: 'npm/*.tgz'
               destinationFolder: dist-npm
           - task: Npm@1
             displayName: Publish to MyGet
