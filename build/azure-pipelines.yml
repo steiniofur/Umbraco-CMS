@@ -108,7 +108,14 @@ stages:
               major="$(echo $version | cut -d '.' -f 1)"
               echo "Major version: $major"
 
+              minor="$(echo $version | cut -d '.' -f 2)"
+              echo "Minor version: $minor"
+
+              patch="$(echo $version | cut -d '.' -f 2)"
+              echo "Patch version: $patch"
+
               echo "##vso[task.setvariable variable=majorVersion;isOutput=true]$major"
+              echo "##vso[task.setvariable variable=fullVersion]$major.$minor.$patch"
             displayName: Set major version
             name: determineMajorVersion
           - script: dotnet pack $(solution) --configuration $(buildConfiguration) --no-build --property:PackageOutputPath=$(Build.ArtifactStagingDirectory)/nupkg
@@ -120,18 +127,18 @@ stages:
               echo "##vso[build.updatebuildnumber]$buildnumber"
             displayName: Update build number
           - script: |
-              echo "Updating Backoffice to version: $MAJOR_VERSION"
-              npm version $MAJOR_VERSION
+              echo "Updating Backoffice to version: $FULL_VERSION"
+              npm version $FULL_VERSION
               mkdir dist-npm
               npm pack --pack-destination ./dist-npm
             env:
-              MAJOR_VERSION: $(determineMajorVersion.majorVersion)
+              $FULL_VERSION: $(fullVersion)
             displayName: Update and pack Backoffice
             workingDirectory: src/Umbraco.Web.UI.New.Client
           - task: PublishPipelineArtifact@1
             displayName: Publish npm
             inputs:
-              targetPath: src/Umbraco.Web.UI.New.Client/dist-npm/*.tgz
+              targetPath: src/Umbraco.Web.UI.New.Client/dist-npm
               artifactName: npm
           - task: PublishPipelineArtifact@1
             displayName: Publish nupkg
