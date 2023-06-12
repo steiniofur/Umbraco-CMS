@@ -13,6 +13,10 @@ parameters:
     displayName: Deploy to NuGet
     type: boolean
     default: false
+  - name: npmMygetDeploy
+    displayName: Deploy npm to Myget
+    type: boolean
+    default: false
   - name: buildApiDocs
     displayName: Build API docs
     type: boolean
@@ -115,6 +119,19 @@ stages:
               buildnumber="$(Build.BuildNumber)_$(Build.BuildId)_$sha"
               echo "##vso[build.updatebuildnumber]$buildnumber"
             displayName: Update build number
+          - script: |
+              echo $majorVersion
+              npm version $majorVersion
+            displayName: Pack Backoffice for npm
+            workingDirectory: src/Umbraco.Web.UI.New.Client
+          - task: Npm@1
+            displayName: Publish to npm pre-release feed
+            condition: and(succeeded(), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), ${{parameters.npmMygetDeploy}}))
+            inputs:
+              command: publish
+              workingDir: src/Umbraco.Web.UI.New.Client
+              publishRegistry: useExternalRegistry
+              publishEndpoint: 'MyGet (npm) - Umbraco Prereleases'
           - task: PublishPipelineArtifact@1
             displayName: Publish nupkg
             inputs:
