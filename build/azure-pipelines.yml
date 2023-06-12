@@ -115,7 +115,7 @@ stages:
               echo "Patch version: $patch"
 
               echo "##vso[task.setvariable variable=majorVersion;isOutput=true]$major"
-              echo "##vso[task.setvariable variable=fullVersion]$major.$minor.$patch"
+              echo "##vso[task.setvariable variable=fullVersion;isOutput=true]$major.$minor.$patch"
             displayName: Set major version
             name: determineMajorVersion
           - script: dotnet pack $(solution) --configuration $(buildConfiguration) --no-build --property:PackageOutputPath=$(Build.ArtifactStagingDirectory)/nupkg
@@ -132,8 +132,8 @@ stages:
               mkdir dist-npm
               npm pack --pack-destination ./dist-npm
             env:
-              $FULL_VERSION: $(fullVersion)
-            displayName: Update and pack Backoffice
+              FULL_VERSION: $(determineMajorVersion.fullVersion)
+            displayName: Run npm pack
             workingDirectory: src/Umbraco.Web.UI.New.Client
           - task: PublishPipelineArtifact@1
             displayName: Publish npm
