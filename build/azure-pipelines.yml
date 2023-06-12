@@ -120,18 +120,19 @@ stages:
               echo "##vso[build.updatebuildnumber]$buildnumber"
             displayName: Update build number
           - script: |
-              echo $majorVersion
-              npm version $majorVersion
-            displayName: Pack Backoffice for npm
+              echo "Updating Backoffice to version: $MAJOR_VERSION"
+              npm version $MAJOR_VERSION
+              mkdir dist-npm
+              npm pack --pack-destination ./dist-npm
+            env:
+              MAJOR_VERSION: $(majorVersion)
+            displayName: Update and pack Backoffice
             workingDirectory: src/Umbraco.Web.UI.New.Client
-          - task: Npm@1
-            displayName: Publish to npm pre-release feed
-            condition: and(succeeded(), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), ${{parameters.npmMygetDeploy}}))
+          - task: PublishPipelineArtifact@1
+            displayName: Publish npm
             inputs:
-              command: publish
-              workingDir: src/Umbraco.Web.UI.New.Client
-              publishRegistry: useExternalRegistry
-              publishEndpoint: 'MyGet (npm) - Umbraco Prereleases'
+              targetPath: src/Umbraco.Web.UI.New.Client/dist-npm/*.tgz
+              artifactName: npm
           - task: PublishPipelineArtifact@1
             displayName: Publish nupkg
             inputs:
@@ -560,7 +561,31 @@ stages:
               packagesToPush: $(Build.ArtifactStagingDirectory)/**/*.nupkg
               nuGetFeedType: 'external'
               publishFeedCredentials: 'NuGet - Umbraco.*'
-
+  - stage: Deploy_Npm_Prerelease
+    displayName: Npm prerelease
+    dependsOn:
+      - Build
+    condition: and(succeeded(), or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), ${{parameters.npmMygetDeploy}}))
+    jobs:
+      - job:
+        displayName: Push to MyGet
+        steps:
+          - checkout: none
+          - task: DownloadPipelineArtifact@2
+            displayName: Download npm
+            inputs:
+              artifact: npm
+          - task: ExtractFiles@1
+            inputs:
+              archiveFilePatterns: "*.tgz"
+              destinationFolder: dist-npm
+          - task: Npm@1
+            displayName: Publish to MyGet
+            inputs:
+              command: publish
+              workingDir: dist-npm
+              publishRegistry: useExternalRegistry
+              publishEndpoint: 'MyGet (npm) - Umbraco Prereleases'
   - stage: Upload_API_Docs
     pool:
       vmImage: 'windows-latest' # Apparently AzureFileCopy is windows only :(
