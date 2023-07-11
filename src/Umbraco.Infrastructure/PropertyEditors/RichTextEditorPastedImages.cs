@@ -2,9 +2,11 @@
 // See LICENSE for more details.
 
 using HtmlAgilityPack;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Exceptions;
 using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.IO;
@@ -35,6 +37,36 @@ public sealed class RichTextEditorPastedImages
     private readonly IImageUrlGenerator _imageUrlGenerator;
     private readonly ContentSettings _contentSettings;
     private readonly Dictionary<string, GuidUdi> _uploadedImages = new();
+
+    [Obsolete("Use the ctor which takes an IImageUrlGenerator and IOptions<ContentSettings> instead")]
+    public RichTextEditorPastedImages(
+        IUmbracoContextAccessor umbracoContextAccessor,
+        ILogger<RichTextEditorPastedImages> logger,
+        IHostingEnvironment hostingEnvironment,
+        IMediaService mediaService,
+        IContentTypeBaseServiceProvider contentTypeBaseServiceProvider,
+        MediaFileManager mediaFileManager,
+        MediaUrlGeneratorCollection mediaUrlGenerators,
+        IShortStringHelper shortStringHelper,
+        IPublishedUrlProvider publishedUrlProvider)
+    {
+        _umbracoContextAccessor =
+            umbracoContextAccessor ?? throw new ArgumentNullException(nameof(umbracoContextAccessor));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _hostingEnvironment = hostingEnvironment;
+        _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
+        _contentTypeBaseServiceProvider = contentTypeBaseServiceProvider ??
+                                          throw new ArgumentNullException(nameof(contentTypeBaseServiceProvider));
+        _mediaFileManager = mediaFileManager;
+        _mediaUrlGenerators = mediaUrlGenerators;
+        _shortStringHelper = shortStringHelper;
+        _publishedUrlProvider = publishedUrlProvider;
+
+        _tempFolderAbsolutePath = _hostingEnvironment.MapPathContentRoot(Constants.SystemDirectories.TempImageUploads);
+
+        _imageUrlGenerator = StaticServiceProvider.Instance.GetRequiredService<IImageUrlGenerator>();
+        _contentSettings = StaticServiceProvider.Instance.GetRequiredService<IOptions<ContentSettings>>().Value;
+    }
 
     public RichTextEditorPastedImages(
         IUmbracoContextAccessor umbracoContextAccessor,
@@ -67,12 +99,12 @@ public sealed class RichTextEditorPastedImages
     }
 
     /// <summary>
-    /// Used by the RTE (and grid RTE) for converting inline base64 images to Media items
+    ///     Used by the RTE (and grid RTE) for converting inline base64 images to Media items.
     /// </summary>
-    /// <param name="html"></param>
+    /// <param name="html">HTML from the Rich Text Editor property editor.</param>
     /// <param name="mediaParentFolder"></param>
     /// <param name="userId"></param>
-    /// <returns></returns>
+    /// <returns>Formatted HTML.</returns>
     /// <exception cref="NotSupportedException">Thrown if image extension is not allowed</exception>
     internal string FindAndPersistBase64Images(string html, Guid mediaParentFolder, int userId)
     {
@@ -147,8 +179,24 @@ public sealed class RichTextEditorPastedImages
     }
 
     /// <summary>
-    ///     Used by the RTE (and grid RTE) for drag/drop/persisting images
+    ///     Used by the RTE (and grid RTE) for drag/drop/persisting images.
     /// </summary>
+    /// <param name="html">HTML from the Rich Text Editor property editor.</param>
+    /// <param name="mediaParentFolder"></param>
+    /// <param name="userId"></param>
+    /// <param name="imageUrlGenerator"></param>
+    /// <returns>Formatted HTML.</returns>
+    [Obsolete("It is not needed to supply the imageUrlGenerator parameter")]
+    public string FindAndPersistPastedTempImages(string html, Guid mediaParentFolder, int userId, IImageUrlGenerator imageUrlGenerator) =>
+        FindAndPersistPastedTempImages(html, mediaParentFolder, userId);
+
+    /// <summary>
+    ///     Used by the RTE (and grid RTE) for drag/drop/persisting images.
+    /// </summary>
+    /// <param name="html">HTML from the Rich Text Editor property editor.</param>
+    /// <param name="mediaParentFolder"></param>
+    /// <param name="userId"></param>
+    /// <returns>Formatted HTML.</returns>
     public string FindAndPersistPastedTempImages(string html, Guid mediaParentFolder, int userId)
     {
         // Find all img's that has data-tmpimg attribute
