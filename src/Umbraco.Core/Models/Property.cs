@@ -45,14 +45,14 @@ public class Property : EntityBase, IProperty
         },
         o => o!.GetHashCode());
 
-    // _pvalue contains the invariant-neutral property value
-    private IPropertyValue? _pvalue;
+    // contains the invariant-neutral property value
+    private IPropertyValue? _invariantNeutralValue;
 
-    // _values contains all property values, including the invariant-neutral value
+    // contains all property values, including the invariant-neutral value
     private List<IPropertyValue> _values = new();
 
-    // _vvalues contains the (indexed) variant property values
-    private Dictionary<CompositeNStringNStringKey, IPropertyValue>? _vvalues;
+    // contains the (indexed) variant property values
+    private Dictionary<CompositeNStringNStringKey, IPropertyValue>? _variantSegmentValues;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="Property" /> class.
@@ -86,9 +86,9 @@ public class Property : EntityBase, IProperty
             // make sure we filter out invalid variations
             // make sure we leave _vvalues null if possible
             _values = value.Where(x => PropertyType?.SupportsVariation(x.Culture, x.Segment) ?? false).ToList();
-            _pvalue = _values.FirstOrDefault(x => x.Culture == null && x.Segment == null);
-            _vvalues = _values.Count > (_pvalue == null ? 0 : 1)
-                ? _values.Where(x => x != _pvalue)
+            _invariantNeutralValue = _values.FirstOrDefault(x => x.Culture == null && x.Segment == null);
+            _variantSegmentValues = _values.Count > (_invariantNeutralValue == null ? 0 : 1)
+                ? _values.Where(x => x != _invariantNeutralValue)
                     .ToDictionary(x => new CompositeNStringNStringKey(x.Culture, x.Segment), x => x)
                 : null;
         }
@@ -161,15 +161,15 @@ public class Property : EntityBase, IProperty
 
         if (culture == null && segment == null)
         {
-            return GetPropertyValue(_pvalue, published);
+            return GetPropertyValue(_invariantNeutralValue, published);
         }
 
-        if (_vvalues == null)
+        if (_variantSegmentValues == null)
         {
             return null;
         }
 
-        return _vvalues.TryGetValue(new CompositeNStringNStringKey(culture, segment), out IPropertyValue? pvalue)
+        return _variantSegmentValues.TryGetValue(new CompositeNStringNStringKey(culture, segment), out IPropertyValue? pvalue)
             ? GetPropertyValue(pvalue, published)
             : null;
     }
@@ -185,18 +185,18 @@ public class Property : EntityBase, IProperty
         if ((culture == null || culture == "*") && (segment == null || segment == "*") &&
             PropertyType.SupportsVariation(null, null))
         {
-            PublishValue(_pvalue);
+            PublishValue(_invariantNeutralValue);
         }
 
         // then deal with everything that varies
-        if (_vvalues == null)
+        if (_variantSegmentValues == null)
         {
             return;
         }
 
         // get the property values that are still relevant (wrt the property type variation),
         // and match the specified culture and segment (or anything when '*').
-        IEnumerable<IPropertyValue> pvalues = _vvalues.Where(x =>
+        IEnumerable<IPropertyValue> pvalues = _variantSegmentValues.Where(x =>
                 PropertyType.SupportsVariation(x.Value.Culture, x.Value.Segment, true) && // the value variation is ok
                     (culture == "*" || x.Value.Culture.InvariantEquals(culture)) && // the culture matches
                     (segment == "*" || x.Value.Segment.InvariantEquals(segment))) // the segment matches
@@ -218,18 +218,18 @@ public class Property : EntityBase, IProperty
         if ((culture == null || culture == "*") && (segment == null || segment == "*") &&
             PropertyType.SupportsVariation(null, null))
         {
-            UnpublishValue(_pvalue);
+            UnpublishValue(_invariantNeutralValue);
         }
 
         // then deal with everything that varies
-        if (_vvalues == null)
+        if (_variantSegmentValues == null)
         {
             return;
         }
 
         // get the property values that are still relevant (wrt the property type variation),
         // and match the specified culture and segment (or anything when '*').
-        IEnumerable<IPropertyValue> pvalues = _vvalues.Where(x =>
+        IEnumerable<IPropertyValue> pvalues = _variantSegmentValues.Where(x =>
                 PropertyType.SupportsVariation(x.Value.Culture, x.Value.Segment, true) && // the value variation is ok
                 (culture == "*" || (x.Value.Culture?.InvariantEquals(culture) ?? false)) && // the culture matches
                 (segment == "*" || (x.Value.Segment?.InvariantEquals(segment) ?? false))) // the segment matches
@@ -348,19 +348,19 @@ public class Property : EntityBase, IProperty
     private (IPropertyValue?, bool) GetPValue(bool create)
     {
         var change = false;
-        if (_pvalue == null)
+        if (_invariantNeutralValue == null)
         {
             if (!create)
             {
                 return (null, false);
             }
 
-            _pvalue = new PropertyValue();
-            _values.Add(_pvalue);
+            _invariantNeutralValue = new PropertyValue();
+            _values.Add(_invariantNeutralValue);
             change = true;
         }
 
-        return (_pvalue, change);
+        return (_invariantNeutralValue, change);
     }
 
     private (IPropertyValue?, bool) GetPValue(string? culture, string? segment, bool create)
@@ -371,26 +371,26 @@ public class Property : EntityBase, IProperty
         }
 
         var change = false;
-        if (_vvalues == null)
+        if (_variantSegmentValues == null)
         {
             if (!create)
             {
                 return (null, false);
             }
 
-            _vvalues = new Dictionary<CompositeNStringNStringKey, IPropertyValue>();
+            _variantSegmentValues = new Dictionary<CompositeNStringNStringKey, IPropertyValue>();
             change = true;
         }
 
         var k = new CompositeNStringNStringKey(culture, segment);
-        if (!_vvalues.TryGetValue(k, out IPropertyValue? pvalue))
+        if (!_variantSegmentValues.TryGetValue(k, out IPropertyValue? pvalue))
         {
             if (!create)
             {
                 return (null, false);
             }
 
-            pvalue = _vvalues[k] = new PropertyValue();
+            pvalue = _variantSegmentValues[k] = new PropertyValue();
             pvalue.Culture = culture;
             pvalue.Segment = segment;
             _values.Add(pvalue);
