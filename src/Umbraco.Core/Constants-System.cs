@@ -58,6 +58,16 @@ public static partial class Constants
         /// </remarks>
         public const string RecycleBinMediaPathPrefix = "-1,-21,";
 
+        /// <summary>
+        /// This integer identifies whether an element is inline to a property
+        /// </summary>
+        public const int InlineElementParent = -30;
+
+        /// <summary>
+        /// The string representation of <see cref="InlineElementParent"/>
+        /// </summary>
+        public const string InlineElementParentString = "-30";
+
         public const int DefaultLabelDataTypeId = -92;
 
         public const string UmbracoDefaultDatabaseName = "Umbraco";

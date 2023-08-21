@@ -1,17 +1,18 @@
 namespace Umbraco.Cms.Core.Models;
 
 /// <summary>
-///     Represents a document.
+///     Represents an Element.
 /// </summary>
 /// <remarks>
-///     <para>A document can be published, rendered by a template.</para>
+///     <para>An element can be published, but is not routed</para>
 /// </remarks>
-public interface IContent : IContentBase //todo globalElements change to IElement and reduce double props?
+public interface IElement : IContentBase
 {
-    /// <summary>
-    ///     Gets or sets the template id used to render the content.
-    /// </summary>
-    int? TemplateId { get; set; }
+    // /// <summary>
+    // ///     Gets or sets the template id used to render the content.
+    // /// </summary>
+    // int? TemplateId { get; set; }
+    //todo globalElements figure out if this is still needed
 
     /// <summary>
     ///     Gets a value indicating whether the content is published.
@@ -35,16 +36,18 @@ public interface IContent : IContentBase //todo globalElements change to IElemen
     /// </summary>
     int PublishedVersionId { get; set; }
 
-    /// <summary>
-    ///     Gets a value indicating whether the content item is a blueprint.
-    /// </summary>
-    bool Blueprint { get; set; }
+    // /// <summary>
+    // ///     Gets a value indicating whether the content item is a blueprint.
+    // /// </summary>
+    // bool Blueprint { get; set; }
+    //todo globalElements figure out if this is still needed
 
-    /// <summary>
-    ///     Gets the template id used to render the published version of the content.
-    /// </summary>
-    /// <remarks>When editing the content, the template can change, but this will not until the content is published.</remarks>
-    int? PublishTemplateId { get; set; }
+    // /// <summary>
+    // ///     Gets the template id used to render the published version of the content.
+    // /// </summary>
+    // /// <remarks>When editing the content, the template can change, but this will not until the content is published.</remarks>
+    // int? PublishTemplateId { get; set; }
+    //todo globalElements figure out if this is still needed
 
     /// <summary>
     ///     Gets the name of the published version of the content.

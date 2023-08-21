@@ -69,6 +69,8 @@ internal class PropertyDataDto
     [SpecialDbType(SpecialDbTypes.NVARCHARMAX)]
     public string? TextValue { get; set; }
 
+    public List<ElementDto>? Elements { get; set; }
+
     [ResultColumn]
     [Reference(ReferenceType.OneToOne, ColumnName = "PropertyTypeId")]
     public PropertyTypeDto? PropertyTypeDto { get; set; }
