@@ -20,9 +20,9 @@ public class Element : ContentBase, IElement
     /// <summary>
     ///     Constructor for creating an Element object without initial properties
     /// </summary>
-    /// <param name="name">Name of the content</param>
+    /// <param name="name">Name of the element</param>
     /// <param name="parent">Parent <see cref="IContent" /> object</param>
-    /// <param name="contentType">ContentType for the current Content object</param>
+    /// <param name="contentType">ContentType for the current element object</param>
     /// <param name="culture">An optional culture.</param>
     public Element(string name, IContent parent, IContentType contentType, string? culture = null)
         : this(name, parent, contentType, new PropertyCollection(), culture)
@@ -32,10 +32,10 @@ public class Element : ContentBase, IElement
     /// <summary>
     ///     Constructor for creating an Element object without initial properties by a user
     /// </summary>
-    /// <param name="name">Name of the content</param>
+    /// <param name="name">Name of the element</param>
     /// <param name="parent">Parent <see cref="IContent" /> object</param>
-    /// <param name="contentType">ContentType for the current Content object</param>
-    /// <param name="userId">The identifier of the user creating the Content object</param>
+    /// <param name="contentType">ContentType for the current element object</param>
+    /// <param name="userId">The identifier of the user creating the element object</param>
     /// <param name="culture">An optional culture.</param>
     public Element(string name, IContent parent, IContentType contentType, int userId, string? culture = null)
         : this(name, parent, contentType, new PropertyCollection(), culture)
@@ -47,9 +47,9 @@ public class Element : ContentBase, IElement
     /// <summary>
     ///     Constructor for creating an Element object with properties
     /// </summary>
-    /// <param name="name">Name of the content</param>
+    /// <param name="name">Name of the element</param>
     /// <param name="parent">Parent <see cref="IContent" /> object</param>
-    /// <param name="contentType">ContentType for the current Content object</param>
+    /// <param name="contentType">ContentType for the current element object</param>
     /// <param name="properties">Collection of properties</param>
     /// <param name="culture">An optional culture.</param>
     public Element(string name, IContent parent, IContentType contentType, PropertyCollection properties, string? culture = null)
@@ -67,9 +67,9 @@ public class Element : ContentBase, IElement
     /// <summary>
     ///     Constructor for creating an Element object without initial properties
     /// </summary>
-    /// <param name="name">Name of the content</param>
-    /// <param name="parentId">Id of the Parent content</param>
-    /// <param name="contentType">ContentType for the current Content object</param>
+    /// <param name="name">Name of the element</param>
+    /// <param name="parentId">Id of the Parent element or indication of a local element</param>
+    /// <param name="contentType">ContentType for the current element object</param>
     /// <param name="culture">An optional culture.</param>
     public Element(string? name, int parentId, IContentType? contentType, string? culture = null)
         : this(name, parentId, contentType, new PropertyCollection(), culture)
@@ -79,10 +79,10 @@ public class Element : ContentBase, IElement
     /// <summary>
     ///     Constructor for creating an Element object without initial properties by a user
     /// </summary>
-    /// <param name="name">Name of the content</param>
-    /// <param name="parentId">Id of the Parent content</param>
-    /// <param name="contentType">ContentType for the current Content object</param>
-    /// <param name="userId">The identifier of the user creating the Content object</param>
+    /// <param name="name">Name of the element</param>
+    /// <param name="parentId">Id of the Parent element or indication of a local element</param>
+    /// <param name="contentType">ContentType for the current element object</param>
+    /// <param name="userId">The identifier of the user creating the element object</param>
     /// <param name="culture">An optional culture.</param>
     public Element(string name, int parentId, IContentType contentType, int userId, string? culture = null)
         : this(name, parentId, contentType, new PropertyCollection(), culture)
@@ -94,9 +94,9 @@ public class Element : ContentBase, IElement
     /// <summary>
     ///     Constructor for creating an Element object with properties
     /// </summary>
-    /// <param name="name">Name of the content</param>
-    /// <param name="parentId">Id of the Parent content</param>
-    /// <param name="contentType">ContentType for the current Content object</param>
+    /// <param name="name">Name of the element</param>
+    /// <param name="parentId">Id of the Parent element or indication of a local element</param>
+    /// <param name="contentType">ContentType for the current element object</param>
     /// <param name="properties">Collection of properties</param>
     /// <param name="culture">An optional culture.</param>
     public Element(string? name, int parentId, IContentType? contentType, PropertyCollection properties, string? culture = null)
@@ -111,29 +111,14 @@ public class Element : ContentBase, IElement
         PublishedVersionId = 0;
     }
 
-    // /// <summary>
-    // ///     Gets or sets the template used by the Content.
-    // ///     This is used to override the default one from the ContentType.
-    // /// </summary>
-    // /// <remarks>
-    // ///     If no template is explicitly set on the Content object,
-    // ///     the Default template from the ContentType will be returned.
-    // /// </remarks>
-    // [DataMember]
-    // public int? TemplateId
-    // {
-    //     get => _templateId;
-    //     set => SetPropertyValueAndDetectChanges(value, ref _templateId, nameof(TemplateId));
-    // }
-    //todo globalElements figure out if this is still needed
 
     /// <summary>
-    ///     Gets or sets a value indicating whether this content item is published or not.
+    ///     Gets or sets a value indicating whether this element item is published or not.
     /// </summary>
     /// <remarks>
     ///     the setter is should only be invoked from
-    ///     - the ContentFactory when creating a content entity from a dto
-    ///     - the ContentRepository when updating a content entity
+    ///     - the ContentFactory when creating a element entity from a dto
+    ///     - the ContentRepository when updating a element entity
     /// </remarks>
     [DataMember]
     public bool Published
@@ -147,12 +132,12 @@ public class Element : ContentBase, IElement
     }
 
     /// <summary>
-    ///     Gets the published state of the content item.
+    ///     Gets the published state of the element item.
     /// </summary>
     /// <remarks>
     ///     The state should be Published or Unpublished, depending on whether Published
     ///     is true or false, but can also temporarily be Publishing or Unpublishing when the
-    ///     content item is about to be saved.
+    ///     element item is about to be saved.
     /// </remarks>
     [DataMember]
     public PublishedState PublishedState
@@ -179,11 +164,6 @@ public class Element : ContentBase, IElement
     /// <inheritdoc />
     [IgnoreDataMember]
     public int? PublisherId { get; set; } // set by persistence
-
-    // /// <inheritdoc />
-    // [IgnoreDataMember]
-    // public int? PublishTemplateId { get; set; } // set by persistence
-    //todo globalElements figure out if this is still needed
 
     /// <inheritdoc />
     [IgnoreDataMember]
@@ -289,10 +269,6 @@ public class Element : ContentBase, IElement
 
     [IgnoreDataMember]
     public int PublishedVersionId { get; set; }
-
-    // [DataMember]
-    // public bool Blueprint { get; set; }
-    //todo globalElements future?
 
     public override void ResetWereDirtyProperties()
     {

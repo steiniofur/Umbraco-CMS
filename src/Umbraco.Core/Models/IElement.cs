@@ -8,22 +8,16 @@ namespace Umbraco.Cms.Core.Models;
 /// </remarks>
 public interface IElement : IContentBase
 {
-    // /// <summary>
-    // ///     Gets or sets the template id used to render the content.
-    // /// </summary>
-    // int? TemplateId { get; set; }
-    //todo globalElements figure out if this is still needed
-
     /// <summary>
-    ///     Gets a value indicating whether the content is published.
+    ///     Gets a value indicating whether the element is published.
     /// </summary>
-    /// <remarks>The <see cref="PublishedVersionId" /> property tells you which version of the content is currently published.</remarks>
+    /// <remarks>The <see cref="PublishedVersionId" /> property tells you which version of the element is currently published.</remarks>
     bool Published { get; set; }
 
     PublishedState PublishedState { get; set; }
 
     /// <summary>
-    ///     Gets a value indicating whether the content has been edited.
+    ///     Gets a value indicating whether the element has been edited.
     /// </summary>
     /// <remarks>
     ///     Will return `true` once unpublished edits have been made after the version with
@@ -32,41 +26,28 @@ public interface IElement : IContentBase
     bool Edited { get; set; }
 
     /// <summary>
-    ///     Gets the version identifier for the currently published version of the content.
+    ///     Gets the version identifier for the currently published version of the element.
     /// </summary>
     int PublishedVersionId { get; set; }
 
-    // /// <summary>
-    // ///     Gets a value indicating whether the content item is a blueprint.
-    // /// </summary>
-    // bool Blueprint { get; set; }
-    //todo globalElements figure out if this is still needed
-
-    // /// <summary>
-    // ///     Gets the template id used to render the published version of the content.
-    // /// </summary>
-    // /// <remarks>When editing the content, the template can change, but this will not until the content is published.</remarks>
-    // int? PublishTemplateId { get; set; }
-    //todo globalElements figure out if this is still needed
-
     /// <summary>
-    ///     Gets the name of the published version of the content.
+    ///     Gets the name of the published version of the element.
     /// </summary>
-    /// <remarks>When editing the content, the name can change, but this will not until the content is published.</remarks>
+    /// <remarks>When editing the element, the name can change, but this will not until the element is published.</remarks>
     string? PublishName { get; set; }
 
     /// <summary>
-    ///     Gets the identifier of the user who published the content.
+    ///     Gets the identifier of the user who published the element.
     /// </summary>
     int? PublisherId { get; set; }
 
     /// <summary>
-    ///     Gets the date and time the content was published.
+    ///     Gets the date and time the element was published.
     /// </summary>
     DateTime? PublishDate { get; set; }
 
     /// <summary>
-    ///     Gets the published culture infos of the content.
+    ///     Gets the published culture infos of the element.
     /// </summary>
     /// <remarks>
     ///     <para>
@@ -92,7 +73,7 @@ public interface IElement : IContentBase
     /// <remarks>
     ///     <para>
     ///         A culture becomes published whenever values for this culture are published,
-    ///         and the content published name for this culture is non-null. It becomes non-published
+    ///         and the element published name for this culture is non-null. It becomes non-published
     ///         whenever values for this culture are unpublished.
     ///     </para>
     ///     <para>
@@ -122,10 +103,10 @@ public interface IElement : IContentBase
     bool IsCultureEdited(string culture);
 
     /// <summary>
-    ///     Gets the name of the published version of the content for a given culture.
+    ///     Gets the name of the published version of the element for a given culture.
     /// </summary>
     /// <remarks>
-    ///     <para>When editing the content, the name can change, but this will not until the content is published.</para>
+    ///     <para>When editing the element, the name can change, but this will not until the element is published.</para>
     ///     <para>
     ///         When <paramref name="culture" /> is <c>null</c>, gets the invariant
     ///         language, which is the value of the <see cref="PublishName" /> property.

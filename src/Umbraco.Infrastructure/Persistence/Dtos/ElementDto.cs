@@ -23,36 +23,7 @@ public class ElementDto
     [Column("edited")]
     public bool Edited { get; set; }
 
-    //todo globalElement: need field to know ifs local or figure that out based on deeper data (parent set to special key or not for global)
-
-    // [Column("publishDate")]
-    // [NullSetting(NullSetting = NullSettings.Null)] // is contentVersionDto.VersionDate for the published version
-    // public DateTime? PublishDate { get; set; }
-
-    // [Column("publishUserId")]
-    // [NullSetting(NullSetting = NullSettings.Null)] // is contentVersionDto.UserId for the published version
-    // public int? PublishUserId { get; set; }
-
-    // [Column("publishName")]
-    // [NullSetting(NullSetting = NullSettings.Null)] // is contentVersionDto.Text for the published version
-    // public string PublishName { get; set; }
-
-    // [Column("publishTemplateId")]
-    // [NullSetting(NullSetting = NullSettings.Null)] // is documentVersionDto.TemplateId for the published version
-    // public int? PublishTemplateId { get; set; }
     [ResultColumn]
     [Reference(ReferenceType.OneToOne, ReferenceMemberName = "NodeId")]
     public ContentDto ContentDto { get; set; } = null!;
-
-    // although a content has many content versions,
-    // they can only be loaded one by one (as several content),
-    // so this here is a OneToOne reference
-    [ResultColumn]
-    [Reference(ReferenceType.OneToOne)]
-    public DocumentVersionDto DocumentVersionDto { get; set; } = null!;
-
-    // same
-    [ResultColumn]
-    [Reference(ReferenceType.OneToOne)]
-    public DocumentVersionDto? PublishedVersionDto { get; set; }
 }

@@ -94,5 +94,8 @@ public class UmbracoPlan : MigrationPlan
 
         // And once more for 12
         To<MigrateTagsFromNVarcharToNText>("{2D4C9FBD-08B3-472D-A76C-6ED467A0CD20}");
+
+        // To 13.0.0
+        To<V_13_0_0.ElementNormalization>("{CA740778-6463-4AE7-9585-91D29A343395}");
     }
 }

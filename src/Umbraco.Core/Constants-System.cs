@@ -61,12 +61,12 @@ public static partial class Constants
         /// <summary>
         /// This integer identifies whether an element is inline to a property
         /// </summary>
-        public const int InlineElementParent = -30;
+        public const int LocalElementParent = -30;
 
         /// <summary>
-        /// The string representation of <see cref="InlineElementParent"/>
+        /// The string representation of <see cref="LocalElementParent"/>
         /// </summary>
-        public const string InlineElementParentString = "-30";
+        public const string LocalElementParentString = "-30";
 
         public const int DefaultLabelDataTypeId = -92;
 
