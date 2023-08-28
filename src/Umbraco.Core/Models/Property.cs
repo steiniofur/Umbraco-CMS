@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Runtime.Serialization;
 using Umbraco.Cms.Core.Collections;
+using Umbraco.Cms.Core.Models.Elements;
 using Umbraco.Cms.Core.Models.Entities;
 using Umbraco.Extensions;
 
@@ -54,10 +55,14 @@ public class Property : EntityBase, IProperty
     // contains the (indexed) variant property values
     private Dictionary<CompositeNStringNStringKey, IPropertyValue>? _variantSegmentValues;
 
+    // contains all elements referenced in values
+    public List<IElement> Elements { get; set; } = new();
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="Property" /> class.
     /// </summary>
     public Property(IPropertyType propertyType) => PropertyType = propertyType;
+
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="Property" /> class.
@@ -533,6 +538,8 @@ public class Property : EntityBase, IProperty
                 return valueType == typeof(string);
             case ValueStorageType.Ntext:
                 return valueType == typeof(string);
+            case ValueStorageType.Element:
+                return valueType == typeof(ValueWithElements);
             default:
                 throw new NotSupportedException($"Not supported storage type \"{ValueStorageType}\".");
         }

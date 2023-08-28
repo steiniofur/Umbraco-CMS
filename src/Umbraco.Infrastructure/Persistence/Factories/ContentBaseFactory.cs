@@ -68,6 +68,68 @@ internal class ContentBaseFactory
     }
 
     /// <summary>
+    ///     Builds an IContent item from a dto and content type.
+    /// </summary>
+    public static Content BuildEntity(ElementDto dto, IContentType? contentType)
+    {
+        ContentDto contentDto = dto.ContentDto;
+        NodeDto nodeDto = contentDto.NodeDto;
+        // DocumentVersionDto documentVersionDto = dto.DocumentVersionDto;
+        // ContentVersionDto contentVersionDto = documentVersionDto.ContentVersionDto;
+        // DocumentVersionDto? publishedVersionDto = dto.PublishedVersionDto;
+
+        var content = new Content(nodeDto.Text, nodeDto.ParentId, contentType);
+
+        try
+        {
+            content.DisableChangeTracking();
+
+            content.Id = dto.NodeId;
+            content.Key = nodeDto.UniqueId;
+            // content.VersionId = contentVersionDto.Id;
+            content.VersionId = 0;
+
+            // content.Name = contentVersionDto.Text;
+            content.Name = string.Empty;
+
+            content.Path = nodeDto.Path;
+            content.Level = nodeDto.Level;
+            content.ParentId = nodeDto.ParentId;
+            content.SortOrder = nodeDto.SortOrder;
+            content.Trashed = nodeDto.Trashed;
+
+            content.CreatorId = nodeDto.UserId ?? Constants.Security.UnknownUserId;
+            // content.WriterId = contentVersionDto.UserId ?? Constants.Security.UnknownUserId;
+            content.WriterId = nodeDto.UserId ?? Constants.Security.UnknownUserId;
+            content.CreateDate = nodeDto.CreateDate;
+            // content.UpdateDate = contentVersionDto.VersionDate;
+
+            content.Published = dto.Published;
+            content.Edited = dto.Edited;
+
+            // TODO: shall we get published infos or not?
+            // if (dto.Published)
+            // if (publishedVersionDto != null)
+            // {
+            //     content.PublishedVersionId = publishedVersionDto.Id;
+            //     content.PublishDate = publishedVersionDto.ContentVersionDto.VersionDate;
+            //     content.PublishName = publishedVersionDto.ContentVersionDto.Text;
+            //     content.PublisherId = publishedVersionDto.ContentVersionDto.UserId;
+            // }
+
+            // templates = ignored, managed by the repository
+
+            // reset dirty initial properties (U4-1946)
+            content.ResetDirtyProperties(false);
+            return content;
+        }
+        finally
+        {
+            content.EnableChangeTracking();
+        }
+    }
+
+    /// <summary>
     ///     Builds an IMedia item from a dto and content type.
     /// </summary>
     public static Core.Models.Media BuildEntity(ContentDto dto, IMediaType? contentType)
@@ -169,6 +231,24 @@ internal class ContentBaseFactory
             Published = entity.Published,
             ContentDto = contentDto,
             DocumentVersionDto = BuildDocumentVersionDto(entity, contentDto),
+        };
+
+        return dto;
+    }
+
+    /// <summary>
+    ///     Builds a dto from an IContent item.
+    /// </summary>
+    public static ElementDto BuildElementDto(IContent entity, Guid objectType)
+    {
+        ContentDto contentDto = BuildContentDto(entity, objectType);
+
+        var dto = new ElementDto
+        {
+            NodeId = entity.Id,
+            Published = entity.Published,
+            ContentDto = contentDto,
+            // DocumentVersionDto = BuildDocumentVersionDto(entity, contentDto),
         };
 
         return dto;

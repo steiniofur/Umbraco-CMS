@@ -59,7 +59,7 @@ public static partial class Constants
         public const string RecycleBinMediaPathPrefix = "-1,-21,";
 
         /// <summary>
-        /// This integer identifies whether an element is inline to a property
+        /// This integer identifies whether an element is local to a property
         /// </summary>
         public const int LocalElementParent = -30;
 

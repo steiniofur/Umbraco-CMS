@@ -7,6 +7,7 @@ using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.Editors;
+using Umbraco.Cms.Core.Models.Elements;
 using Umbraco.Cms.Core.Serialization;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
@@ -183,8 +184,36 @@ internal abstract class BlockEditorPropertyValueEditor : DataValueEditor, IDataV
         MapBlockItemDataFromEditor(blockEditorData.BlockValue.SettingsData);
 
         // return json
-        return JsonConvert.SerializeObject(blockEditorData.BlockValue, Formatting.None);
+        return MapValueToValueWithElements(blockEditorData.BlockValue);
+        // return JsonConvert.SerializeObject(blockEditorData.BlockValue, Formatting.None);
     }
+
+    private ValueWithElements MapValueToValueWithElements(BlockValue value)
+    {
+        var valueWithoutElements = new BlockValueWithoutElements(value);
+        var elements = value.ContentData.Select(MapBlockItemToElementData).ToList();
+        return new ValueWithElements
+        {
+            Elements = elements, Value = JsonConvert.SerializeObject(valueWithoutElements, Formatting.None)
+        };
+    }
+
+    //todo global elements change to mapper?
+    private ElementData MapBlockItemToElementData(BlockItemData data)
+    {
+        return new ElementData
+        {
+            PropertyValues =
+                data.PropertyValues.ToDictionary(pair => pair.Key, pair => MapBlockToElementPropertyValue(pair.Value)),
+            ContentTypeAlias = data.ContentTypeAlias,
+            ContentTypeKey = data.ContentTypeKey,
+            Udi = data.Udi,
+        };
+    }
+
+    //todo global elements change to mapper?
+    private ElementData.ElementPropertyValue MapBlockToElementPropertyValue(BlockItemData.BlockPropertyValue propertyValue)
+        => new(propertyValue.Value, propertyValue.PropertyType);
 
     private void MapBlockItemDataToEditor(IProperty property, List<BlockItemData> items)
     {

@@ -42,4 +42,10 @@ public enum ValueStorageType
     /// </summary>
     [EnumMember]
     Decimal,
+
+    /// <summary>
+    ///     Store part of the value as elements, rest as NText.
+    /// </summary>
+    [EnumMember]
+    Element,
 }
