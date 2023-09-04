@@ -30,7 +30,7 @@ public class GlobalSettings
     internal const string StaticNoNodesViewPath = "~/umbraco/UmbracoWebsite/NoNodes.cshtml";
     internal const string StaticDistributedLockingReadLockDefaultTimeout = "00:01:00";
     internal const string StaticDistributedLockingWriteLockDefaultTimeout = "00:00:05";
-    internal const bool StaticSanitizeTinyMce = false;
+    internal const bool StaticSanitizeTinyMce = true;
     internal const int StaticMainDomReleaseSignalPollingInterval = 2000;
     private const bool StaticForceCombineUrlPathLeftToRight = true;
     private const bool StaticShowMaintenancePageWhenInUpgradeState = true;

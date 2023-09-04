@@ -157,7 +157,7 @@ public class ContentSettings
     internal const bool StaticHideBackOfficeLogo = false;
     internal const bool StaticDisableDeleteWhenReferenced = false;
     internal const bool StaticDisableUnpublishWhenReferenced = false;
-    internal const bool StaticAllowEditInvariantFromNonDefault = false;
+    internal const bool StaticAllowEditInvariantFromNonDefault = true;
     internal const bool StaticShowDomainWarnings = true;
 
     /// <summary>

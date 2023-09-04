@@ -7,7 +7,7 @@ namespace Umbraco.Cms.Core.Configuration.Models;
 /// </summary>
 public class ContentVersionCleanupPolicySettings
 {
-    private const bool StaticEnableCleanup = false;
+    private const bool StaticEnableCleanup = true;
     private const int StaticKeepAllVersionsNewerThanDays = 7;
     private const int StaticKeepLatestVersionPerDayForDays = 90;
 
