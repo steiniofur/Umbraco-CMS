@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.Helpers;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.ContentEditing;
 using Umbraco.Cms.Core.Models.Editors;
@@ -414,10 +415,21 @@ internal abstract class ContentEditingServiceBase<TContent, TContentType, TConte
                 throw new ArgumentException($"Culture or segment variance mismatch for property: {propertyValue.Alias}", nameof(contentEditingModelBase));
             }
 
+            //todo elements move to contructor/field?
+            var propertyValueManipulationHelper = new PropertyValueManipulationHelper
+            {
+                GetContentTypeFromKeyMethod = (guid) => ContentTypeService.Get(guid)
+            };
+
             // pass the value through the data editor to construct the value to store in the content
             var dataEditorValue = await GetDataEditorValue(propertyValue.Value, propertyValue.Culture, propertyValue.Segment, propertyType, content);
-            content.SetValue(propertyValue.Alias, dataEditorValue, propertyValue.Culture, propertyValue.Segment);
+            content.SetValue(propertyValue.Alias, dataEditorValue, propertyValue.Culture, propertyValue.Segment, propertyValueManipulationHelper);
         }
+    }
+
+    internal virtual ContentType? GetContentTypeFromAlias(string alias)
+    {
+        return null;
     }
 
     private void RemoveMissingProperties(ContentEditingModelBase contentEditingModelBase, TContent content, TContentType contentType)

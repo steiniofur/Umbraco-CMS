@@ -1,3 +1,4 @@
+using Umbraco.Cms.Core.Helpers;
 using Umbraco.Cms.Core.Models.Entities;
 
 namespace Umbraco.Cms.Core.Models;
@@ -137,7 +138,7 @@ public interface IContentBase : IUmbracoEntity, IRememberBeingDirty
     ///     Sets the (edited) value of a Property
     /// </summary>
     /// <remarks>Values 'null' and 'empty' are equivalent for culture and segment.</remarks>
-    void SetValue(string propertyTypeAlias, object? value, string? culture = null, string? segment = null);
+    void SetValue(string propertyTypeAlias, object? value, string? culture = null, string? segment = null, PropertyValueManipulationHelper? valueManipulationHelper = null);
 
     /// <summary>
     ///     Removes a Property value.

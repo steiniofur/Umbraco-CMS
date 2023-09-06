@@ -1,7 +1,10 @@
 ﻿using System.Collections;
 using System.Runtime.Serialization;
 using Umbraco.Cms.Core.Collections;
+using Umbraco.Cms.Core.Helpers;
+using Umbraco.Cms.Core.Models.Elements;
 using Umbraco.Cms.Core.Models.Entities;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
 
 namespace Umbraco.Cms.Core.Models;
@@ -46,13 +49,16 @@ public class Property : EntityBase, IProperty
         o => o!.GetHashCode());
 
     // _pvalue contains the invariant-neutral property value
-    private IPropertyValue? _pvalue;
+    private IPropertyValue? _invariantValue;
 
     // _values contains all property values, including the invariant-neutral value
     private List<IPropertyValue> _values = new();
 
+    // _contains all elements that are referenced in its value
+    private List<IElement> _elements = new(); //todo elements: Take care of variants
+
     // _vvalues contains the (indexed) variant property values
-    private Dictionary<CompositeNStringNStringKey, IPropertyValue>? _vvalues;
+    private Dictionary<CompositeNStringNStringKey, IPropertyValue>? _variantValues;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="Property" /> class.
@@ -86,13 +92,19 @@ public class Property : EntityBase, IProperty
             // make sure we filter out invalid variations
             // make sure we leave _vvalues null if possible
             _values = value.Where(x => PropertyType?.SupportsVariation(x.Culture, x.Segment) ?? false).ToList();
-            _pvalue = _values.FirstOrDefault(x => x.Culture == null && x.Segment == null);
-            _vvalues = _values.Count > (_pvalue == null ? 0 : 1)
-                ? _values.Where(x => x != _pvalue)
+            _invariantValue = _values.FirstOrDefault(x => x.Culture == null && x.Segment == null);
+            _variantValues = _values.Count > (_invariantValue == null ? 0 : 1)
+                ? _values.Where(x => x != _invariantValue)
                     .ToDictionary(x => new CompositeNStringNStringKey(x.Culture, x.Segment), x => x)
                 : null;
         }
     }
+
+    /// <summary>
+    ///     Gets the list of elements used in this property's values.
+    /// </summary>
+    [DataMember]
+    public IReadOnlyCollection<IElement> Elements => _elements.AsReadOnly(); //todo elements: Take care of variants
 
     /// <summary>
     ///     Returns the Alias of the PropertyType, which this Property is based on
@@ -161,15 +173,15 @@ public class Property : EntityBase, IProperty
 
         if (culture == null && segment == null)
         {
-            return GetPropertyValue(_pvalue, published);
+            return GetPropertyValue(_invariantValue, published);
         }
 
-        if (_vvalues == null)
+        if (_variantValues == null)
         {
             return null;
         }
 
-        return _vvalues.TryGetValue(new CompositeNStringNStringKey(culture, segment), out IPropertyValue? pvalue)
+        return _variantValues.TryGetValue(new CompositeNStringNStringKey(culture, segment), out IPropertyValue? pvalue)
             ? GetPropertyValue(pvalue, published)
             : null;
     }
@@ -185,21 +197,21 @@ public class Property : EntityBase, IProperty
         if ((culture == null || culture == "*") && (segment == null || segment == "*") &&
             PropertyType.SupportsVariation(null, null))
         {
-            PublishValue(_pvalue);
+            PublishValue(_invariantValue);
         }
 
         // then deal with everything that varies
-        if (_vvalues == null)
+        if (_variantValues == null)
         {
             return;
         }
 
         // get the property values that are still relevant (wrt the property type variation),
         // and match the specified culture and segment (or anything when '*').
-        IEnumerable<IPropertyValue> pvalues = _vvalues.Where(x =>
+        IEnumerable<IPropertyValue> pvalues = _variantValues.Where(x =>
                 PropertyType.SupportsVariation(x.Value.Culture, x.Value.Segment, true) && // the value variation is ok
-                    (culture == "*" || x.Value.Culture.InvariantEquals(culture)) && // the culture matches
-                    (segment == "*" || x.Value.Segment.InvariantEquals(segment))) // the segment matches
+                (culture == "*" || x.Value.Culture.InvariantEquals(culture)) && // the culture matches
+                (segment == "*" || x.Value.Segment.InvariantEquals(segment))) // the segment matches
             .Select(x => x.Value);
 
         foreach (IPropertyValue pvalue in pvalues)
@@ -218,18 +230,18 @@ public class Property : EntityBase, IProperty
         if ((culture == null || culture == "*") && (segment == null || segment == "*") &&
             PropertyType.SupportsVariation(null, null))
         {
-            UnpublishValue(_pvalue);
+            UnpublishValue(_invariantValue);
         }
 
         // then deal with everything that varies
-        if (_vvalues == null)
+        if (_variantValues == null)
         {
             return;
         }
 
         // get the property values that are still relevant (wrt the property type variation),
         // and match the specified culture and segment (or anything when '*').
-        IEnumerable<IPropertyValue> pvalues = _vvalues.Where(x =>
+        IEnumerable<IPropertyValue> pvalues = _variantValues.Where(x =>
                 PropertyType.SupportsVariation(x.Value.Culture, x.Value.Segment, true) && // the value variation is ok
                 (culture == "*" || (x.Value.Culture?.InvariantEquals(culture) ?? false)) && // the culture matches
                 (segment == "*" || (x.Value.Segment?.InvariantEquals(segment) ?? false))) // the segment matches
@@ -265,6 +277,35 @@ public class Property : EntityBase, IProperty
             pvalue.EditedValue = setValue;
 
             DetectChanges(setValue, origValue, nameof(Values), PropertyValueComparer, change);
+        }
+    }
+
+    public void SetLocalElements(IEnumerable<ElementValues> elementValuesList, string? culture, string? segment, PropertyValueManipulationHelper? valueManipulationHelper = null)
+    {
+        if (valueManipulationHelper?.GetContentTypeFromKeyMethod == null)
+        {
+            //todo elements: pick a better exception
+            throw new Exception("Setting local elements requires a valid PropertyValueManipulationHelper with a valid GetContentTypeFromKeyMethod delegate");
+        }
+
+        foreach (IElement elementToRemove in _elements.Where(e =>
+                     e.ParentId == Constants.System.LocalElementParentId &&
+                     elementValuesList.Any(ev => ev.ElementKey != e.Key)))
+        {
+            _elements.Remove(elementToRemove);
+        }
+
+        foreach (var elementValues in elementValuesList)
+        {
+            // todo check matching contentType?
+            var element = _elements.FirstOrDefault(e => e.Key == elementValues.ElementKey)
+                          ?? new Element(null, Constants.System.LocalElementParentId, valueManipulationHelper.GetContentTypeFromKeyMethod(elementValues.ElementTypeKey), culture); // todo elements set contentType?
+            _elements.Add(element);
+            foreach (var elementValue in elementValues.Values)
+            {
+                element.SetValue(elementValue.Alias, elementValue.Value, culture, segment, valueManipulationHelper);
+                // todo elements, do we need to unsetValues that are not passed from the frontend? *notopicteamtime
+            }
         }
     }
 
@@ -348,19 +389,19 @@ public class Property : EntityBase, IProperty
     private (IPropertyValue?, bool) GetPValue(bool create)
     {
         var change = false;
-        if (_pvalue == null)
+        if (_invariantValue == null)
         {
             if (!create)
             {
                 return (null, false);
             }
 
-            _pvalue = new PropertyValue();
-            _values.Add(_pvalue);
+            _invariantValue = new PropertyValue();
+            _values.Add(_invariantValue);
             change = true;
         }
 
-        return (_pvalue, change);
+        return (_invariantValue, change);
     }
 
     private (IPropertyValue?, bool) GetPValue(string? culture, string? segment, bool create)
@@ -371,26 +412,26 @@ public class Property : EntityBase, IProperty
         }
 
         var change = false;
-        if (_vvalues == null)
+        if (_variantValues == null)
         {
             if (!create)
             {
                 return (null, false);
             }
 
-            _vvalues = new Dictionary<CompositeNStringNStringKey, IPropertyValue>();
+            _variantValues = new Dictionary<CompositeNStringNStringKey, IPropertyValue>();
             change = true;
         }
 
         var k = new CompositeNStringNStringKey(culture, segment);
-        if (!_vvalues.TryGetValue(k, out IPropertyValue? pvalue))
+        if (!_variantValues.TryGetValue(k, out IPropertyValue? pvalue))
         {
             if (!create)
             {
                 return (null, false);
             }
 
-            pvalue = _vvalues[k] = new PropertyValue();
+            pvalue = _variantValues[k] = new PropertyValue();
             pvalue.Culture = culture;
             pvalue.Segment = segment;
             _values.Add(pvalue);
@@ -621,10 +662,7 @@ public class Property : EntityBase, IProperty
         public IPropertyValue Clone()
             => new PropertyValue
             {
-                _culture = _culture,
-                _segment = _segment,
-                PublishedValue = PublishedValue,
-                EditedValue = EditedValue,
+                _culture = _culture, _segment = _segment, PublishedValue = PublishedValue, EditedValue = EditedValue,
             };
 
         public override bool Equals(object? obj) => Equals(obj as PropertyValue);

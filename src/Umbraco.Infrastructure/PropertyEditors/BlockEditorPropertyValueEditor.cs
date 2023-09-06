@@ -6,13 +6,16 @@ using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.Editors;
+using Umbraco.Cms.Core.Models.Elements;
 using Umbraco.Cms.Core.Serialization;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
+using Umbraco.Extensions;
 
 namespace Umbraco.Cms.Core.PropertyEditors;
 
-internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataValueEditor, IDataValueReference, IDataValueTags
+internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataValueEditor, IDataValueReference,
+    IDataValueTags
     where TValue : BlockValue<TLayout>, new()
     where TLayout : class, IBlockLayoutItem, new()
 {
@@ -41,7 +44,9 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
 
     protected BlockEditorValues<TValue, TLayout> BlockEditorValues
     {
-        get => _blockEditorValues ?? throw new NullReferenceException($"The property {nameof(BlockEditorValues)} must be initialized at value editor construction");
+        get => _blockEditorValues ??
+               throw new NullReferenceException(
+                   $"The property {nameof(BlockEditorValues)} must be initialized at value editor construction");
         set => _blockEditorValues = value;
     }
 
@@ -57,7 +62,8 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
         }
 
         // loop through all content and settings data
-        foreach (BlockItemData row in blockEditorData.BlockValue.ContentData.Concat(blockEditorData.BlockValue.SettingsData))
+        foreach (BlockItemData row in blockEditorData.BlockValue.ContentData.Concat(blockEditorData.BlockValue
+                     .SettingsData))
         {
             foreach (KeyValuePair<string, BlockItemData.BlockPropertyValue> prop in row.PropertyValues)
             {
@@ -93,7 +99,8 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
 
         var result = new List<ITag>();
         // loop through all content and settings data
-        foreach (BlockItemData row in blockEditorData.BlockValue.ContentData.Concat(blockEditorData.BlockValue.SettingsData))
+        foreach (BlockItemData row in blockEditorData.BlockValue.ContentData.Concat(blockEditorData.BlockValue
+                     .SettingsData))
         {
             foreach (KeyValuePair<string, BlockItemData.BlockPropertyValue> prop in row.PropertyValues)
             {
@@ -105,7 +112,8 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
                     continue;
                 }
 
-                object? configurationObject = _dataTypeService.GetDataType(prop.Value.PropertyType.DataTypeKey)?.ConfigurationObject;
+                object? configurationObject = _dataTypeService.GetDataType(prop.Value.PropertyType.DataTypeKey)
+                    ?.ConfigurationObject;
 
                 result.AddRange(tagsProvider.GetTags(prop.Value.Value, configurationObject, languageId));
             }
@@ -146,7 +154,8 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
             return string.Empty;
         }
 
-        MapBlockItemDataToEditor(property, blockEditorData.BlockValue.ContentData);
+        MapElementsToEditor(property, blockEditorData);
+        // MapBlockItemDataToEditor(property, blockEditorData.BlockValue.ContentData);
         MapBlockItemDataToEditor(property, blockEditorData.BlockValue.SettingsData);
 
         // return json convertable object
@@ -182,11 +191,12 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
             return string.Empty;
         }
 
-        MapBlockItemDataFromEditor(blockEditorData.BlockValue.ContentData);
+        var elementMapping = MapElementDataFromEditor(blockEditorData.BlockValue.ContentData);
+        // MapBlockItemDataFromEditor(blockEditorData.BlockValue.ContentData);
         MapBlockItemDataFromEditor(blockEditorData.BlockValue.SettingsData);
 
         // return json
-        return _jsonSerializer.Serialize(blockEditorData.BlockValue);
+        return new WrappedElementsValues(elementMapping, _jsonSerializer.Serialize(blockEditorData.BlockValue));
     }
 
     private void MapBlockItemDataToEditor(IProperty property, List<BlockItemData> items)
@@ -242,6 +252,77 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
         }
     }
 
+    private void MapElementsToEditor(IProperty property, BlockEditorData<TValue, TLayout> blockEditorData)
+    {
+        // for every element reference in the blockEditorData
+        // get the matching element from the property
+        // todo element: remove missing references?
+        // map every property like it is done in MapBlockItemDataToEditor?
+
+        var valEditors = new Dictionary<int, IDataValueEditor>();
+
+        if (blockEditorData.Layout == null)
+        {
+            return;
+        }
+
+        foreach (var layoutItem in blockEditorData.Layout.Where(l => l.ContentUdi != null))
+        {
+            var matchingElement = property.Elements.FirstOrDefault(e => e.Key == layoutItem.ContentUdi!.AsGuid());
+            if (matchingElement == null)
+            {
+                continue; //todo element, remove from layout?
+            }
+
+            var blockItemData = new BlockItemData
+            {
+                Udi = matchingElement.GetUdi(),
+                ContentTypeKey = matchingElement.ContentType.Key,
+                ContentTypeAlias = matchingElement.ContentType.Alias
+            };
+            foreach (var elementProperty in matchingElement.Properties)
+            {
+                //todo element: variants
+
+                IDataEditor? propEditor = _propertyEditors[elementProperty.PropertyType.PropertyEditorAlias];
+                if (propEditor == null)
+                {
+                    // NOTE: This logic was borrowed from Nested Content and I'm unsure why it exists.
+                    // if the property editor doesn't exist I think everything will break anyways?
+                    // update the raw value since this is what will get serialized out
+                    blockItemData.RawPropertyValues[elementProperty.Alias] = elementProperty.GetValue()?.ToString();
+                    continue;
+                }
+
+                IDataType? dataType = _dataTypeService.GetDataType(elementProperty.PropertyType.DataTypeId);
+                if (dataType == null)
+                {
+                    _logger.LogWarning(
+                        "ToEditor ignored property value {PropertyKey} in on element {RowId} for property type {PropertyTypeAlias}",
+                        elementProperty.Key,
+                        matchingElement.Key,
+                        property.PropertyType.Alias);
+                    continue;
+                }
+
+                if (!valEditors.TryGetValue(dataType.Id, out IDataValueEditor? valEditor))
+                {
+                    var tempConfig = dataType.ConfigurationObject;
+                    valEditor = propEditor.GetValueEditor(tempConfig);
+
+                    valEditors.Add(dataType.Id, valEditor);
+                }
+
+                var propertyEditorValue = valEditor.ToEditor(elementProperty);
+
+
+                blockItemData.RawPropertyValues[elementProperty.Alias] = propertyEditorValue;
+            }
+
+            blockEditorData.BlockValue.ContentData.Add(blockItemData);
+        }
+    }
+
     private void MapBlockItemDataFromEditor(List<BlockItemData> items)
     {
         foreach (BlockItemData row in items)
@@ -249,7 +330,8 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
             foreach (KeyValuePair<string, BlockItemData.BlockPropertyValue> prop in row.PropertyValues)
             {
                 // Fetch the property types prevalue
-                var propConfiguration = _dataTypeService.GetDataType(prop.Value.PropertyType.DataTypeId)?.ConfigurationObject;
+                var propConfiguration = _dataTypeService.GetDataType(prop.Value.PropertyType.DataTypeId)
+                    ?.ConfigurationObject;
 
                 // Lookup the property editor
                 IDataEditor? propEditor = _propertyEditors[prop.Value.PropertyType.PropertyEditorAlias];
@@ -268,6 +350,43 @@ internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : DataVa
                 row.RawPropertyValues[prop.Key] = newValue;
             }
         }
+    }
+
+    private IEnumerable<ElementValues> MapElementDataFromEditor(List<BlockItemData> contentItems)
+    {
+        var mappings = new List<ElementValues>();
+
+        foreach (BlockItemData row in contentItems)
+        {
+            var elementMap = new ElementValues { ElementKey = row.Key, ElementTypeKey = row.ContentTypeKey };
+            mappings.Add(elementMap);
+
+            foreach (KeyValuePair<string, BlockItemData.BlockPropertyValue> prop in row.PropertyValues)
+            {
+                // Fetch the property types prevalue
+                var propConfiguration = _dataTypeService.GetDataType(prop.Value.PropertyType.DataTypeId)
+                    ?.ConfigurationObject;
+
+                // Lookup the property editor
+                IDataEditor? propEditor = _propertyEditors[prop.Value.PropertyType.PropertyEditorAlias];
+                if (propEditor == null)
+                {
+                    continue;
+                }
+
+                // Create a fake content property data object
+                var contentPropData = new ContentPropertyData(prop.Value.Value, propConfiguration);
+
+                // Get the property editor to do it's conversion
+                var newValue = propEditor.GetValueEditor().FromEditor(contentPropData, prop.Value.Value);
+
+                // update the raw value since this is what will get serialized out
+                // row.RawPropertyValues[prop.Key] = newValue;
+                elementMap.Values.Add(new ElementPropertyValue(prop.Key, newValue));
+            }
+        }
+
+        return mappings;
     }
 
     #endregion

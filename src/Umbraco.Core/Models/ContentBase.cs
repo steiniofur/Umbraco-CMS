@@ -1,6 +1,8 @@
 ﻿using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Runtime.Serialization;
+using Umbraco.Cms.Core.Helpers;
+using Umbraco.Cms.Core.Models.Elements;
 using Umbraco.Cms.Core.Models.Entities;
 using Umbraco.Extensions;
 
@@ -22,7 +24,8 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
     /// <summary>
     ///     Initializes a new instance of the <see cref="ContentBase" /> class.
     /// </summary>
-    protected ContentBase(string? name, int parentId, IContentTypeComposition? contentType, IPropertyCollection properties, string? culture = null)
+    protected ContentBase(string? name, int parentId, IContentTypeComposition? contentType,
+        IPropertyCollection properties, string? culture = null)
         : this(name, contentType, properties, culture)
     {
         if (parentId == 0)
@@ -36,7 +39,8 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
     /// <summary>
     ///     Initializes a new instance of the <see cref="ContentBase" /> class.
     /// </summary>
-    protected ContentBase(string? name, IContentBase? parent, IContentTypeComposition contentType, IPropertyCollection properties, string? culture = null)
+    protected ContentBase(string? name, IContentBase? parent, IContentTypeComposition contentType,
+        IPropertyCollection properties, string? culture = null)
         : this(name, contentType, properties, culture)
     {
         if (parent == null)
@@ -47,7 +51,8 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
         SetParent(parent);
     }
 
-    private ContentBase(string? name, IContentTypeComposition? contentType, IPropertyCollection properties, string? culture = null)
+    private ContentBase(string? name, IContentTypeComposition? contentType, IPropertyCollection properties,
+        string? culture = null)
     {
         ContentType = contentType?.ToSimple() ?? throw new ArgumentNullException(nameof(contentType));
 
@@ -62,8 +67,7 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
         _properties.EnsurePropertyTypes(contentType.CompositionPropertyTypes);
     }
 
-    [IgnoreDataMember]
-    public ISimpleContentType ContentType { get; private set; }
+    [IgnoreDataMember] public ISimpleContentType ContentType { get; private set; }
 
     /// <summary>
     ///     Id of the user who wrote/updated this entity
@@ -75,8 +79,7 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
         set => SetPropertyValueAndDetectChanges(value, ref _writerId, nameof(WriterId));
     }
 
-    [IgnoreDataMember]
-    public int VersionId { get; set; }
+    [IgnoreDataMember] public int VersionId { get; set; }
 
     /// <summary>
     ///     Integer Id of the default ContentType
@@ -329,7 +332,8 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
 
         if (string.IsNullOrWhiteSpace(culture))
         {
-            throw new ArgumentException("Value can't be empty or consist only of white-space characters.", nameof(culture));
+            throw new ArgumentException("Value can't be empty or consist only of white-space characters.",
+                nameof(culture));
         }
 
         if (_cultureInfos == null)
@@ -427,13 +431,15 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
         => Properties.Contains(propertyTypeAlias);
 
     /// <inheritdoc />
-    public object? GetValue(string propertyTypeAlias, string? culture = null, string? segment = null, bool published = false) =>
+    public object? GetValue(string propertyTypeAlias, string? culture = null, string? segment = null,
+        bool published = false) =>
         Properties.TryGetValue(propertyTypeAlias, out IProperty? property)
             ? property?.GetValue(culture, segment, published)
             : null;
 
     /// <inheritdoc />
-    public TValue? GetValue<TValue>(string propertyTypeAlias, string? culture = null, string? segment = null, bool published = false)
+    public TValue? GetValue<TValue>(string propertyTypeAlias, string? culture = null, string? segment = null,
+        bool published = false)
     {
         if (!Properties.TryGetValue(propertyTypeAlias, out IProperty? property))
         {
@@ -447,7 +453,7 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
     }
 
     /// <inheritdoc />
-    public void SetValue(string propertyTypeAlias, object? value, string? culture = null, string? segment = null)
+    public void SetValue(string propertyTypeAlias, object? value, string? culture = null, string? segment = null, PropertyValueManipulationHelper? propertyValueManipulationHelper = null)
     {
         if (!Properties.TryGetValue(propertyTypeAlias, out IProperty? property))
         {
@@ -455,7 +461,16 @@ public abstract class ContentBase : TreeEntityBase, IContentBase
                 $"No PropertyType exists with the supplied alias \"{propertyTypeAlias}\".");
         }
 
-        property?.SetValue(value, culture, segment);
+        if (value is WrappedElementsValues wrappedValue)
+        {
+            property?.SetLocalElements(wrappedValue.ElementValues,culture,segment,propertyValueManipulationHelper);
+            property?.SetValue(wrappedValue.Value, culture, segment);
+        }
+        else
+        {
+            property?.SetValue(value, culture, segment);
+        }
+
 
         // bump the culture to be flagged for updating
         this.TouchCulture(culture);

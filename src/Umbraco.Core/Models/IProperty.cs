@@ -1,3 +1,5 @@
+using Umbraco.Cms.Core.Helpers;
+using Umbraco.Cms.Core.Models.Elements;
 using Umbraco.Cms.Core.Models.Entities;
 
 namespace Umbraco.Cms.Core.Models;
@@ -15,6 +17,11 @@ public interface IProperty : IEntity, IRememberBeingDirty
     ///     Gets the list of values.
     /// </summary>
     IReadOnlyCollection<IPropertyValue> Values { get; set; }
+
+    /// <summary>
+    ///     Gets the list of elements used in this property's values.
+    /// </summary>
+    public IReadOnlyCollection<IElement> Elements { get; }
 
     /// <summary>
     ///     Returns the Alias of the PropertyType, which this Property is based on
@@ -36,4 +43,7 @@ public interface IProperty : IEntity, IRememberBeingDirty
     void PublishValues(string? culture = "*", string segment = "*");
 
     void UnpublishValues(string? culture = "*", string segment = "*");
+
+    void SetLocalElements(IEnumerable<ElementValues> elementValues, string? culture, string? segment,
+        PropertyValueManipulationHelper? propertyValueManipulationHelper = null);
 }

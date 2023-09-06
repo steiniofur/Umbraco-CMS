@@ -65,6 +65,9 @@ public static partial class Constants
 
         public const int DefaultLabelDataTypeId = -92;
 
+        public const int LocalElementParentId = -200;
+        public const string LocalElementParentIdString = "-200";
+
         public const string UmbracoDefaultDatabaseName = "Umbraco";
 
         public const string UmbracoConnectionName = "umbracoDbDSN";
