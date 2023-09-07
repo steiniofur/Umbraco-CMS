@@ -123,6 +123,65 @@ public static class ContentRepositoryExtensions
         }
     }
 
+    // todo Elements refactor code duplication
+    public static void AdjustDates(this IElement element, DateTime date, bool publishing)
+    {
+        if (element.EditedCultures is not null)
+        {
+            foreach (var culture in element.EditedCultures.ToList())
+            {
+                if (element.CultureInfos is null)
+                {
+                    continue;
+                }
+
+                if (!element.CultureInfos.TryGetValue(culture, out ContentCultureInfos editedInfos))
+                {
+                    continue;
+                }
+
+                // if it's not dirty, it means it hasn't changed so there's nothing to adjust
+                if (!editedInfos.IsDirty())
+                {
+                    continue;
+                }
+
+                element.CultureInfos?.AddOrUpdate(culture, editedInfos?.Name, date);
+            }
+        }
+
+        if (!publishing)
+        {
+            return;
+        }
+
+        foreach (var culture in element.PublishedCultures.ToList())
+        {
+            if (element.PublishCultureInfos is null)
+            {
+                continue;
+            }
+
+            if (!element.PublishCultureInfos.TryGetValue(culture, out ContentCultureInfos publishInfos))
+            {
+                continue;
+            }
+
+            // if it's not dirty, it means it hasn't changed so there's nothing to adjust
+            if (!publishInfos.IsDirty())
+            {
+                continue;
+            }
+
+            element.PublishCultureInfos.AddOrUpdate(culture, publishInfos.Name, date);
+
+            if (element.CultureInfos?.TryGetValue(culture, out ContentCultureInfos infos) ?? false)
+            {
+                SetCultureInfo(element, culture, infos.Name, date);
+            }
+        }
+    }
+
     /// <summary>
     ///     Gets the cultures that have been flagged for unpublishing.
     /// </summary>
@@ -266,7 +325,38 @@ public static class ContentRepositoryExtensions
         content.PublishCultureInfos?.AddOrUpdate(culture, name, date);
     }
 
+    // todo element see if we cant refactor this duplicate code
+    public static void SetPublishInfo(this IElement element, string? culture, string? name, DateTime date)
+    {
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException(
+                "Value can't be empty or consist only of white-space characters.",
+                nameof(name));
+        }
+
+        if (culture == null)
+        {
+            throw new ArgumentNullException(nameof(culture));
+        }
+
+        if (string.IsNullOrWhiteSpace(culture))
+        {
+            throw new ArgumentException(
+                "Value can't be empty or consist only of white-space characters.",
+                nameof(culture));
+        }
+
+        element.PublishCultureInfos?.AddOrUpdate(culture, name, date);
+    }
+
     // sets the edited cultures on the content
+    // todo element see if we cant refactor this duplicate code
     public static void SetCultureEdited(this IContent content, IEnumerable<string?>? cultures)
     {
         if (cultures == null)
@@ -279,6 +369,21 @@ public static class ContentRepositoryExtensions
                 cultures.Where(x => !x.IsNullOrWhiteSpace())!,
                 StringComparer.OrdinalIgnoreCase);
             content.EditedCultures = editedCultures.Count > 0 ? editedCultures : null;
+        }
+    }
+
+    public static void SetCultureEdited(this IElement element, IEnumerable<string?>? cultures)
+    {
+        if (cultures == null)
+        {
+            element.EditedCultures = null;
+        }
+        else
+        {
+            var editedCultures = new HashSet<string>(
+                cultures.Where(x => !x.IsNullOrWhiteSpace())!,
+                StringComparer.OrdinalIgnoreCase);
+            element.EditedCultures = editedCultures.Count > 0 ? editedCultures : null;
         }
     }
 

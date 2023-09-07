@@ -21,5 +21,6 @@ public static class CacheKeys
     public const string UserContentStartNodePathsPrefix = "ContentStartNodePaths";
 
     public const string ContentRecycleBinCacheKey = "recycleBin_content";
+    public const string ElementRecycleBinCacheKey = "recycleBin_element";
     public const string MediaRecycleBinCacheKey = "recycleBin_media";
 }

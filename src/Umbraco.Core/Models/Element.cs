@@ -399,6 +399,8 @@ public class Element : ContentBase, IElement
         return clone;
     }
 
+    public bool IsLocal() => ParentId == Constants.System.LocalElementParentId;
+
     /// <summary>
     ///     Handles culture infos collection changes.
     /// </summary>

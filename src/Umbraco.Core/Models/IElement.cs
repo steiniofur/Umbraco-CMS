@@ -125,4 +125,6 @@ public interface IElement : IContentBase
     /// </summary>
     /// <returns></returns>
     IElement DeepCloneWithResetIdentities();
+
+    bool IsLocal();
 }

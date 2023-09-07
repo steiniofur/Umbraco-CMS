@@ -67,6 +67,62 @@ internal class ContentBaseFactory
         }
     }
 
+    public static Element BuildEntity(ElementDto dto, IContentType? contentType)
+    {
+        ContentDto contentDto = dto.ContentDto;
+        NodeDto nodeDto = contentDto.NodeDto;
+        DocumentVersionDto documentVersionDto = dto.DocumentVersionDto;
+        ContentVersionDto contentVersionDto = documentVersionDto.ContentVersionDto;
+        DocumentVersionDto? publishedVersionDto = dto.PublishedVersionDto;
+
+        var content = new Element(nodeDto.Text, nodeDto.ParentId, contentType);
+
+        try
+        {
+            content.DisableChangeTracking();
+
+            content.Id = dto.NodeId;
+            content.Key = nodeDto.UniqueId;
+            content.VersionId = contentVersionDto.Id;
+
+            content.Name = contentVersionDto.Text;
+
+            content.Path = nodeDto.Path;
+            content.Level = nodeDto.Level;
+            content.ParentId = nodeDto.ParentId;
+            content.SortOrder = nodeDto.SortOrder;
+            content.Trashed = nodeDto.Trashed;
+
+            content.CreatorId = nodeDto.UserId ?? Constants.Security.UnknownUserId;
+            content.WriterId = contentVersionDto.UserId ?? Constants.Security.UnknownUserId;
+            content.CreateDate = nodeDto.CreateDate;
+            content.UpdateDate = contentVersionDto.VersionDate;
+
+            content.Published = dto.Published;
+            content.Edited = dto.Edited;
+
+            // TODO: shall we get published infos or not?
+            // if (dto.Published)
+            if (publishedVersionDto != null)
+            {
+                content.PublishedVersionId = publishedVersionDto.Id;
+                content.PublishDate = publishedVersionDto.ContentVersionDto.VersionDate;
+                content.PublishName = publishedVersionDto.ContentVersionDto.Text;
+                content.PublisherId = publishedVersionDto.ContentVersionDto.UserId;
+            }
+
+            // templates = ignored, managed by the repository
+
+            // reset dirty initial properties (U4-1946)
+            content.ResetDirtyProperties(false);
+            return content;
+        }
+        finally
+        {
+            content.EnableChangeTracking();
+        }
+    }
+
     /// <summary>
     ///     Builds an IMedia item from a dto and content type.
     /// </summary>
@@ -164,6 +220,22 @@ internal class ContentBaseFactory
         ContentDto contentDto = BuildContentDto(entity, objectType);
 
         var dto = new DocumentDto
+        {
+            NodeId = entity.Id,
+            Published = entity.Published,
+            ContentDto = contentDto,
+            DocumentVersionDto = BuildDocumentVersionDto(entity, contentDto),
+        };
+
+        return dto;
+    }
+
+    // todo elements refactor duplicate code
+    public static ElementDto BuildDto(IElement entity, Guid objectType)
+    {
+        ContentDto contentDto = BuildContentDto(entity, objectType);
+
+        var dto = new ElementDto
         {
             NodeId = entity.Id,
             Published = entity.Published,
@@ -290,6 +362,20 @@ internal class ContentBaseFactory
         {
             Id = entity.VersionId,
             TemplateId = entity.TemplateId,
+            Published = false, // always building the current, unpublished one
+
+            ContentVersionDto = BuildContentVersionDto(entity, contentDto),
+        };
+
+        return dto;
+    }
+
+    // todo elements refactor duplicate code
+    private static DocumentVersionDto BuildDocumentVersionDto(IElement entity, ContentDto contentDto)
+    {
+        var dto = new DocumentVersionDto // todo elements !!! yes we need our own ElementVersionDto as we dont track the template
+        {
+            Id = entity.VersionId,
             Published = false, // always building the current, unpublished one
 
             ContentVersionDto = BuildContentVersionDto(entity, contentDto),

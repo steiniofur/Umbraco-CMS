@@ -289,7 +289,7 @@ public class Property : EntityBase, IProperty
         }
 
         foreach (IElement elementToRemove in _elements.Where(e =>
-                     e.ParentId == Constants.System.LocalElementParentId &&
+                     e.IsLocal() &&
                      elementValuesList.Any(ev => ev.ElementKey != e.Key)))
         {
             _elements.Remove(elementToRemove);

@@ -63,6 +63,26 @@ public static partial class Constants
         /// </remarks>
         public const string RecycleBinMediaPathPrefix = "-1,-21,";
 
+        /// <summary>
+        ///     The integer identifier for media's recycle bin.
+        /// </summary>
+        public const int RecycleBinElement = -22;
+
+        /// <summary>
+        ///     The string identifier for media's recycle bin.
+        /// </summary>
+        /// <remarks>Use this instead of re-creating the string everywhere.</remarks>
+        public const string RecycleBinElementString = "-22";
+
+        /// <summary>
+        ///     The string path prefix of the media's recycle bin.
+        /// </summary>
+        /// <remarks>
+        ///     <para>Everything that is in the media recycle bin, has a path that starts with the prefix.</para>
+        ///     <para>Use this instead of re-creating the string everywhere.</para>
+        /// </remarks>
+        public const string RecycleBinElementPathPrefix = "-1,-22,";
+
         public const int DefaultLabelDataTypeId = -92;
 
         public const int LocalElementParentId = -200;

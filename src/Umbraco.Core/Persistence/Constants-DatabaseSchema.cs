@@ -35,6 +35,8 @@ public static partial class Constants
             public const string MediaVersion = TableNamePrefix + "MediaVersion";
             public const string ContentSchedule = TableNamePrefix + "ContentSchedule";
 
+            public const string Element = TableNamePrefix + "Element";
+
             public const string PropertyType = /*TableNamePrefix*/ "cms" + "PropertyType";
             public const string PropertyTypeGroup = /*TableNamePrefix*/ "cms" + "PropertyTypeGroup";
             public const string PropertyData = TableNamePrefix + "PropertyData";
