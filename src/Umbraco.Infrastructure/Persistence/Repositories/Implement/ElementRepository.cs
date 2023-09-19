@@ -90,6 +90,7 @@ public class ElementRepository : ContentRepositoryBase<int, IElement, ElementRep
     }
 
     protected override ElementRepository This => this;
+    protected override IElementRepository ElementRepo => this;
 
     /// <summary>
     ///     Default is to always ensure all documents have unique names
@@ -848,8 +849,8 @@ public class ElementRepository : ContentRepositoryBase<int, IElement, ElementRep
         ElementDto dto = ContentBaseFactory.BuildDto(entity, NodeObjectTypeId);
 
         // derive path and level from parent
-        NodeDto parent = GetParentNodeDto(entity.ParentId);
-        var level = parent.Level + 1;
+        NodeDto? parent = entity.IsLocal() ? null : GetParentNodeDto(entity.ParentId); // todo elements figure out whether this is the right way to do it
+        var level = (parent?.Level + 1) ?? 0; // todo elements figure out whether this is the right way to do it
 
         var sortOrderExists = SortorderExists(entity.ParentId, entity.SortOrder);
         // if the sortorder of the entity already exists get a new one, else use the sortOrder of the entity
@@ -857,7 +858,7 @@ public class ElementRepository : ContentRepositoryBase<int, IElement, ElementRep
 
         // persist the node dto
         NodeDto nodeDto = dto.ContentDto.NodeDto;
-        nodeDto.Path = parent.Path;
+        nodeDto.Path = parent?.Path ?? Constants.System.LocalElementParentIdString; // todo elements figure out whether this is the right way to do it
         nodeDto.Level = Convert.ToInt16(level);
         nodeDto.SortOrder = sortOrder;
 
@@ -873,7 +874,9 @@ public class ElementRepository : ContentRepositoryBase<int, IElement, ElementRep
             Database.Insert(nodeDto);
         }
 
-        nodeDto.Path = string.Concat(parent.Path, ",", nodeDto.NodeId);
+        // Since the path is already set above to be either the parent or the localElementRoot, we can always append here
+        // todo elements: figure out why this is split, does have to do with the initial insert?
+        nodeDto.Path = string.Concat(nodeDto.Path, ",", nodeDto.NodeId);
         nodeDto.ValidatePathWithException();
         Database.Update(nodeDto);
 

@@ -33,6 +33,7 @@ public class DocumentRepository : ContentRepositoryBase<int, IContent, DocumentR
     private readonly ILoggerFactory _loggerFactory;
     private readonly IScopeAccessor _scopeAccessor;
     private readonly IJsonSerializer _serializer;
+    private readonly IElementRepository _elementRepository;
     private readonly ITagRepository _tagRepository;
     private readonly ITemplateRepository _templateRepository;
     private PermissionRepository<IContent>? _permissionRepository;
@@ -73,7 +74,8 @@ public class DocumentRepository : ContentRepositoryBase<int, IContent, DocumentR
         DataValueReferenceFactoryCollection dataValueReferenceFactories,
         IDataTypeService dataTypeService,
         IJsonSerializer serializer,
-        IEventAggregator eventAggregator)
+        IEventAggregator eventAggregator,
+        IElementRepository elementRepository)
         : base(scopeAccessor, appCaches, logger, languageRepository, relationRepository, relationTypeRepository,
             propertyEditors, dataValueReferenceFactories, dataTypeService, eventAggregator)
     {
@@ -82,6 +84,7 @@ public class DocumentRepository : ContentRepositoryBase<int, IContent, DocumentR
         _templateRepository = templateRepository ?? throw new ArgumentNullException(nameof(templateRepository));
         _tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
         _serializer = serializer;
+        _elementRepository = elementRepository;
         _appCaches = appCaches;
         _loggerFactory = loggerFactory;
         _scopeAccessor = scopeAccessor;
@@ -90,6 +93,7 @@ public class DocumentRepository : ContentRepositoryBase<int, IContent, DocumentR
     }
 
     protected override DocumentRepository This => this;
+    protected override IElementRepository ElementRepo => _elementRepository;
 
     /// <summary>
     ///     Default is to always ensure all documents have unique names

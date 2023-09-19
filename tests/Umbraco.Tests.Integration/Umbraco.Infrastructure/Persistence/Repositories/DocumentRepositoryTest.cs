@@ -20,6 +20,7 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement;
 using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Cms.Infrastructure.Serialization;
 using Umbraco.Cms.Persistence.SqlServer.Services;
 using Umbraco.Cms.Tests.Common.Builders;
 using Umbraco.Cms.Tests.Common.Testing;
@@ -127,6 +128,24 @@ public class DocumentRepositoryTest : UmbracoIntegrationTest
             new PropertyEditorCollection(new DataEditorCollection(() => Enumerable.Empty<IDataEditor>()));
         var dataValueReferences =
             new DataValueReferenceFactoryCollection(() => Enumerable.Empty<IDataValueReferenceFactory>());
+        var eventAgregator = Mock.Of<IEventAggregator>();
+        var serializer = new JsonNetSerializer();
+        var elementRepository = new ElementRepository(
+            scopeAccessor,
+            AppCaches.Disabled,
+            LoggerFactory.CreateLogger<ElementRepository>(),
+            LoggerFactory,
+            contentTypeRepository,
+            templateRepository,
+            tagRepository,
+            languageRepository,
+            relationRepository,
+            relationTypeRepository,
+            propertyEditors,
+            dataValueReferences,
+            DataTypeService,
+            serializer,
+            eventAgregator);
         var repository = new DocumentRepository(
             scopeAccessor,
             appCaches,
@@ -142,7 +161,8 @@ public class DocumentRepositoryTest : UmbracoIntegrationTest
             dataValueReferences,
             DataTypeService,
             ConfigurationEditorJsonSerializer,
-            Mock.Of<IEventAggregator>());
+            Mock.Of<IEventAggregator>(),
+            elementRepository);
         return repository;
     }
 

@@ -61,7 +61,7 @@ internal static class PropertyFactory
     ///     The value of this will be used to populate the edited cultures in the umbracoDocumentCultureVariation table.
     /// </param>
     /// <returns></returns>
-    public static IEnumerable<PropertyDataDto> BuildDtos(
+    public static List<PropertyDataDto> BuildDtos(
         ContentVariation contentVariation,
         int currentVersionId,
         int publishedVersionId,

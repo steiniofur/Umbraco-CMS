@@ -12,6 +12,7 @@ using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Repositories;
 using Umbraco.Cms.Core.PropertyEditors;
@@ -23,6 +24,7 @@ using Umbraco.Cms.Infrastructure.Persistence.Dtos;
 using Umbraco.Cms.Infrastructure.Persistence.Querying;
 using Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement;
 using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Cms.Infrastructure.Serialization;
 using Umbraco.Cms.Tests.Common.Builders;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
@@ -43,9 +45,13 @@ public class MemberRepositoryTest : UmbracoIntegrationTest
     private IMemberGroupRepository MemberGroupRepository => GetRequiredService<IMemberGroupRepository>();
 
     private IJsonSerializer JsonSerializer => GetRequiredService<IJsonSerializer>();
+    private FileSystems FileSystems => GetRequiredService<FileSystems>();
+
+    protected AppCaches AppCaches => GetRequiredService<AppCaches>();
 
     private MemberRepository CreateRepository(IScopeProvider provider)
     {
+        var runtimeSettingsMock = new Mock<IOptionsMonitor<RuntimeSettings>>();
         var accessor = (IScopeAccessor)provider;
         var tagRepo = GetRequiredService<ITagRepository>();
         var relationTypeRepository = GetRequiredService<IRelationTypeRepository>();
@@ -54,6 +60,31 @@ public class MemberRepositoryTest : UmbracoIntegrationTest
             new PropertyEditorCollection(new DataEditorCollection(() => Enumerable.Empty<IDataEditor>()));
         var dataValueReferences =
             new DataValueReferenceFactoryCollection(() => Enumerable.Empty<IDataValueReferenceFactory>());
+        var eventAgregator = Mock.Of<IEventAggregator>();
+        var templateRepository = new TemplateRepository(accessor, AppCaches, LoggerFactory.CreateLogger<TemplateRepository>(), FileSystems, IOHelper, ShortStringHelper, Mock.Of<IViewHelper>(), runtimeSettingsMock.Object);
+        var commonRepository =
+            new ContentTypeCommonRepository(accessor, templateRepository, AppCaches, ShortStringHelper);
+        var languageRepository =
+            new LanguageRepository(accessor, AppCaches, LoggerFactory.CreateLogger<LanguageRepository>());
+        var contentTypeRepository = new ContentTypeRepository(accessor, AppCaches, LoggerFactory.CreateLogger<ContentTypeRepository>(), commonRepository, languageRepository, ShortStringHelper);
+        var tagRepository = new TagRepository(accessor, AppCaches, LoggerFactory.CreateLogger<TagRepository>());
+
+        var elementRepository = new ElementRepository(
+            accessor,
+            AppCaches.Disabled,
+            LoggerFactory.CreateLogger<ElementRepository>(),
+            LoggerFactory,
+            contentTypeRepository,
+            templateRepository,
+            tagRepository,
+            languageRepository,
+            relationRepository,
+            relationTypeRepository,
+            propertyEditors,
+            dataValueReferences,
+            DataTypeService,
+            JsonSerializer,
+            eventAgregator);
         return new MemberRepository(
             accessor,
             AppCaches.Disabled,
@@ -70,7 +101,8 @@ public class MemberRepositoryTest : UmbracoIntegrationTest
             DataTypeService,
             JsonSerializer,
             Mock.Of<IEventAggregator>(),
-            Options.Create(new MemberPasswordConfigurationSettings()));
+            Options.Create(new MemberPasswordConfigurationSettings()),
+            elementRepository);
     }
 
     [Test]

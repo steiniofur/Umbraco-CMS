@@ -273,6 +273,23 @@ public class TemplateRepositoryTest : UmbracoIntegrationTest
                 new PropertyEditorCollection(new DataEditorCollection(() => Enumerable.Empty<IDataEditor>()));
             var dataValueReferences =
                 new DataValueReferenceFactoryCollection(() => Enumerable.Empty<IDataValueReferenceFactory>());
+            var eventAgregator = Mock.Of<IEventAggregator>();
+            var elementRepository = new ElementRepository(
+                scopeAccessor,
+                AppCaches.Disabled,
+                LoggerFactory.CreateLogger<ElementRepository>(),
+                LoggerFactory,
+                contentTypeRepository,
+                templateRepository,
+                tagRepository,
+                languageRepository,
+                relationRepository,
+                relationTypeRepository,
+                propertyEditors,
+                dataValueReferences,
+                dataTypeService,
+                serializer,
+                eventAgregator);
             var contentRepo = new DocumentRepository(
                 scopeAccessor,
                 AppCaches.Disabled,
@@ -288,7 +305,8 @@ public class TemplateRepositoryTest : UmbracoIntegrationTest
                 dataValueReferences,
                 dataTypeService,
                 serializer,
-                Mock.Of<IEventAggregator>());
+                eventAgregator,
+                elementRepository);
 
             var template = TemplateBuilder.CreateTextPageTemplate();
             fileService.SaveTemplate(template); // else, FK violation on contentType!

@@ -288,12 +288,9 @@ public class Property : EntityBase, IProperty
             throw new Exception("Setting local elements requires a valid PropertyValueManipulationHelper with a valid GetContentTypeFromKeyMethod delegate");
         }
 
-        foreach (IElement elementToRemove in _elements.Where(e =>
-                     e.IsLocal() &&
-                     elementValuesList.Any(ev => ev.ElementKey != e.Key)))
-        {
-            _elements.Remove(elementToRemove);
-        }
+        _elements.RemoveAll(e =>
+            e.IsLocal() &&
+            elementValuesList.Any(ev => ev.ElementKey != e.Key));
 
         foreach (var elementValues in elementValuesList)
         {

@@ -3,12 +3,14 @@
 
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence;
 using Umbraco.Cms.Core.Persistence.Repositories;
@@ -18,6 +20,7 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence.Dtos;
 using Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement;
 using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Cms.Infrastructure.Serialization;
 using Umbraco.Cms.Tests.Common.Builders;
 using Umbraco.Cms.Tests.Common.Testing;
 using Umbraco.Cms.Tests.Integration.Testing;
@@ -41,6 +44,8 @@ public class MediaRepositoryTest : UmbracoIntegrationTest
 
     private IJsonSerializer JsonSerializer => GetRequiredService<IJsonSerializer>();
 
+    private FileSystems FileSystems => GetRequiredService<FileSystems>();
+
     // Makes handing IDs easier, these are set by CreateTestData
     private Media _testFolder;
     private Media _testImage;
@@ -51,6 +56,7 @@ public class MediaRepositoryTest : UmbracoIntegrationTest
         appCaches ??= AppCaches.NoCache;
         var scopeAccessor = (IScopeAccessor)provider;
         var globalSettings = new GlobalSettings();
+        var runtimeSettingsMock = new Mock<IOptionsMonitor<RuntimeSettings>>();
         var commonRepository =
             new ContentTypeCommonRepository(scopeAccessor, TemplateRepository, appCaches, ShortStringHelper);
         var languageRepository =
@@ -65,6 +71,26 @@ public class MediaRepositoryTest : UmbracoIntegrationTest
         var mediaUrlGenerators = new MediaUrlGeneratorCollection(() => Enumerable.Empty<IMediaUrlGenerator>());
         var dataValueReferences =
             new DataValueReferenceFactoryCollection(() => Enumerable.Empty<IDataValueReferenceFactory>());
+        var contentTypeRepository = new ContentTypeRepository(scopeAccessor, appCaches, LoggerFactory.CreateLogger<ContentTypeRepository>(), commonRepository, languageRepository, ShortStringHelper);
+        var templateRepository = new TemplateRepository(scopeAccessor, appCaches, LoggerFactory.CreateLogger<TemplateRepository>(), FileSystems, IOHelper, ShortStringHelper, Mock.Of<IViewHelper>(), runtimeSettingsMock.Object);
+        var serializer = new JsonNetSerializer();
+        var eventAgregator = Mock.Of<IEventAggregator>();
+        var elementRepository = new ElementRepository(
+            scopeAccessor,
+            AppCaches.Disabled,
+            LoggerFactory.CreateLogger<ElementRepository>(),
+            LoggerFactory,
+            contentTypeRepository,
+            templateRepository,
+            tagRepository,
+            languageRepository,
+            relationRepository,
+            relationTypeRepository,
+            propertyEditors,
+            dataValueReferences,
+            DataTypeService,
+            serializer,
+            eventAgregator);
         var repository = new MediaRepository(
             scopeAccessor,
             appCaches,
@@ -80,7 +106,8 @@ public class MediaRepositoryTest : UmbracoIntegrationTest
             dataValueReferences,
             DataTypeService,
             JsonSerializer,
-            Mock.Of<IEventAggregator>());
+            Mock.Of<IEventAggregator>(),
+            elementRepository);
         return repository;
     }
 

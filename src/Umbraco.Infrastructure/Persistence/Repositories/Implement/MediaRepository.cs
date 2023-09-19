@@ -31,6 +31,7 @@ public class MediaRepository : ContentRepositoryBase<int, IMedia, MediaRepositor
     private readonly IMediaTypeRepository _mediaTypeRepository;
     private readonly MediaUrlGeneratorCollection _mediaUrlGenerators;
     private readonly IJsonSerializer _serializer;
+    private readonly IElementRepository _elementRepository;
     private readonly ITagRepository _tagRepository;
 
     public MediaRepository(
@@ -48,7 +49,8 @@ public class MediaRepository : ContentRepositoryBase<int, IMedia, MediaRepositor
         DataValueReferenceFactoryCollection dataValueReferenceFactories,
         IDataTypeService dataTypeService,
         IJsonSerializer serializer,
-        IEventAggregator eventAggregator)
+        IEventAggregator eventAggregator,
+        IElementRepository elementRepository)
         : base(scopeAccessor, cache, logger, languageRepository, relationRepository, relationTypeRepository,
             propertyEditorCollection, dataValueReferenceFactories, dataTypeService, eventAggregator)
     {
@@ -57,11 +59,13 @@ public class MediaRepository : ContentRepositoryBase<int, IMedia, MediaRepositor
         _tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
         _mediaUrlGenerators = mediaUrlGenerators;
         _serializer = serializer;
+        _elementRepository = elementRepository;
         _mediaByGuidReadRepository = new MediaByGuidReadRepository(this, scopeAccessor, cache,
             loggerFactory.CreateLogger<MediaByGuidReadRepository>());
     }
 
     protected override MediaRepository This => this;
+    protected override IElementRepository ElementRepo => _elementRepository;
 
     /// <inheritdoc />
     public override IEnumerable<IMedia> GetPage(IQuery<IMedia>? query,

@@ -168,7 +168,7 @@ internal class DatabaseDataCreator
         _database.Insert(Constants.DatabaseSchema.Tables.Node, "id", false,
             new NodeDto
             {
-                NodeId = -1,
+                NodeId = Constants.System.Root,
                 Trashed = false,
                 ParentId = -1,
                 UserId = -1,
@@ -183,7 +183,7 @@ internal class DatabaseDataCreator
         _database.Insert(Constants.DatabaseSchema.Tables.Node, "id", false,
             new NodeDto
             {
-                NodeId = -20,
+                NodeId = Constants.System.RecycleBinContent,
                 Trashed = false,
                 ParentId = -1,
                 UserId = -1,
@@ -198,7 +198,7 @@ internal class DatabaseDataCreator
         _database.Insert(Constants.DatabaseSchema.Tables.Node, "id", false,
             new NodeDto
             {
-                NodeId = -21,
+                NodeId = Constants.System.RecycleBinMedia,
                 Trashed = false,
                 ParentId = -1,
                 UserId = -1,
@@ -208,6 +208,22 @@ internal class DatabaseDataCreator
                 UniqueId = new Guid("BF7C7CBC-952F-4518-97A2-69E9C7B33842"),
                 Text = "Recycle Bin",
                 NodeObjectType = Constants.ObjectTypes.MediaRecycleBin,
+                CreateDate = DateTime.Now,
+            });
+
+        _database.Insert(Constants.DatabaseSchema.Tables.Node, "id", false,
+            new NodeDto
+            {
+                NodeId = Constants.System.LocalElementParentId,
+                Trashed = false,
+                ParentId = -1,
+                UserId = -1,
+                Level = 0,
+                Path = "-1,-200",
+                SortOrder = 0,
+                UniqueId = new Guid("CC5E8C0A-24CB-48F1-A461-DB4FF3DEA3BA"),
+                Text = "Local Elements",
+                NodeObjectType = Constants.ObjectTypes.LocalElementRoot,
                 CreateDate = DateTime.Now,
             });
 

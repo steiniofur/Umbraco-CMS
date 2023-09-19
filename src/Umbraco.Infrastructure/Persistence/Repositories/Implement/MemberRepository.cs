@@ -30,6 +30,7 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement;
 public class MemberRepository : ContentRepositoryBase<int, IMember, MemberRepository>, IMemberRepository
 {
     private readonly IJsonSerializer _jsonSerializer;
+    private readonly IElementRepository _elementRepository;
     private readonly IRepositoryCachePolicy<IMember, string> _memberByUsernameCachePolicy;
     private readonly IMemberGroupRepository _memberGroupRepository;
     private readonly IMemberTypeRepository _memberTypeRepository;
@@ -55,7 +56,8 @@ public class MemberRepository : ContentRepositoryBase<int, IMember, MemberReposi
         IDataTypeService dataTypeService,
         IJsonSerializer serializer,
         IEventAggregator eventAggregator,
-        IOptions<MemberPasswordConfigurationSettings> passwordConfiguration)
+        IOptions<MemberPasswordConfigurationSettings> passwordConfiguration,
+        IElementRepository elementRepository)
         : base(scopeAccessor, cache, logger, languageRepository, relationRepository, relationTypeRepository,
             propertyEditors, dataValueReferenceFactories, dataTypeService, eventAggregator)
     {
@@ -64,6 +66,7 @@ public class MemberRepository : ContentRepositoryBase<int, IMember, MemberReposi
         _tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
         _passwordHasher = passwordHasher;
         _jsonSerializer = serializer;
+        _elementRepository = elementRepository;
         _memberGroupRepository = memberGroupRepository;
         _passwordConfiguration = passwordConfiguration.Value;
         _memberByUsernameCachePolicy =
@@ -94,6 +97,7 @@ public class MemberRepository : ContentRepositoryBase<int, IMember, MemberReposi
     }
 
     protected override MemberRepository This => this;
+    protected override IElementRepository ElementRepo => _elementRepository;
 
     public override int RecycleBinId => throw new NotSupportedException();
 

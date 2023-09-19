@@ -78,6 +78,12 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement
         protected abstract TRepository This { get; }
 
         /// <summary>
+        /// Gets the repository to use to save elements in properties
+        /// </summary>
+        // Its not named Repository as one of the implementing classes is called ElementRepository which causes a c# name conflict
+        protected abstract IElementRepository ElementRepo { get; }
+
+        /// <summary>
         /// Gets the node object type for the repository's entity
         /// </summary>
         protected abstract Guid NodeObjectTypeId { get; }
@@ -1207,21 +1213,34 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement
                 propertyTypeToPropertyData[(p.PropertyTypeId, p.VersionId, p.LanguageId, p.Segment)] = p;
             }
 
-            IEnumerable<PropertyDataDto> propertyDataDtos = PropertyFactory.BuildDtos(entity.ContentType.Variations, entity.VersionId, publishedVersionId, entity.Properties, LanguageRepository, out edited, out editedCultures);
+            List<PropertyDataDto> propertyDataDtos = PropertyFactory.BuildDtos(entity.ContentType.Variations, entity.VersionId, publishedVersionId, entity.Properties, LanguageRepository, out edited, out editedCultures);
 
             foreach (PropertyDataDto propertyDataDto in propertyDataDtos)
             {
+                var entityProperty = entity.Properties.First(p => p.PropertyTypeId == propertyDataDto.PropertyTypeId);
+
                 // Check if this already exists and update, else insert a new one
                 if (propertyTypeToPropertyData.TryGetValue((propertyDataDto.PropertyTypeId, propertyDataDto.VersionId, propertyDataDto.LanguageId, propertyDataDto.Segment), out PropertyDataDto? propData))
                 {
                     propertyDataDto.Id = propData.Id;
                     Database.Update(propertyDataDto);
+                    // persist local elements used by properties
+                    foreach (IElement element in entityProperty.Elements)
+                    {
+                        ElementRepo.Save(element);
+                    }
                 }
                 else
                 {
                     // TODO: we can speed this up: Use BulkInsert and then do one SELECT to re-retrieve the property data inserted with assigned IDs.
                     // This is a perfect thing to benchmark with Benchmark.NET to compare perf between Nuget releases.
                     Database.Insert(propertyDataDto);
+                    // persist local elements used by properties
+                    foreach (IElement element in entityProperty.Elements)
+                    {
+                        ElementRepo.Save(element);
+                        Database.Save(new PropertyDataElementDto { ElementId = element.Id, PropertyDataId = propertyDataDto.Id });
+                    }
                 }
 
                 // track which ones have been processed
@@ -1231,6 +1250,7 @@ namespace Umbraco.Cms.Infrastructure.Persistence.Repositories.Implement
             // For any remaining that haven't been processed they need to be deleted
             if (existingPropDataIds.Count > 0)
             {
+                //todo elements do we do this because the property was deleted from the doctype?
                 Database.Execute(SqlContext.Sql().Delete<PropertyDataDto>().WhereIn<PropertyDataDto>(x => x.Id, existingPropDataIds));
             }
         }
