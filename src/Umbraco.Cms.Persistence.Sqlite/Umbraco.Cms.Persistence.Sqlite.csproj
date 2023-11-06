@@ -2,10 +2,11 @@
   <PropertyGroup>
     <Title>Umbraco CMS - Persistence - SQLite</Title>
     <Description>Adds support for SQLite to Umbraco CMS.</Description>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0-rc.2.*" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.*" />
   </ItemGroup>
 
   <ItemGroup>

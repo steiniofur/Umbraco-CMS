@@ -10,10 +10,10 @@ public class IpAddressUtilities : IIpAddressUtilities
         var subnetmaskIndex = allowedIpString.LastIndexOf('/');
         if (subnetmaskIndex >= 0) // It's a network
         {
-            if (IPNetwork.TryParse(allowedIpString, out IPNetwork allowedIp) && allowedIp.Contains(clientIpAddress))
-            {
-                return true;
-            }
+            // if (IPNetwork.TryParse(allowedIpString, out IPNetwork allowedIp) && allowedIp.Contains(clientIpAddress))
+            // {
+            //     return true;
+            // }
 
             return false;
         }

@@ -2,6 +2,7 @@
   <PropertyGroup>
     <Title>Umbraco CMS - Persistence - SQL Server</Title>
     <Description>Adds support for SQL Server to Umbraco CMS.</Description>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,6 +4,7 @@
     <Title>Umbraco CMS - Web - Backoffice</Title>
     <Description>Contains the backoffice assembly needed to run the backend of Umbraco CMS.</Description>
     <RootNamespace>Umbraco.Cms.Web.BackOffice</RootNamespace>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
