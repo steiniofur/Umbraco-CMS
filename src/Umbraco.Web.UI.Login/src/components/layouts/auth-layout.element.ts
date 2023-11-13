@@ -39,8 +39,6 @@ export class UmbAuthLayoutElement extends LitElement {
 
 	static styles: CSSResultGroup = [
 		css`
-			:host {
-			}
 			#main {
 				max-width: 1600px;
 				display: grid;
@@ -51,11 +49,11 @@ export class UmbAuthLayoutElement extends LitElement {
 				margin: 0 auto;
 			}
 			#image-container {
-				background-color: #e0a4a4;
+				/* background-color: #e0a4a4; */
 				border-radius: 32px;
 			}
 			#content-container {
-				background-color: #a4a4e0;
+				/* background-color: #a4a4e0; */
 				display: flex;
 			}
 			#content {
