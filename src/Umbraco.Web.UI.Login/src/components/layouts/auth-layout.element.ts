@@ -129,42 +129,6 @@ export class UmbAuthLayoutElement extends LitElement {
 					display: none;
 				}
 			}
-			/* #background {
-				position: fixed;
-				overflow: hidden;
-				background-position: 50%;
-				background-repeat: no-repeat;
-				background-size: cover;
-				width: 100vw;
-				height: 100vh;
-			}
-
-			#logo img {
-				height: 100%;
-			}
-
-			#container {
-				position: relative;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				width: 100vw;
-				height: 100vh;
-			}
-
-			#box {
-				width: 500px;
-				padding: var(--uui-size-layout-3);
-				background-color: var(--uui-color-surface-alt);
-				box-sizing: border-box;
-				box-shadow: var(--uui-shadow-depth-5);
-				border-radius: calc(var(--uui-border-radius) * 2);
-			}
-
-			#email,
-			#password {
-				width: 100%;
-			} */
 		`,
 	];
 }
