@@ -2,6 +2,7 @@ import { css, CSSResultGroup, html, LitElement, nothing, PropertyValueMap } from
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
+import { when } from 'lit/directives/when.js';
 
 @customElement('umb-auth-layout')
 export class UmbAuthLayoutElement extends LitElement {
@@ -32,6 +33,10 @@ export class UmbAuthLayoutElement extends LitElement {
 					</div>
 				</div>
 			</div>
+			${when(
+				this.logoImage,
+				() => html`<div id="logo" aria-hidden="true"><img src=${ifDefined(this.logoImage)} alt="umbraco-logo" /></div>`
+			)}
 		`;
 		return html`
 			<div
@@ -80,7 +85,14 @@ export class UmbAuthLayoutElement extends LitElement {
 				background-size: cover;
 				width: 100%;
 				height: 100%;
-				border-radius: 32px;
+				border-radius: 38px;
+			}
+			#logo {
+				position: fixed;
+				top: 50px;
+				left: 50px;
+				height: 30px;
+				width: 200px;
 			}
 			/* #background {
 				position: fixed;
@@ -90,13 +102,6 @@ export class UmbAuthLayoutElement extends LitElement {
 				background-size: cover;
 				width: 100vw;
 				height: 100vh;
-			}
-
-			#logo {
-				position: fixed;
-				top: var(--uui-size-space-5);
-				left: var(--uui-size-space-5);
-				height: 30px;
 			}
 
 			#logo img {
