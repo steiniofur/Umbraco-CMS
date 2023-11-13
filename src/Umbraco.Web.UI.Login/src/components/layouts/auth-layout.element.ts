@@ -1,5 +1,6 @@
-import { css, CSSResultGroup, html, LitElement, nothing } from 'lit';
+import { css, CSSResultGroup, html, LitElement, nothing, PropertyValueMap } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
 @customElement('umb-auth-layout')
@@ -10,10 +11,21 @@ export class UmbAuthLayoutElement extends LitElement {
 	@property({ attribute: 'logo-image' })
 	logoImage?: string;
 
+	protected updated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
+		super.updated(_changedProperties);
+		// set --image variable
+
+		if (_changedProperties.has('backgroundImage')) {
+			this.style.setProperty('--image', `url('${this.backgroundImage}')`);
+		}
+	}
+
 	render() {
 		return html`
 			<div id="main">
-				<div id="image-container"></div>
+				<div id="image-container">
+					<div id="image"></div>
+				</div>
 				<div id="content-container">
 					<div id="content">
 						<slot></slot>
@@ -43,22 +55,32 @@ export class UmbAuthLayoutElement extends LitElement {
 				max-width: 1600px;
 				display: grid;
 				grid-template-columns: 1fr 1fr;
-				min-height: 100vh;
+				height: 100vh;
 				padding: 32px;
+				padding-right: 0;
 				box-sizing: border-box;
 				margin: 0 auto;
 			}
 			#image-container {
 				/* background-color: #e0a4a4; */
-				border-radius: 32px;
 			}
 			#content-container {
 				/* background-color: #a4a4e0; */
 				display: flex;
+				padding: 16px;
 			}
 			#content {
 				max-width: 400px;
 				margin: auto;
+			}
+			#image {
+				background-image: var(--image);
+				background-position: 50%;
+				background-repeat: no-repeat;
+				background-size: cover;
+				width: 100%;
+				height: 100%;
+				border-radius: 32px;
 			}
 			/* #background {
 				position: fixed;
