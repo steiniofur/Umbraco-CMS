@@ -1,7 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, nothing, PropertyValueMap } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { styleMap } from 'lit/directives/style-map.js';
 import { when } from 'lit/directives/when.js';
 
 @customElement('umb-auth-layout')
@@ -14,27 +13,42 @@ export class UmbAuthLayoutElement extends LitElement {
 
 	protected updated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
 		super.updated(_changedProperties);
-		// set --image variable
 
 		if (_changedProperties.has('backgroundImage')) {
 			this.style.setProperty('--image', `url('${this.backgroundImage}')`);
 		}
 	}
 
+	#renderImageContainer() {
+		if (!this.backgroundImage) {
+			return when(
+				this.logoImage,
+				() =>
+					html`<div id="logo-no-image" aria-hidden="true">
+						<img src=${ifDefined(this.logoImage)} alt="umbraco-logo" />
+					</div>`
+			);
+		}
+
+		return html`
+			<div id="image-container">
+				<div id="image">
+					${when(
+						this.logoImage,
+						() =>
+							html`<div id="logo" aria-hidden="true">
+								<img src=${ifDefined(this.logoImage)} alt="umbraco-logo" />
+							</div>`
+					)}
+				</div>
+			</div>
+		`;
+	}
+
 	render() {
 		return html`
 			<div id="main">
-				<div id="image-container">
-					<div id="image">
-						${when(
-							this.logoImage,
-							() =>
-								html`<div id="logo" aria-hidden="true">
-									<img src=${ifDefined(this.logoImage)} alt="umbraco-logo" />
-								</div>`
-						)}
-					</div>
-				</div>
+				${this.#renderImageContainer()}
 				<div id="content-container">
 					<div id="content">
 						<slot></slot>
@@ -49,49 +63,32 @@ export class UmbAuthLayoutElement extends LitElement {
 					</div>`
 			)}
 		`;
-		return html`
-			<div
-				id="background"
-				style=${styleMap({ backgroundImage: `url('${this.backgroundImage}')` })}
-				aria-hidden="true"></div>
-
-			${this.logoImage ? html`<div id="logo" aria-hidden="true"><img src=${this.logoImage} alt="" /></div>` : nothing}
-
-			<div id="container">
-				<div id="box">
-					<slot></slot>
-				</div>
-			</div>
-		`;
 	}
 
 	static styles: CSSResultGroup = [
 		css`
 			#main {
 				max-width: 1920px;
-				display: grid;
-				grid-template-areas: 'content';
+				display: flex;
 				height: 100vh;
 				padding: 8px;
 				box-sizing: border-box;
 				margin: 0 auto;
-				grid-auto-columns: 1fr;
 			}
 			#image-container {
-				/* background-color: #e0a4a4; */
 				display: none;
+				width: 100%;
 			}
 			#content-container {
-				/* background-color: #a4a4e0; */
 				display: flex;
+				width: 100%;
+				box-sizing: border-box;
 			}
 			#content {
-				grid-area: content;
 				max-width: 400px;
 				margin: auto;
 			}
 			#image {
-				grid-area: image;
 				background-image: var(--image);
 				background-position: 50%;
 				background-repeat: no-repeat;
@@ -118,15 +115,13 @@ export class UmbAuthLayoutElement extends LitElement {
 			}
 			@media only screen and (min-width: 900px) {
 				#main {
-					grid-template-areas: 'image content';
-					padding-right: 0;
 					padding: 32px;
+					padding-right: 0;
 				}
 				#image-container {
 					display: block;
 				}
 				#content-container {
-					/* background-color: #a4a4e0; */
 					display: flex;
 					padding: 16px;
 				}
