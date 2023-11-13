@@ -68,11 +68,11 @@ export class UmbAuthLayoutElement extends LitElement {
 	static styles: CSSResultGroup = [
 		css`
 			#main {
-				max-width: 1600px;
+				max-width: 1920px;
 				display: grid;
 				grid-template-areas: 'content';
 				height: 100vh;
-				padding: 32px;
+				padding: 8px;
 				box-sizing: border-box;
 				margin: 0 auto;
 				grid-auto-columns: 1fr;
@@ -84,7 +84,6 @@ export class UmbAuthLayoutElement extends LitElement {
 			#content-container {
 				/* background-color: #a4a4e0; */
 				display: flex;
-				padding: 16px;
 			}
 			#content {
 				grid-area: content;
@@ -121,9 +120,15 @@ export class UmbAuthLayoutElement extends LitElement {
 				#main {
 					grid-template-areas: 'image content';
 					padding-right: 0;
+					padding: 32px;
 				}
 				#image-container {
 					display: block;
+				}
+				#content-container {
+					/* background-color: #a4a4e0; */
+					display: flex;
+					padding: 16px;
 				}
 				#logo-no-image {
 					display: none;
