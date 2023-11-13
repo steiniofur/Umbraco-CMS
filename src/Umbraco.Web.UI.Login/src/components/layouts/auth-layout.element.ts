@@ -25,7 +25,15 @@ export class UmbAuthLayoutElement extends LitElement {
 		return html`
 			<div id="main">
 				<div id="image-container">
-					<div id="image"></div>
+					<div id="image">
+						${when(
+							this.logoImage,
+							() =>
+								html`<div id="logo" aria-hidden="true">
+									<img src=${ifDefined(this.logoImage)} alt="umbraco-logo" />
+								</div>`
+						)}
+					</div>
 				</div>
 				<div id="content-container">
 					<div id="content">
@@ -35,7 +43,10 @@ export class UmbAuthLayoutElement extends LitElement {
 			</div>
 			${when(
 				this.logoImage,
-				() => html`<div id="logo" aria-hidden="true"><img src=${ifDefined(this.logoImage)} alt="umbraco-logo" /></div>`
+				() =>
+					html`<div id="logo-no-image" aria-hidden="true">
+						<img src=${ifDefined(this.logoImage)} alt="umbraco-logo" />
+					</div>`
 			)}
 		`;
 		return html`
@@ -59,15 +70,16 @@ export class UmbAuthLayoutElement extends LitElement {
 			#main {
 				max-width: 1600px;
 				display: grid;
-				grid-template-columns: 1fr 1fr;
+				grid-template-areas: 'content';
 				height: 100vh;
 				padding: 32px;
-				padding-right: 0;
 				box-sizing: border-box;
 				margin: 0 auto;
+				grid-auto-columns: 1fr;
 			}
 			#image-container {
 				/* background-color: #e0a4a4; */
+				display: none;
 			}
 			#content-container {
 				/* background-color: #a4a4e0; */
@@ -75,10 +87,12 @@ export class UmbAuthLayoutElement extends LitElement {
 				padding: 16px;
 			}
 			#content {
+				grid-area: content;
 				max-width: 400px;
 				margin: auto;
 			}
 			#image {
+				grid-area: image;
 				background-image: var(--image);
 				background-position: 50%;
 				background-repeat: no-repeat;
@@ -86,13 +100,34 @@ export class UmbAuthLayoutElement extends LitElement {
 				width: 100%;
 				height: 100%;
 				border-radius: 38px;
+				position: relative;
 			}
 			#logo {
-				position: fixed;
-				top: 50px;
-				left: 50px;
+				position: absolute;
+				top: 24px;
+				left: 24px;
 				height: 30px;
 				width: 200px;
+			}
+			#logo-no-image {
+				position: fixed;
+				top: 24px;
+				left: 24px;
+				height: 30px;
+				width: 200px;
+				background-color: black;
+			}
+			@media only screen and (min-width: 900px) {
+				#main {
+					grid-template-areas: 'image content';
+					padding-right: 0;
+				}
+				#image-container {
+					display: block;
+				}
+				#logo-no-image {
+					display: none;
+				}
 			}
 			/* #background {
 				position: fixed;
