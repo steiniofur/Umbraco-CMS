@@ -12,7 +12,20 @@ export class UmbAuthLayoutElement extends LitElement {
 
 	render() {
 		return html`
-			<div id="background" style=${styleMap({ backgroundImage: `url('${this.backgroundImage}')` })} aria-hidden="true"></div>
+			<div id="main">
+				<div id="image-container"></div>
+				<div id="content-container">
+					<div id="content">
+						<slot></slot>
+					</div>
+				</div>
+			</div>
+		`;
+		return html`
+			<div
+				id="background"
+				style=${styleMap({ backgroundImage: `url('${this.backgroundImage}')` })}
+				aria-hidden="true"></div>
 
 			${this.logoImage ? html`<div id="logo" aria-hidden="true"><img src=${this.logoImage} alt="" /></div>` : nothing}
 
@@ -26,7 +39,30 @@ export class UmbAuthLayoutElement extends LitElement {
 
 	static styles: CSSResultGroup = [
 		css`
-			#background {
+			:host {
+			}
+			#main {
+				max-width: 1600px;
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				min-height: 100vh;
+				padding: 32px;
+				box-sizing: border-box;
+				margin: 0 auto;
+			}
+			#image-container {
+				background-color: #e0a4a4;
+				border-radius: 32px;
+			}
+			#content-container {
+				background-color: #a4a4e0;
+				display: flex;
+			}
+			#content {
+				max-width: 400px;
+				margin: auto;
+			}
+			/* #background {
 				position: fixed;
 				overflow: hidden;
 				background-position: 50%;
@@ -68,7 +104,7 @@ export class UmbAuthLayoutElement extends LitElement {
 			#email,
 			#password {
 				width: 100%;
-			}
+			} */
 		`,
 	];
 }
