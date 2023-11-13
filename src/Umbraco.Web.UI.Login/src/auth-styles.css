@@ -5,7 +5,7 @@ body {
 }
 #umb-login-form umb-login-input {
 	width: 100%;
-	height: 38px;
+	height: 40px;
 	box-sizing: border-box;
 	display: block;
 	border: 1px solid var(--uui-color-border);
@@ -21,7 +21,8 @@ body {
 	border: none;
 	outline: none;
 	background: none;
-	padding: var(--uui-size-1, 3px) var(--uui-size-space-3, 9px);
+	padding: var(--uui-size-1, 3px) var(--uui-size-space-4, 9px);
+	font-size: inherit;
 }
 #umb-login-form uui-form-layout-item {
 	margin-top: var(--uui-size-space-4);

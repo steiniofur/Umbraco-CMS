@@ -116,19 +116,21 @@ export class UmbExternalLoginProviderElement extends LitElement {
 					name="provider"
 					.value=${this.providerName}
 					title=${`Login using your ${this.displayName} account`}
-					.label=${until(umbLocalizationContext.localize('login_signInWith', undefined, 'Sign in with')) + ' ' + this.displayName}
+					.label=${until(umbLocalizationContext.localize('login_signInWith', undefined, 'Sign in with')) +
+					' ' +
+					this.displayName}
 					.look=${this.buttonLook}
 					.color=${this.buttonColor}>
-          ${this.displayName
-			  ? html`
-				  <div>
-					  <uui-icon name=${this.icon}></uui-icon>
-					  <umb-localize key="login_signInWith">Sign in with</umb-localize>
-					  ${this.displayName}
-				  </div>
-			  `
-			  : nothing}
-          			<slot></slot>
+					${this.displayName
+						? html`
+								<div>
+									<uui-icon name=${this.icon}></uui-icon>
+									<umb-localize key="login_signInWith">Sign in with</umb-localize>
+									${this.displayName}
+								</div>
+						  `
+						: nothing}
+					<slot></slot>
 				</uui-button>
 			</form>
 		`;
@@ -161,8 +163,10 @@ export class UmbExternalLoginProviderElement extends LitElement {
 		css`
 			#defaultView uui-button {
 				width: 100%;
-				--uui-button-padding-top-factor: 1.5;
-				--uui-button-padding-bottom-factor: 1.5;
+				--uui-button-height: 40px;
+				--uui-button-background-color: var(--uui-color-surface);
+				--uui-button-background-color-hover: var(--uui-color-surface);
+				--uui-button-font-weight: 400;
 			}
 			#defaultView uui-button div {
 				/* TODO: Remove this when uui-button has setting for aligning content */
