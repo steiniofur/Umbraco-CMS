@@ -49,23 +49,8 @@ export class UmbAuthLayoutElement extends LitElement {
 	}
 
 	render() {
-		this.image = '';
-		if (!this.image) {
-			return html`
-				<div id="main-no-image">${this.#renderContent()}</div>
-				<img id="logo-on-background" src=${ifDefined(this.logoOnBackground)} alt="umbraco-logo" aria-hidden="true" />
-			`;
-		}
-
 		return html`
-			<div id="main">
-				${this.#renderImageContainer()}
-				<div id="content-container">
-					<div id="content">
-						<slot></slot>
-					</div>
-				</div>
-			</div>
+			<div id=${this.image ? 'main' : 'main-no-image'}>${this.#renderImageContainer()} ${this.#renderContent()}</div>
 			<img id="logo-on-background" src=${ifDefined(this.logoOnBackground)} alt="umbraco-logo" aria-hidden="true" />
 		`;
 	}
