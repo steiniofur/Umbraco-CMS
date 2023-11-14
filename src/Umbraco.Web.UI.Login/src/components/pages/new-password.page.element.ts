@@ -65,18 +65,32 @@ export default class UmbNewPasswordPageElement extends LitElement {
 			case 'error':
 				return html`<umb-error-layout
 					header=${until(umbLocalizationContext.localize('general_error', undefined, 'Error'))}
-					message=${until(umbLocalizationContext.localize('errors_defaultError', undefined, 'An unknown failure has occured'))}>
+					message=${until(
+						umbLocalizationContext.localize('errors_defaultError', undefined, 'An unknown failure has occured')
+					)}>
 				</umb-error-layout>`;
 			case 'done':
 				return html`<umb-confirmation-layout
 					header=${until(umbLocalizationContext.localize('general_success', undefined, 'Success'))}
-					message=${until(umbLocalizationContext.localize('login_setPasswordConfirmation', undefined, 'Your new password has been set and you may now use it to log in.'))}>
+					message=${until(
+						umbLocalizationContext.localize(
+							'login_setPasswordConfirmation',
+							undefined,
+							'Your new password has been set and you may now use it to log in.'
+						)
+					)}>
 				</umb-confirmation-layout>`;
 		}
 	}
 
 	render() {
-		return this.userId && this.resetCode ? this.#renderRoutes() : nothing;
+		return this.userId && this.resetCode
+			? this.#renderRoutes()
+			: html`
+					<h2 style="text-align: center">Password Reset Error</h2>
+					<p>It looks like there's an issue with the information provided</p>
+					<umb-back-to-login-button></umb-back-to-login-button>
+			  `;
 	}
 }
 
