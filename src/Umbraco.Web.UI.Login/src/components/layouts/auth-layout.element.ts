@@ -95,8 +95,9 @@ export class UmbAuthLayoutElement extends LitElement {
 				box-sizing: border-box;
 			}
 			#content {
-				max-width: 400px;
+				max-width: 340px;
 				margin: auto;
+				width: 100%;
 			}
 			#image {
 				background-image: var(--image);
