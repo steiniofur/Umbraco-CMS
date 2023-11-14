@@ -29,6 +29,25 @@ export class UmbAuthLayoutElement extends LitElement {
 		return html`
 			<div id="image-container">
 				<div id="image">
+					<svg
+						id="curve-top"
+						width="1746"
+						height="1374"
+						viewBox="0 0 1746 1374"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path d="M8 1C61.5 722.5 206.5 1366.5 1745.5 1366.5" stroke="#F5C1BC" stroke-width="15" />
+					</svg>
+					<svg
+						id="curve-bottom"
+						width="1364"
+						height="552"
+						viewBox="0 0 1364 552"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path d="M1 8C387 24 1109 11 1357 548" stroke="#F5C1BC" stroke-width="15" />
+					</svg>
+
 					${when(
 						this.logoOnImage,
 						() => html`<img id="logo-on-image" src=${this.logoOnImage!} alt="umbraco-logo" aria-hidden="true" />`
@@ -88,6 +107,19 @@ export class UmbAuthLayoutElement extends LitElement {
 				height: 100%;
 				border-radius: 38px;
 				position: relative;
+			}
+			#image svg {
+				position: absolute;
+				width: 45%;
+				height: fit-content;
+			}
+			#curve-top {
+				top: 0;
+				right: 0;
+			}
+			#curve-bottom {
+				bottom: 0;
+				left: 0;
 			}
 			#logo-on-image {
 				position: absolute;
