@@ -5,47 +5,58 @@ import { when } from 'lit/directives/when.js';
 
 @customElement('umb-auth-layout')
 export class UmbAuthLayoutElement extends LitElement {
-	@property({ attribute: 'background-image' })
-	backgroundImage?: string;
+	@property({ attribute: 'image', reflect: true })
+	image?: string;
 
-	@property({ attribute: 'logo-image' })
-	logoImage?: string;
+	@property({ attribute: 'logo-on-image' })
+	logoOnImage?: string;
+
+	@property({ attribute: 'logo-on-background' })
+	logoOnBackground?: string;
 
 	protected updated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
 		super.updated(_changedProperties);
 
-		if (_changedProperties.has('backgroundImage')) {
-			this.style.setProperty('--image', `url('${this.backgroundImage}')`);
+		if (_changedProperties.has('image')) {
+			this.style.setProperty('--logo-on-background-display', this.image ? 'none' : 'unset');
+			this.style.setProperty('--image', `url('${this.image}')`);
 		}
 	}
 
 	#renderImageContainer() {
-		if (!this.backgroundImage) {
-			return when(
-				this.logoImage,
-				() =>
-					html`<div id="logo-no-image" aria-hidden="true">
-						<img src=${ifDefined(this.logoImage)} alt="umbraco-logo" />
-					</div>`
-			);
-		}
+		if (!this.image) return nothing;
 
 		return html`
 			<div id="image-container">
 				<div id="image">
 					${when(
-						this.logoImage,
-						() =>
-							html`<div id="logo" aria-hidden="true">
-								<img src=${ifDefined(this.logoImage)} alt="umbraco-logo" />
-							</div>`
+						this.logoOnImage,
+						() => html`<img id="logo-on-image" src=${this.logoOnImage!} alt="umbraco-logo" aria-hidden="true" />`
 					)}
 				</div>
 			</div>
 		`;
 	}
 
+	#renderContent() {
+		return html`
+			<div id="content-container">
+				<div id="content">
+					<slot></slot>
+				</div>
+			</div>
+		`;
+	}
+
 	render() {
+		this.image = '';
+		if (!this.image) {
+			return html`
+				<div id="main-no-image">${this.#renderContent()}</div>
+				<img id="logo-on-background" src=${ifDefined(this.logoOnBackground)} alt="umbraco-logo" aria-hidden="true" />
+			`;
+		}
+
 		return html`
 			<div id="main">
 				${this.#renderImageContainer()}
@@ -55,18 +66,13 @@ export class UmbAuthLayoutElement extends LitElement {
 					</div>
 				</div>
 			</div>
-			${when(
-				this.logoImage,
-				() =>
-					html`<div id="logo-no-image" aria-hidden="true">
-						<img src=${ifDefined(this.logoImage)} alt="umbraco-logo" />
-					</div>`
-			)}
+			<img id="logo-on-background" src=${ifDefined(this.logoOnBackground)} alt="umbraco-logo" aria-hidden="true" />
 		`;
 	}
 
 	static styles: CSSResultGroup = [
 		css`
+			#main-no-image,
 			#main {
 				max-width: 1920px;
 				display: flex;
@@ -98,19 +104,17 @@ export class UmbAuthLayoutElement extends LitElement {
 				border-radius: 38px;
 				position: relative;
 			}
-			#logo {
+			#logo-on-image {
 				position: absolute;
 				top: 24px;
 				left: 24px;
 				height: 30px;
-				width: 200px;
 			}
-			#logo-no-image {
+			#logo-on-background {
 				position: fixed;
 				top: 24px;
 				left: 24px;
 				height: 30px;
-				width: 200px;
 				background-color: black;
 			}
 			@media only screen and (min-width: 900px) {
@@ -125,8 +129,8 @@ export class UmbAuthLayoutElement extends LitElement {
 					display: flex;
 					padding: 16px;
 				}
-				#logo-no-image {
-					display: none;
+				#logo-on-background {
+					display: var(--logo-on-background-display);
 				}
 			}
 		`,

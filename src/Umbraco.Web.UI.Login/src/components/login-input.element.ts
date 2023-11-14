@@ -1,5 +1,4 @@
 import { UUIInputElement } from '@umbraco-ui/uui';
-import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 /**
