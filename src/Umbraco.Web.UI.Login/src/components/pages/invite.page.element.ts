@@ -1,5 +1,5 @@
 import type { UUIButtonState } from '@umbraco-ui/uui';
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
