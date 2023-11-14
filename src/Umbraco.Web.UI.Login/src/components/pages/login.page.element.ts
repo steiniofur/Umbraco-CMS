@@ -196,6 +196,8 @@ export default class UmbLoginPageElement extends LitElement {
 				line-height: 1;
 				font-size: 14px;
 				font-family: var(--uui-font-family);
+				margin-left: auto;
+				margin-bottom: var(--uui-size-space-3);
 			}
 
 			#forgot-password:hover {
