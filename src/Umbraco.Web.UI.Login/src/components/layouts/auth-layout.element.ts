@@ -132,7 +132,6 @@ export class UmbAuthLayoutElement extends LitElement {
 				top: 24px;
 				left: 24px;
 				height: 30px;
-				background-color: black;
 			}
 			@media only screen and (min-width: 900px) {
 				#main {
