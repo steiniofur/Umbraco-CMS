@@ -11,235 +11,257 @@ import { InputType, UUIFormLayoutItemElement, UUILabelElement } from '@umbraco-u
 
 import authStyles from './auth-styles.css?inline';
 
-const createInput = (opts: {id: string, type: InputType, name: string, autocomplete: AutoFill, requiredMessage: string, label: string, inputmode: string}) => {
-  const input = document.createElement('umb-login-input');
-  input.type = opts.type;
-  input.name = opts.name;
-  input.autocomplete = opts.autocomplete;
-  input.id = opts.id;
-  input.required = true;
-  input.requiredMessage = opts.requiredMessage;
-  input.label = opts.label;
-  input.spellcheck = false;
-  input.inputMode = opts.inputmode;
+const createInput = (opts: {
+	id: string;
+	type: InputType;
+	name: string;
+	autocomplete: AutoFill;
+	requiredMessage: string;
+	label: string;
+	inputmode: string;
+}) => {
+	const input = document.createElement('umb-login-input');
+	input.type = opts.type;
+	input.name = opts.name;
+	input.autocomplete = opts.autocomplete;
+	input.id = opts.id;
+	input.required = true;
+	input.requiredMessage = opts.requiredMessage;
+	input.label = opts.label;
+	input.spellcheck = false;
+	input.inputMode = opts.inputmode;
 
-  return input;
+	return input;
 };
 
-const createLabel = (opts: {forId: string, localizeAlias: string}) => {
-  const label = document.createElement('uui-label');
-  const umbLocalize = document.createElement('umb-localize') as UmbLocalizeElement;
-  umbLocalize.key = opts.localizeAlias;
-  label.for = opts.forId;
-  label.appendChild(umbLocalize);
+const createLabel = (opts: { forId: string; localizeAlias: string }) => {
+	const label = document.createElement('uui-label');
+	const umbLocalize = document.createElement('umb-localize') as UmbLocalizeElement;
+	umbLocalize.key = opts.localizeAlias;
+	label.for = opts.forId;
+	label.appendChild(umbLocalize);
 
-  return label;
+	return label;
 };
 
 const createFormLayoutItem = (label: UUILabelElement, input: UmbLoginInputElement) => {
-  const formLayoutItem = document.createElement('uui-form-layout-item') as UUIFormLayoutItemElement;
-  formLayoutItem.appendChild(label);
-  formLayoutItem.appendChild(input);
+	const formLayoutItem = document.createElement('uui-form-layout-item') as UUIFormLayoutItemElement;
+	formLayoutItem.appendChild(label);
+	formLayoutItem.appendChild(input);
 
-  return formLayoutItem;
+	return formLayoutItem;
 };
 
 const createForm = (elements: HTMLElement[]) => {
-  const styles = document.createElement('style');
-  styles.innerHTML = authStyles;
-  const form = document.createElement('form');
-  form.id = 'umb-login-form';
-  form.name = 'login-form';
-  form.noValidate = true;
+	const styles = document.createElement('style');
+	styles.innerHTML = authStyles;
+	const form = document.createElement('form');
+	form.id = 'umb-login-form';
+	form.name = 'login-form';
+	form.noValidate = true;
 
-  elements.push(styles);
-  elements.forEach((element) => form.appendChild(element));
+	elements.push(styles);
+	elements.forEach((element) => form.appendChild(element));
 
-  return form;
+	return form;
 };
 
 @customElement('umb-auth')
 export default class UmbAuthElement extends LitElement {
-  /**
-   * Disables the local login form and only allows external login providers.
-   *
-   * @attr disable-local-login
-   */
-  @property({ type: Boolean, attribute: 'disable-local-login' })
-  set disableLocalLogin(value: boolean) {
-    umbAuthContext.disableLocalLogin = value;
-  }
+	/**
+	 * Disables the local login form and only allows external login providers.
+	 *
+	 * @attr disable-local-login
+	 */
+	@property({ type: Boolean, attribute: 'disable-local-login' })
+	set disableLocalLogin(value: boolean) {
+		umbAuthContext.disableLocalLogin = value;
+	}
 
-  @property({ attribute: 'background-image' })
-  backgroundImage?: string;
+	@property({ attribute: 'image' })
+	image?: string;
 
-  @property({ attribute: 'logo-image' })
-  logoImage?: string;
+	@property({ attribute: 'logo-on-image' })
+	logoOnImage?: string;
 
-  @property({ type: Boolean, attribute: 'username-is-email' })
-  usernameIsEmail = false;
+	@property({ attribute: 'logo-on-background' })
+	logoOnBackground?: string;
 
-  @property({ type: Boolean, attribute: 'allow-password-reset' })
-  allowPasswordReset = false;
+	@property({ type: Boolean, attribute: 'username-is-email' })
+	usernameIsEmail = false;
 
-  @property({ type: Boolean, attribute: 'allow-user-invite' })
-  allowUserInvite = false;
+	@property({ type: Boolean, attribute: 'allow-password-reset' })
+	allowPasswordReset = false;
 
-  @property({ type: String, attribute: 'return-url' })
-  set returnPath(value: string) {
-    umbAuthContext.returnPath = value;
-  }
+	@property({ type: Boolean, attribute: 'allow-user-invite' })
+	allowUserInvite = false;
 
-  /**
-   * Override the default flow.
-   */
-  protected flow?: 'mfa' | 'reset-password' | 'invite-user';
+	@property({ type: String, attribute: 'return-url' })
+	set returnPath(value: string) {
+		umbAuthContext.returnPath = value;
+	}
 
-  _form?: HTMLFormElement;
-  _usernameLayoutItem?: UUIFormLayoutItemElement;
-  _passwordLayoutItem?: UUIFormLayoutItemElement;
-  _usernameInput?: UmbLoginInputElement;
-  _passwordInput?: UmbLoginInputElement;
-  _usernameLabel?: UUILabelElement;
-  _passwordLabel?: UUILabelElement;
+	/**
+	 * Override the default flow.
+	 */
+	protected flow?: 'mfa' | 'reset-password' | 'invite-user';
 
-  constructor() {
-    super();
-    this.classList.add('uui-text');
-    this.classList.add('uui-font');
+	_form?: HTMLFormElement;
+	_usernameLayoutItem?: UUIFormLayoutItemElement;
+	_passwordLayoutItem?: UUIFormLayoutItemElement;
+	_usernameInput?: UmbLoginInputElement;
+	_passwordInput?: UmbLoginInputElement;
+	_usernameLabel?: UUILabelElement;
+	_passwordLabel?: UUILabelElement;
 
-    (this as unknown as EventTarget).addEventListener('umb-login-flow', (e) => {
-      if (e instanceof CustomEvent) {
-        this.flow = e.detail.flow || undefined;
-      }
-      this.requestUpdate();
-    });
-  }
+	constructor() {
+		super();
+		this.classList.add('uui-text');
+		this.classList.add('uui-font');
 
-  connectedCallback() {
-    super.connectedCallback();
+		(this as unknown as EventTarget).addEventListener('umb-login-flow', (e) => {
+			if (e instanceof CustomEvent) {
+				this.flow = e.detail.flow || undefined;
+			}
+			this.requestUpdate();
+		});
+	}
 
-    this.#initializeForm();
-  }
+	connectedCallback() {
+		super.connectedCallback();
 
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this._usernameLayoutItem?.remove();
-    this._passwordLayoutItem?.remove();
-    this._usernameLabel?.remove();
-    this._usernameInput?.remove();
-    this._passwordLabel?.remove();
-    this._passwordInput?.remove();
-  }
+		this.#initializeForm();
+	}
 
-  /**
-   * Creates the login form and adds it to the DOM in the default slot.
-   * This is done to avoid having to deal with the shadow DOM, which is not supported in Google Chrome for autocomplete/autofill.
-   *
-   * @see Track this intent-to-ship for Chrome https://groups.google.com/a/chromium.org/g/blink-dev/c/RY9leYMu5hI?pli=1
-   * @private
-   */
-  async #initializeForm() {
-    const labelUsername =
-      this.usernameIsEmail
-        ? await umbLocalizationContext.localize('general_username', undefined, 'Username')
-        : await umbLocalizationContext.localize('general_email', undefined, 'Email');
-    const labelPassword = await umbLocalizationContext.localize('general_password', undefined, 'Password');
-    const requiredMessage = await umbLocalizationContext.localize('general_required', undefined, 'Required');
+	disconnectedCallback() {
+		super.disconnectedCallback();
+		this._usernameLayoutItem?.remove();
+		this._passwordLayoutItem?.remove();
+		this._usernameLabel?.remove();
+		this._usernameInput?.remove();
+		this._passwordLabel?.remove();
+		this._passwordInput?.remove();
+	}
 
-    this._usernameInput = createInput({
-      id: 'username-input',
-      type: 'text',
-      name: 'username',
-      autocomplete: 'username',
-      requiredMessage,
-      label: labelUsername,
-      inputmode: this.usernameIsEmail ? 'email' : ''
-    });
-    this._passwordInput = createInput({
-      id: 'password-input',
-      type: 'password',
-      name: 'password',
-      autocomplete: 'current-password',
-      requiredMessage,
-      label: labelPassword,
-      inputmode: ''
-    });
-    this._usernameLabel = createLabel({ forId: 'username-input', localizeAlias: this.usernameIsEmail ? 'general_email' : 'user_username' });
-    this._passwordLabel = createLabel({ forId: 'password-input', localizeAlias: 'user_password' });
+	/**
+	 * Creates the login form and adds it to the DOM in the default slot.
+	 * This is done to avoid having to deal with the shadow DOM, which is not supported in Google Chrome for autocomplete/autofill.
+	 *
+	 * @see Track this intent-to-ship for Chrome https://groups.google.com/a/chromium.org/g/blink-dev/c/RY9leYMu5hI?pli=1
+	 * @private
+	 */
+	async #initializeForm() {
+		const labelUsername = this.usernameIsEmail
+			? await umbLocalizationContext.localize('general_username', undefined, 'Username')
+			: await umbLocalizationContext.localize('general_email', undefined, 'Email');
+		const labelPassword = await umbLocalizationContext.localize('general_password', undefined, 'Password');
+		const requiredMessage = await umbLocalizationContext.localize('general_required', undefined, 'Required');
 
-    this._usernameLayoutItem = createFormLayoutItem(this._usernameLabel, this._usernameInput);
-    this._passwordLayoutItem = createFormLayoutItem(this._passwordLabel, this._passwordInput);
+		this._usernameInput = createInput({
+			id: 'username-input',
+			type: 'text',
+			name: 'username',
+			autocomplete: 'username',
+			requiredMessage,
+			label: labelUsername,
+			inputmode: this.usernameIsEmail ? 'email' : '',
+		});
+		this._passwordInput = createInput({
+			id: 'password-input',
+			type: 'password',
+			name: 'password',
+			autocomplete: 'current-password',
+			requiredMessage,
+			label: labelPassword,
+			inputmode: '',
+		});
+		this._usernameLabel = createLabel({
+			forId: 'username-input',
+			localizeAlias: this.usernameIsEmail ? 'general_email' : 'user_username',
+		});
+		this._passwordLabel = createLabel({ forId: 'password-input', localizeAlias: 'user_password' });
 
-    this._form = createForm([this._usernameLayoutItem, this._passwordLayoutItem]);
+		this._usernameLayoutItem = createFormLayoutItem(this._usernameLabel, this._usernameInput);
+		this._passwordLayoutItem = createFormLayoutItem(this._passwordLabel, this._passwordInput);
 
-    this.insertAdjacentElement('beforeend', this._form);
-  }
+		this._form = createForm([this._usernameLayoutItem, this._passwordLayoutItem]);
 
-  render() {
-    return html`
+		this.insertAdjacentElement('beforeend', this._form);
+	}
+
+	render() {
+		return html`
 			<umb-auth-layout
-				background-image=${ifDefined(this.backgroundImage)}
-				logo-image=${ifDefined(this.logoImage)}>
+				image=${ifDefined(this.image)}
+				logo-on-image=${ifDefined(this.logoOnImage)}
+				logo-on-background=${ifDefined(this.logoOnBackground)}>
 				${this._renderFlowAndStatus()}
 			</umb-auth-layout>
 		`;
-  }
+	}
 
-  private _renderFlowAndStatus() {
-    const searchParams = new URLSearchParams(window.location.search);
-    let flow = this.flow || searchParams.get('flow')?.toLowerCase();
-    const status = searchParams.get('status');
+	private _renderFlowAndStatus() {
+		const searchParams = new URLSearchParams(window.location.search);
+		let flow = this.flow || searchParams.get('flow')?.toLowerCase();
+		const status = searchParams.get('status');
 
-    if (status === 'resetCodeExpired') {
-      return html` <umb-error-layout
+		if (status === 'resetCodeExpired') {
+			return html` <umb-error-layout
 				header="Hi there"
 				message=${until(
-        umbLocalizationContext.localize('login_resetCodeExpired', undefined, 'The link you have clicked on is invalid or has expired')
-      )}>
+					umbLocalizationContext.localize(
+						'login_resetCodeExpired',
+						undefined,
+						'The link you have clicked on is invalid or has expired'
+					)
+				)}>
 			</umb-error-layout>`;
-    }
+		}
 
-    if (flow === 'invite-user' && status === 'false') {
-      return html` <umb-error-layout
+		if (flow === 'invite-user' && status === 'false') {
+			return html` <umb-error-layout
 				header="Hi there"
 				message=${until(
-        umbLocalizationContext.localize('user_userinviteExpiredMessage', undefined, 'Welcome to Umbraco! Unfortunately your invite has expired. Please contact your administrator and ask them to resend it.'),
-      )}>
+					umbLocalizationContext.localize(
+						'user_userinviteExpiredMessage',
+						undefined,
+						'Welcome to Umbraco! Unfortunately your invite has expired. Please contact your administrator and ask them to resend it.'
+					)
+				)}>
 			</umb-error-layout>`;
-    }
+		}
 
-    // validate
-    if (flow) {
-      if (flow === 'mfa' && !umbAuthContext.isMfaEnabled) {
-        flow = undefined;
-      }
-    }
+		// validate
+		if (flow) {
+			if (flow === 'mfa' && !umbAuthContext.isMfaEnabled) {
+				flow = undefined;
+			}
+		}
 
-    switch (flow) {
-      case 'mfa':
-        return html`<umb-mfa-page></umb-mfa-page>`;
-      case 'reset':
-        return html`<umb-reset-password-page></umb-reset-password-page>`;
-      case 'reset-password':
-        return html`<umb-new-password-page></umb-new-password-page>`;
-      case 'invite-user':
-        return html`<umb-invite-page></umb-invite-page>`;
+		switch (flow) {
+			case 'mfa':
+				return html`<umb-mfa-page></umb-mfa-page>`;
+			case 'reset':
+				return html`<umb-reset-password-page></umb-reset-password-page>`;
+			case 'reset-password':
+				return html`<umb-new-password-page></umb-new-password-page>`;
+			case 'invite-user':
+				return html`<umb-invite-page></umb-invite-page>`;
 
-      default:
-        return html`<umb-login-page
+			default:
+				return html`<umb-login-page
 					?allow-password-reset=${this.allowPasswordReset}
 					?username-is-email=${this.usernameIsEmail}>
 					<slot></slot>
 					<slot name="subheadline" slot="subheadline"></slot>
 					<slot name="external" slot="external"></slot>
 				</umb-login-page>`;
-    }
-  }
+		}
+	}
 }
 
 declare global {
-  interface HTMLElementTagNameMap {
-    'umb-auth': UmbAuthElement;
-  }
+	interface HTMLElementTagNameMap {
+		'umb-auth': UmbAuthElement;
+	}
 }
