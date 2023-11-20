@@ -55,8 +55,9 @@
     <Reference Include="ImageProcessor, Version=2.7.0.100, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ImageProcessor.2.7.0.100\lib\net452\ImageProcessor.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a">
+      <HintPath>..\packages\log4net.2.0.12\lib\net45\log4net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Log4Net.Async, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Log4Net.Async.2.0.4\lib\net40\Log4Net.Async.dll</HintPath>
@@ -325,6 +326,7 @@
     <Compile Include="Configuration\UmbracoSettings\WebRoutingElement.cs" />
     <Compile Include="Configuration\UmbracoVersion.cs" />
     <Compile Include="Attempt.cs" />
+    <Compile Include="Constants-CharArrays.cs" />
     <Compile Include="Constants-DataTypes.cs">
       <DependentUpon>Constants.cs</DependentUpon>
     </Compile>
@@ -384,6 +386,8 @@
     <Compile Include="Models\IAuditEntry.cs" />
     <Compile Include="Models\IAuditItem.cs" />
     <Compile Include="Models\IConsent.cs" />
+    <Compile Include="Models\IImageUrlGenerator.cs" />
+    <Compile Include="Models\ImageUrlGenerationOptions.cs" />
     <Compile Include="Models\IUserControl.cs" />
     <Compile Include="Models\Membership\ContentPermissionSet.cs" />
     <Compile Include="Models\Membership\EntityPermissionCollection.cs" />
@@ -738,8 +742,12 @@
     <Compile Include="Security\BackOfficeUserPasswordCheckerResult.cs" />
     <Compile Include="Security\BackOfficeUserStore.cs" />
     <Compile Include="Security\BackOfficeUserValidator.cs" />
+    <Compile Include="Security\FileStreamSecurityValidator.cs" />
+    <Compile Include="Security\FileStreamSecurityValidatorFactory.cs" />
+    <Compile Include="Security\IFileStreamSecurityValidator.cs" />
     <Compile Include="Security\IBackOfficeUserManagerMarker.cs" />
     <Compile Include="Security\IBackOfficeUserPasswordChecker.cs" />
+    <Compile Include="Security\IFileStreamSecurityAnalyzer.cs" />
     <Compile Include="Security\IMembershipProviderPasswordHasher.cs" />
     <Compile Include="Security\IUserAwarePasswordHasher.cs" />
     <Compile Include="Security\IUserSessionStore.cs" />
