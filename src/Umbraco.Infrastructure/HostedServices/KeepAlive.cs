@@ -10,7 +10,6 @@ using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Runtime;
 using Umbraco.Cms.Core.Sync;
-using Umbraco.Extensions;
 
 namespace Umbraco.Cms.Infrastructure.HostedServices;
 
@@ -93,22 +92,24 @@ public class KeepAlive : RecurringHostedServiceBase
         using (!_profilingLogger.IsEnabled(Core.Logging.LogLevel.Debug) ? null : _profilingLogger.DebugDuration<KeepAlive>("Keep alive executing", "Keep alive complete"))
         {
             var umbracoAppUrl = _hostingEnvironment.ApplicationMainUrl?.ToString();
-            if (umbracoAppUrl.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(umbracoAppUrl))
             {
                 _logger.LogWarning("No umbracoApplicationUrl for service (yet), skip.");
                 return;
             }
 
             // If the config is an absolute path, just use it
-            var keepAlivePingUrl = WebPath.Combine(
-                umbracoAppUrl!,
-                _hostingEnvironment.ToAbsolute(_keepAliveSettings.KeepAlivePingUrl));
+            var keepAlivePingUrl = WebPath.Combine(umbracoAppUrl, _hostingEnvironment.ToAbsolute(_keepAliveSettings.KeepAlivePingUrl));
 
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, keepAlivePingUrl);
-                HttpClient httpClient = _httpClientFactory.CreateClient(Constants.HttpClients.IgnoreCertificateErrors);
-                _ = await httpClient.SendAsync(request);
+                using HttpClient httpClient = _httpClientFactory.CreateClient(Constants.HttpClients.IgnoreCertificateErrors);
+                using var request = new HttpRequestMessage(HttpMethod.Get, keepAlivePingUrl)
+                {
+                    Version = httpClient.DefaultRequestVersion,
+                    VersionPolicy = httpClient.DefaultVersionPolicy,
+                };
+                using HttpResponseMessage reponse = await httpClient.SendAsync(request);
             }
             catch (Exception ex)
             {
