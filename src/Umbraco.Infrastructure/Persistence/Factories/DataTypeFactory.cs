@@ -42,7 +42,7 @@ internal static class DataTypeFactory
             dataType.Trashed = dto.NodeDto.Trashed;
             dataType.CreatorId = dto.NodeDto.UserId ?? Constants.Security.UnknownUserId;
 
-            dataType.SetLazyConfiguration(dto.Configuration);
+            dataType.LoadConfiguration(dto.Configuration);
 
             // reset dirty initial properties (U4-1946)
             dataType.ResetDirtyProperties(false);

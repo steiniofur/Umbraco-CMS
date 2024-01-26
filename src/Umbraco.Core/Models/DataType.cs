@@ -175,12 +175,29 @@ public class DataType : TreeEntityBase, IDataType
     ///     </para>
     ///     <para>Think before using!</para>
     /// </remarks>
+    [Obsolete("We are no longer using LazyConfiguration loading as it is detrimental to building full content models")]
     public void SetLazyConfiguration(string? configurationJson)
     {
         _hasConfiguration = false;
         _configuration = null;
         _configurationJson = configurationJson;
     }
+
+    /// <summary>
+    ///     Sets the <see cref="Configuration"/> from a serialized json string.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         This method is meant to be used when building entities from database, exclusively.
+    ///         In its current state it does mark the property as dirty //todo change this (even though the only consuming class clears it)
+    ///         It ignores the fact that the configuration
+    ///         may contain the database type, because the datatype DTO should also contain that database
+    ///         type, and they should be the same.
+    ///     </para>
+    ///     <para>Think before using!</para>
+    /// </remarks>
+    public void LoadConfiguration(string? configurationJson) =>
+        _configuration = _editor?.GetConfigurationEditor().FromDatabase(_configurationJson, _serializer);
 
     /// <summary>
     ///     Gets a lazy configuration.
