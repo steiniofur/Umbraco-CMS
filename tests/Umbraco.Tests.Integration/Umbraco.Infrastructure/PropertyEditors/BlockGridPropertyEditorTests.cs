@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Tests.Common.Builders;
 using Umbraco.Cms.Tests.Common.Testing;
@@ -21,29 +22,28 @@ public class BlockGridPropertyEditorTests : UmbracoIntegrationTest
     private IContentService ContentService => GetRequiredService<IContentService>();
 
     [Test]
-    public void Can_Track_Block_References()
+    public void Can_Track_Block_Grid_References()
     {
-        var blockGridDataType = DataTypeBuilder
+        var blockGridDataType = DataTypeBuilder.CreateSimpleBlockGridEditorDataType();
 
-        var contentType = ContentTypeBuilder.CreateTextPageContentType("myContentType");
-        contentType.AllowedTemplates = Enumerable.Empty<ITemplate>();
+        DataTypeService.Save(blockGridDataType);
+
+        var contentType =
+            ContentTypeBuilder.CreateContentTypeWithDataType(blockGridDataType.Id, "BlockGridTest", "blockGridTest");
         ContentTypeService.Save(contentType);
 
-        var dataType = DataTypeService.GetDataType(contentType.PropertyTypes.First(propertyType => propertyType.Alias == "bodyText").DataTypeId)!;
-        var editor = dataType.Editor!;
-        var valueEditor = editor.GetValueEditor();
+        var content = ContentBuilder.CreateBasicContent(contentType);
 
-        const string markup = "<p>This is some markup</p>";
-
-        var content = ContentBuilder.CreateTextpageContent(contentType, "My Content", -1);
-        content.Properties["bodyText"]!.SetValue(markup);
         ContentService.Save(content);
 
-        var toEditor = valueEditor.ToEditor(content.Properties["bodyText"]);
-        var richTextEditorValue = toEditor as RichTextEditorValue;
+        var references = DataTypeService.GetReferences(blockGridDataType.Id).ToArray();
 
-        Assert.IsNotNull(richTextEditorValue);
-        Assert.AreEqual(markup, richTextEditorValue.Markup);
+        Assert.Multiple(() =>
+        {
+            Assert.AreEqual(1, references.Length);
+            var reference = references.First();
+            Assert.AreEqual(contentType.PropertyTypes.First().Alias, reference.Value.First());
+            Assert.AreEqual(contentType.GetUdi(), reference.Key);
+        });
     }
 }
-
