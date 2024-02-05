@@ -535,4 +535,23 @@ public class ContentTypeBuilder
             .Done()
             .Build();
     }
+
+    public static ContentType CreateContentTypeWithDataType(int dataTypeId, string dataTypeName = "DataType", string dataTypeAlias = "dataType", string contentAlias = "baseContentTypes",  string contentName = "Base ContentType", IContentType parent = null)
+    {
+        var builder = new ContentTypeBuilder();
+        return (ContentType)builder
+            .WithAlias(contentName)
+            .WithName(contentAlias)
+            .WithParentContentType(parent)
+            .AddPropertyGroup()
+                .WithAlias("content")
+                .WithName("Content")
+                .AddPropertyType()
+                    .WithAlias(dataTypeAlias)
+                    .WithName(dataTypeName)
+                    .WithDataTypeId(dataTypeId)
+                 .Done()
+            .Done()
+            .Build();
+    }
 }

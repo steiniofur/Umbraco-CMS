@@ -2,8 +2,10 @@
 // See LICENSE for more details.
 
 using System;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Infrastructure.Serialization;
+using Umbraco.Cms.Tests.Common.Builders.Extensions;
 using Umbraco.Cms.Tests.Common.Builders.Interfaces;
 
 namespace Umbraco.Cms.Tests.Common.Builders;
@@ -152,5 +154,30 @@ public class DataTypeBuilder
             DatabaseType = databaseType,
             SortOrder = sortOrder
         };
+    }
+
+    public static DataType CreateSimpleBlockGridEditorDataType(string name = "BlockGridTestEditor")
+    {
+        var builder = new DataTypeBuilder();
+        return (DataType)builder
+            .WithId(0)
+            .WithName(name)
+            .AddEditor()
+                .WithName("BlockGrid")
+                .WithAlias(Constants.PropertyEditors.Aliases.BlockGrid)
+            .Done()
+            .Build();
+    }
+
+    public static DataType CreateSimpleBlockListEditorDataType(string name = "BlockListTestEditor")
+    {
+        var builder = new DataTypeBuilder();
+        return (DataType)builder
+            .WithId(0)
+            .WithName(name)
+            .AddEditor()
+                .WithAlias(Constants.PropertyEditors.Aliases.BlockList)
+            .Done()
+            .Build();
     }
 }
