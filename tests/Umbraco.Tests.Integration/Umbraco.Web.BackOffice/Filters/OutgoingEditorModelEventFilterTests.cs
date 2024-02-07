@@ -25,6 +25,7 @@ public class OutgoingEditorModelEventFilterTests : UmbracoTestServerTestBase
 
     protected override void CustomTestSetup(IUmbracoBuilder builder)
     {
+        base.CustomTestSetup(builder);
         builder.AddNotificationHandler<SendingContentNotification, FilterEventHandler>();
     }
 

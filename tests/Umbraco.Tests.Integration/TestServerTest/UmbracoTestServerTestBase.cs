@@ -23,6 +23,8 @@ using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Core.Persistence.Repositories;
+using Umbraco.Cms.Infrastructure.Examine;
+using Umbraco.Cms.Infrastructure.PublishedCache;
 using Umbraco.Cms.Persistence.Sqlite;
 using Umbraco.Cms.Persistence.SqlServer;
 using Umbraco.Cms.Tests.Common.Testing;
@@ -52,7 +54,10 @@ namespace Umbraco.Cms.Tests.Integration.TestServerTest
         /// </remarks>
         protected virtual void CustomTestSetup(IUmbracoBuilder builder)
         {
+            // Remove the NuCacheStartupHandler, as we do not want to rebuild the cache. Since there is no reason to build as it is not used in the tests.
+            builder.Services.Remove(builder.Services.FirstOrDefault(x => x.ImplementationType == typeof(NuCacheStartupHandler)));
         }
+
 
         protected virtual void CustomTestAuthSetup(IServiceCollection services)
         {

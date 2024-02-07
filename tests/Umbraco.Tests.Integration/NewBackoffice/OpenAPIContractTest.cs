@@ -22,6 +22,7 @@ internal sealed class OpenAPIContractTest : UmbracoTestServerTestBase
 
     protected override void CustomTestSetup(IUmbracoBuilder builder)
     {
+        base.CustomTestSetup(builder);
         builder.AddMvcAndRazor(mvcBuilder =>
         {
             // Adds Umbraco.Cms.Api.Management
