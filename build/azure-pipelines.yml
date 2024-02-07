@@ -1,5 +1,17 @@
 name: $(TeamProject)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
+resources:
+  containers:
+    - container: mssql
+      image: mcr.microsoft.com/mssql/server:2017-latest
+      env:
+        ACCEPT_EULA: Y
+        SA_PASSWORD: UmbracoIntegration123!
+        MSSQL_PID: Express
+      ports:
+        - 1433:1433
+      options: --name mssql
+        -
 parameters:
   - name: sqlServerIntegrationTests
     displayName: Run SQL Server Integration Tests
@@ -360,6 +372,8 @@ stages:
         timeoutInMinutes: 180
         condition: or(eq(stageDependencies.Build.A.outputs['build.NBGV_PublicRelease'], 'True'), ${{parameters.sqlServerIntegrationTests}})
         displayName: Integration Tests (SQL Server)
+        services:
+          mssql: mssql
         strategy:
           matrix:
             Windows:
@@ -393,7 +407,7 @@ stages:
             condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
 
           - pwsh:  docker run --name mssql -d -p 1433:1433 -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=$(SA_PASSWORD)" mcr.microsoft.com/mssql/server:2022-latest
-            displayName: Start SQL Server Docker image (Windows)
+            displayName: Start SQL Server LocalDB (Windows)
             condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
           # Test
