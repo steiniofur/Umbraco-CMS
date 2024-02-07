@@ -141,4 +141,22 @@ public class MemberTypeBuilder
 
         return (MemberType)memberType;
     }
+
+    public static MemberType CreateSimpleMemberTypeWithDataType(int dataTypeId, string dataTypeName, string dataTypeAlias, string memberTypeAlias = "baseMemberType",  string memberTypeName = "BaseMemberType")
+    {
+        var builder = new MemberTypeBuilder();
+        return (MemberType)builder
+            .WithAlias(memberTypeAlias)
+            .WithName(memberTypeName)
+            .AddPropertyGroup()
+            .WithAlias("group")
+            .WithName("Group")
+            .AddPropertyType()
+            .WithAlias(dataTypeAlias)
+            .WithName(dataTypeName)
+            .WithDataTypeId(dataTypeId)
+            .Done()
+            .Done()
+            .Build();
+    }
 }

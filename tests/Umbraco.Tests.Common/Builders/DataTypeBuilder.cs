@@ -2,6 +2,7 @@
 // See LICENSE for more details.
 
 using System;
+using System.Text.Json;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Infrastructure.Serialization;
@@ -169,6 +170,25 @@ public class DataTypeBuilder
             .Build();
     }
 
+    // CreateSimpleBlockListEditorDataTypeWithABlock
+    public static DataType CreateSimpleBlockGridEditorDataTypeWithElement(string contentElementTypeKey, string name = "BlockGridTestEditor")
+    {
+
+
+
+        var builder = new DataTypeBuilder();
+        return (DataType)builder
+            .WithId(0)
+            .WithName(name)
+            .AddEditor()
+                .WithName("BlockGrid")
+                .WithAlias(Constants.PropertyEditors.Aliases.BlockGrid)
+            .Done()
+            .Build();
+    }
+
+
+
     public static DataType CreateSimpleBlockListEditorDataType(string name = "BlockListTestEditor")
     {
         var builder = new DataTypeBuilder();
@@ -176,6 +196,7 @@ public class DataTypeBuilder
             .WithId(0)
             .WithName(name)
             .AddEditor()
+                .WithName("BlockList")
                 .WithAlias(Constants.PropertyEditors.Aliases.BlockList)
             .Done()
             .Build();

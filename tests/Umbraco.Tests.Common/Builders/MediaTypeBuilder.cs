@@ -286,4 +286,22 @@ public class MediaTypeBuilder
 
         return (MediaType)mediaType;
     }
+
+    public static MediaType CreateSimpleMediaTypeWithDataType(int dataTypeId, string dataTypeName = "DataType", string dataTypeAlias = "dataType", string mediaTypeAlias = "baseMediaTypes",  string mediaTypeName = "BaseMediaType")
+    {
+        var builder = new MediaTypeBuilder();
+        return (MediaType)builder
+            .WithAlias(mediaTypeAlias)
+            .WithName(mediaTypeName)
+            .AddPropertyGroup()
+            .WithAlias("group")
+            .WithName("Group")
+            .AddPropertyType()
+            .WithAlias(dataTypeAlias)
+            .WithName(dataTypeName)
+            .WithDataTypeId(dataTypeId)
+            .Done()
+            .Done()
+            .Build();
+    }
 }
