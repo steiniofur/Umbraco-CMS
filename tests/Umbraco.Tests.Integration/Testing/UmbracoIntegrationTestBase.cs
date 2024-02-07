@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -49,13 +50,20 @@ public abstract class UmbracoIntegrationTestBase
 
     private void AddOnFixtureTearDown(Action tearDown) => _fixtureTeardown.Add(tearDown);
 
+    private Stopwatch _stopwatch = new Stopwatch();
     [SetUp]
-    public void SetUp_Logging() =>
-        TestContext.Progress.Write($"Start test {s_testCount++}: {TestContext.CurrentContext.Test.Name}");
+    public void SetUp_Logging()
+    {
+        TestContext.Out.Write($"Start test {s_testCount++}: {TestContext.CurrentContext.Test.Name}");
+        _stopwatch.Restart();
+    }
 
     [TearDown]
-    public void TearDown_Logging() =>
-        TestContext.Progress.Write($"  {TestContext.CurrentContext.Result.Outcome.Status}");
+    public void TearDown_Logging()
+    {
+        _stopwatch.Stop();
+        TestContext.Out.Write($"  {TestContext.CurrentContext.Result.Outcome.Status} - {_stopwatch.Elapsed}");
+    }
 
     [OneTimeTearDown]
     public void FixtureTearDown()
