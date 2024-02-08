@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -201,7 +202,12 @@ public class DomainAndUrlsTests : UmbracoIntegrationTest
     [Test]
     public async Task Can_Resolve_Urls_With_Domains_For_All_Cultures()
     {
+        var stopWatch = new Stopwatch();
+        stopWatch.Start();
+        TestContext.Out.WriteLine("Internal timing 1 - " + stopWatch.Elapsed);
+
         var domainService = GetRequiredService<IDomainService>();
+        TestContext.Out.WriteLine("Internal timing 2 - " + stopWatch.Elapsed);
         var updateModel = new DomainsUpdateModel
         {
             Domains = Cultures.Select(culture => new DomainModel
@@ -209,11 +215,15 @@ public class DomainAndUrlsTests : UmbracoIntegrationTest
                 DomainName = GetDomainUrlFromCultureCode(culture), IsoCode = culture
             })
         };
+        TestContext.Out.WriteLine("Internal timing 3 - " + stopWatch.Elapsed);
 
         var result = await domainService.UpdateDomainsAsync(Root.Key, updateModel);
+        TestContext.Out.WriteLine("Internal timing 4 - " + stopWatch.Elapsed);
         Assert.IsTrue(result.Success);
+        TestContext.Out.WriteLine("Internal timing 5 - " + stopWatch.Elapsed);
 
         var rootUrls = GetContentUrlsAsync(Root).ToArray();
+        TestContext.Out.WriteLine("Internal timing 6 - " + stopWatch.Elapsed);
 
         Assert.Multiple(() =>
         {
