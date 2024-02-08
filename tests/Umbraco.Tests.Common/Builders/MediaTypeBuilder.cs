@@ -287,20 +287,21 @@ public class MediaTypeBuilder
         return (MediaType)mediaType;
     }
 
-    public static MediaType CreateSimpleMediaTypeWithDataType(int dataTypeId, string dataTypeName = "DataType", string dataTypeAlias = "dataType", string mediaTypeAlias = "baseMediaTypes",  string mediaTypeName = "BaseMediaType")
+    public static MediaType CreateMediaTypeWithDataType(int dataTypeId, string dataTypeName = "DataType", string dataTypeAlias = "dataType", string propertyEditorAlias = Constants.PropertyEditors.Aliases.TextBox, string mediaTypeAlias = "baseMediaTypes",  string mediaTypeName = "BaseMediaType")
     {
         var builder = new MediaTypeBuilder();
         return (MediaType)builder
             .WithAlias(mediaTypeAlias)
             .WithName(mediaTypeName)
             .AddPropertyGroup()
-            .WithAlias("group")
-            .WithName("Group")
-            .AddPropertyType()
-            .WithAlias(dataTypeAlias)
-            .WithName(dataTypeName)
-            .WithDataTypeId(dataTypeId)
-            .Done()
+                .WithAlias("group")
+                .WithName("Group")
+                .AddPropertyType()
+                    .WithAlias(dataTypeAlias)
+                    .WithName(dataTypeName)
+                    .WithPropertyEditorAlias(propertyEditorAlias)
+                    .WithDataTypeId(dataTypeId)
+                .Done()
             .Done()
             .Build();
     }

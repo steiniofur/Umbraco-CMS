@@ -536,22 +536,24 @@ public class ContentTypeBuilder
             .Build();
     }
 
-    public static ContentType CreateContentTypeWithDataType(int dataTypeId, string dataTypeName = "DataType", string dataTypeAlias = "dataType", string contentAlias = "baseContentTypes",  string contentName = "Base ContentType", IContentType parent = null)
+    public static ContentType CreateContentTypeWithDataType(int dataTypeId, string dataTypeName = "DataType", string dataTypeAlias = "dataType", string propertyEditorAlias = Constants.PropertyEditors.Aliases.TextBox, string contentTypeAlias = "baseContentTypes", string contentTypeName = "BaseContentType", bool isElementType = false)
     {
         var builder = new ContentTypeBuilder();
-        return (ContentType)builder
-            .WithAlias(contentName)
-            .WithName(contentAlias)
-            .WithParentContentType(parent)
+        var contentType = (ContentType)builder
+            .WithAlias(contentTypeName)
+            .WithName(contentTypeAlias)
             .AddPropertyGroup()
-                .WithAlias("content")
-                .WithName("Content")
+                .WithAlias("contentGroup")
+                .WithName("ContentGroup")
                 .AddPropertyType()
                     .WithAlias(dataTypeAlias)
                     .WithName(dataTypeName)
                     .WithDataTypeId(dataTypeId)
-                 .Done()
+                    .WithPropertyEditorAlias(propertyEditorAlias)
+                .Done()
             .Done()
             .Build();
+        contentType.IsElement = isElementType;
+        return contentType;
     }
 }

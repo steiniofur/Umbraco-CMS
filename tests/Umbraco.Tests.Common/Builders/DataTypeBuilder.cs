@@ -5,6 +5,8 @@ using System;
 using System.Text.Json;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Cms.Core.Serialization;
 using Umbraco.Cms.Infrastructure.Serialization;
 using Umbraco.Cms.Tests.Common.Builders.Extensions;
 using Umbraco.Cms.Tests.Common.Builders.Interfaces;
@@ -157,48 +159,56 @@ public class DataTypeBuilder
         };
     }
 
-    public static DataType CreateSimpleBlockGridEditorDataType(string name = "BlockGridTestEditor")
+    public static DataType CreateDataType(string dataTypeName, string editorAlias)
     {
         var builder = new DataTypeBuilder();
         return (DataType)builder
             .WithId(0)
-            .WithName(name)
+            .WithName(dataTypeName)
             .AddEditor()
-                .WithName("BlockGrid")
-                .WithAlias(Constants.PropertyEditors.Aliases.BlockGrid)
+                .WithName(dataTypeName)
+                .WithAlias(editorAlias)
             .Done()
             .Build();
     }
 
-    // CreateSimpleBlockListEditorDataTypeWithABlock
-    public static DataType CreateSimpleBlockGridEditorDataTypeWithElement(string contentElementTypeKey, string name = "BlockGridTestEditor")
+    public static DataType CreateBlockGridEditorDataTypeWithElement(Guid elementTypeKey, IJsonSerializer jsonSerializer, string dataTypeName = "BlockGridTestEditor")
     {
+        var dataType = CreateDataType(dataTypeName, Constants.PropertyEditors.Aliases.BlockGrid);
 
+        Dictionary<string, object>? blockConfig = jsonSerializer.Deserialize<Dictionary<string, object>>(
+            jsonSerializer.Serialize(new BlockGridConfiguration
+            {
+                Blocks = new[]
+                {
+                    new BlockGridConfiguration.BlockGridBlockConfiguration
+                    {
+                        ContentElementTypeKey = elementTypeKey,
+                    },
+                },
+            }));
 
-
-        var builder = new DataTypeBuilder();
-        return (DataType)builder
-            .WithId(0)
-            .WithName(name)
-            .AddEditor()
-                .WithName("BlockGrid")
-                .WithAlias(Constants.PropertyEditors.Aliases.BlockGrid)
-            .Done()
-            .Build();
+        dataType.Configuration = blockConfig;
+        return dataType;
     }
 
-
-
-    public static DataType CreateSimpleBlockListEditorDataType(string name = "BlockListTestEditor")
+    public static DataType CreateBlockListEditorDataTypeWithElement(Guid elementTypeKey, IJsonSerializer jsonSerializer, string dataTypeName = "BlockListTestEditor")
     {
-        var builder = new DataTypeBuilder();
-        return (DataType)builder
-            .WithId(0)
-            .WithName(name)
-            .AddEditor()
-                .WithName("BlockList")
-                .WithAlias(Constants.PropertyEditors.Aliases.BlockList)
-            .Done()
-            .Build();
+        var dataType = CreateDataType(dataTypeName, Constants.PropertyEditors.Aliases.BlockList);
+
+        Dictionary<string, object>? blockConfig = jsonSerializer.Deserialize<Dictionary<string, object>>(
+            jsonSerializer.Serialize(new BlockListConfiguration()
+            {
+                Blocks = new[]
+                {
+                    new BlockListConfiguration.BlockConfiguration()
+                    {
+                        ContentElementTypeKey = elementTypeKey,
+                    },
+                },
+            }));
+
+        dataType.Configuration = blockConfig;
+        return dataType;
     }
 }

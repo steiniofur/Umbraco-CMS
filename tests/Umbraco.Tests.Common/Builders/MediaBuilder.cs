@@ -255,4 +255,12 @@ public class MediaBuilder
         .WithKeyValue(Constants.Conventions.Media.Extension, "png")
         .Done()
         .Build();
+
+    public static Media CreateMedia(IMediaType mediaType, string name = "MediaName", int parentId = -1, int id = 0) =>
+        new MediaBuilder()
+            .WithId(id)
+            .WithName(name)
+            .WithMediaType(mediaType)
+            .WithParentId(parentId)
+            .Build();
 }

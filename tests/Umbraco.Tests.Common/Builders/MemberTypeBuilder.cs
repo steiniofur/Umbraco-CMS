@@ -142,20 +142,21 @@ public class MemberTypeBuilder
         return (MemberType)memberType;
     }
 
-    public static MemberType CreateSimpleMemberTypeWithDataType(int dataTypeId, string dataTypeName, string dataTypeAlias, string memberTypeAlias = "baseMemberType",  string memberTypeName = "BaseMemberType")
+    public static MemberType CreateMemberTypeWithDataType(int dataTypeId, string dataTypeName = "DataType", string dataTypeAlias = "dataType", string propertyEditorAlias = Constants.PropertyEditors.Aliases.TextBox, string memberTypeAlias = "baseMemberType",  string memberTypeName = "BaseMemberType")
     {
         var builder = new MemberTypeBuilder();
         return (MemberType)builder
             .WithAlias(memberTypeAlias)
             .WithName(memberTypeName)
             .AddPropertyGroup()
-            .WithAlias("group")
-            .WithName("Group")
-            .AddPropertyType()
-            .WithAlias(dataTypeAlias)
-            .WithName(dataTypeName)
-            .WithDataTypeId(dataTypeId)
-            .Done()
+                .WithAlias("group")
+                .WithName("Group")
+                .AddPropertyType()
+                    .WithAlias(dataTypeAlias)
+                    .WithName(dataTypeName)
+                    .WithDataTypeId(dataTypeId)
+                    .WithPropertyEditorAlias(propertyEditorAlias)
+                .Done()
             .Done()
             .Build();
     }

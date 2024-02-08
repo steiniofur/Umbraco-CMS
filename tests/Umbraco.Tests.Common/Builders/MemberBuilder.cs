@@ -381,4 +381,15 @@ public class MemberBuilder
 
         return list;
     }
+
+    public static Member CreateMemberWithDataType(IMemberType memberType, string name = "MemberName", string email = "test@email.test.test", string password = "TopSecretTestPassword", string username = "UsernameMember")
+    {
+        var builder = new MemberBuilder()
+            .WithMemberType(memberType)
+            .WithName(name)
+            .WithEmail(email)
+            .WithIsApproved(true)
+            .WithLogin(username, password);
+        return builder.Build();
+    }
 }
