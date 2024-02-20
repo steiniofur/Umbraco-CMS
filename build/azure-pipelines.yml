@@ -403,8 +403,7 @@ stages:
       UMBRACO__CMS__GLOBAL__USEHTTPS: true
       UMBRACO__CMS__HEALTHCHECKS__NOTIFICATION__ENABLED: false
       UMBRACO__CMS__KEEPALIVE__DISABLEKEEPALIVETASK: true
-      UMBRACO__CMS__WEBROUTING__UMBRACOAPPLICATIONURL: https://localhost:44331/
-      ASPNETCORE_URLS: https://e2e-tests-cms-manual.azurewebsites.net/
+      TESTED_INSTANCE_HTTPS_URL: https://e2e-tests-cms-manual.azurewebsites.net/
     jobs:
       # E2E Tests
       - job:
@@ -441,7 +440,7 @@ stages:
           - pwsh: |
               "UMBRACO_USER_LOGIN=$(UMBRACO__CMS__UNATTENDED__UNATTENDEDUSEREMAIL)
               UMBRACO_USER_PASSWORD=$(UMBRACO__CMS__UNATTENDED__UNATTENDEDUSERPASSWORD)
-              URL=$(ASPNETCORE_URLS)" | Out-File .env
+              URL=$(TESTED_INSTANCE_HTTPS_URL)" | Out-File .env
             displayName: Generate .env
             workingDirectory: $(Build.SourcesDirectory)/tests/Umbraco.Tests.AcceptanceTest
 
