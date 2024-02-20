@@ -323,15 +323,12 @@ stages:
         displayName: Integration Tests (SQL Server)
         strategy:
           matrix:
-            Windows:
-              vmImage: 'windows-latest'
-              Tests__Database__DatabaseType: LocalDb
-              Tests__Database__SQLServerMasterConnectionString: N/A
             Linux:
               vmImage: 'ubuntu-latest'
               SA_PASSWORD: UmbracoIntegration123!
+              CONTAINER_INSTANCE_URL: myazurecontainersql.acgcf8a6hngnbeg6.westeurope.azurecontainer.io
               Tests__Database__DatabaseType: SqlServer
-              Tests__Database__SQLServerMasterConnectionString: 'Server=(local);User Id=sa;Password=$(SA_PASSWORD);TrustServerCertificate=True'
+              Tests__Database__SQLServerMasterConnectionString: 'Server=$(CONTAINER_INSTANCE_URL);User Id=sa;Password=$(SA_PASSWORD);TrustServerCertificate=True'
         pool:
           vmImage: $(vmImage)
         steps:
@@ -346,15 +343,6 @@ stages:
             displayName: Use .NET SDK from global.json
             inputs:
               useGlobalJson: true
-
-          # Start SQL Server
-          - powershell: docker run --name mssql -d -p 1433:1433 -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=$(SA_PASSWORD)" mcr.microsoft.com/mssql/server:2022-latest
-            displayName: Start SQL Server Docker image (Linux)
-            condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
-          - pwsh: SqlLocalDB start MSSQLLocalDB
-            displayName: Start SQL Server LocalDB (Windows)
-            condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
           # Test
           - task: DotNetCoreCLI@2
@@ -371,15 +359,6 @@ stages:
                 arguments: '--configuration $(buildConfiguration) --no-build ${{parameters.nonWindowsIntegrationReleaseTestFilter}}'
               ${{ else }}:
                 arguments: '--configuration $(buildConfiguration) --no-build ${{parameters.nonWindowsIntegrationNonReleaseTestFilter}}'
-
-          # Stop SQL Server
-          - pwsh: docker stop mssql
-            displayName: Stop SQL Server Docker image (Linux)
-            condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
-          - pwsh: SqlLocalDB stop MSSQLLocalDB
-            displayName: Stop SQL Server LocalDB (Windows)
-            condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
   - stage: E2E
     displayName: E2E Tests
