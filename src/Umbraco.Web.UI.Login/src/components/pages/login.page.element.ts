@@ -22,6 +22,9 @@ export default class UmbLoginPageElement extends UmbLitElement {
   private _loginError = '';
 
   @state()
+  private readonly _loginHint: string = '';
+
+  @state()
   supportPersistLogin = false;
 
   #formElement?: HTMLFormElement;
@@ -35,14 +38,13 @@ export default class UmbLoginPageElement extends UmbLitElement {
       this.#authContext = authContext;
       this.supportPersistLogin = authContext.supportsPersistLogin;
     });
-  }
 
-  async #onSlotChanged() {
-    this.#formElement = this.slottedElements?.find((el) => el.id === 'umb-login-form');
-
-    if (!this.#formElement) return;
-
-    this.#formElement.onsubmit = this.#handleSubmit;
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.has('ReturnUrl')) {
+      const returnUrl = decodeURIComponent(searchParams.get('ReturnUrl') ?? '');
+      const returnUrlSearchParams = new URLSearchParams(returnUrl);
+      this._loginHint = decodeURIComponent(returnUrlSearchParams.get('login_hint') ?? '');
+    }
   }
 
   #handleSubmit = async (e: SubmitEvent) => {
@@ -55,7 +57,7 @@ export default class UmbLoginPageElement extends UmbLitElement {
 
     const formData = new FormData(form);
 
-    const username = formData.get('username') as string;
+    const username = this._loginHint ? this._loginHint : formData.get('username') as string;
     const password = formData.get('password') as string;
     const persist = formData.has('persist');
 
