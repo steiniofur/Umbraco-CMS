@@ -1,73 +1,12 @@
 import { html, customElement, property, ifDefined } from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from "@umbraco-cms/backoffice/lit-element";
-import { type InputType, type UUIFormLayoutItemElement, type UUILabelElement } from "@umbraco-cms/backoffice/external/uui";
 import { umbExtensionsRegistry } from "@umbraco-cms/backoffice/extension-registry";
 
 import { UMB_AUTH_CONTEXT, UmbAuthContext } from "./contexts";
-import type { UmbLoginInputElement } from "./components";
 import { UmbSlimBackofficeController } from "./controllers";
-
-// We import the authStyles here so that we can inline it in the shadow DOM that is created outside of the UmbAuthElement.
-import authStyles from './auth-styles.css?inline';
 
 // Import the main bundle
 import { extensions } from './umbraco-package.js';
-
-const createInput = (opts: {
-  id: string;
-  type: InputType;
-  name: string;
-  autocomplete: AutoFill;
-  requiredMessage: string;
-  label: string;
-  inputmode: string;
-}) => {
-  const input = document.createElement('umb-login-input');
-  input.type = opts.type;
-  input.name = opts.name;
-  input.autocomplete = opts.autocomplete;
-  input.id = opts.id;
-  input.required = true;
-  input.requiredMessage = opts.requiredMessage;
-  input.label = opts.label;
-  input.spellcheck = false;
-  input.inputMode = opts.inputmode;
-
-  return input;
-};
-
-const createLabel = (opts: { forId: string; localizeAlias: string; localizeFallback: string; }) => {
-  const label = document.createElement('uui-label');
-  const umbLocalize = document.createElement('umb-localize');
-  umbLocalize.key = opts.localizeAlias;
-  umbLocalize.innerHTML = opts.localizeFallback;
-  label.for = opts.forId;
-  label.appendChild(umbLocalize);
-
-  return label;
-};
-
-const createFormLayoutItem = (label: UUILabelElement, input: UmbLoginInputElement) => {
-  const formLayoutItem = document.createElement('uui-form-layout-item') as UUIFormLayoutItemElement;
-  formLayoutItem.appendChild(label);
-  formLayoutItem.appendChild(input);
-
-  return formLayoutItem;
-};
-
-const createForm = (elements: HTMLElement[]) => {
-  const styles = document.createElement('style');
-  styles.innerHTML = authStyles;
-  const form = document.createElement('form');
-  form.id = 'umb-login-form';
-  form.name = 'login-form';
-  form.noValidate = true;
-
-  elements.push(styles);
-  elements.forEach((element) => form.appendChild(element));
-
-  return form;
-};
 
 @customElement('umb-auth')
 export default class UmbAuthElement extends UmbLitElement {
@@ -110,14 +49,6 @@ export default class UmbAuthElement extends UmbLitElement {
    */
   protected flow?: 'mfa' | 'reset-password' | 'invite-user';
 
-  _form?: HTMLFormElement;
-  _usernameLayoutItem?: UUIFormLayoutItemElement;
-  _passwordLayoutItem?: UUIFormLayoutItemElement;
-  _usernameInput?: UmbLoginInputElement;
-  _passwordInput?: UmbLoginInputElement;
-  _usernameLabel?: UUILabelElement;
-  _passwordLabel?: UUILabelElement;
-
   #authContext = new UmbAuthContext(this, UMB_AUTH_CONTEXT);
 
   constructor() {
@@ -135,71 +66,6 @@ export default class UmbAuthElement extends UmbLitElement {
 
     // Register the main package for Umbraco.Auth
     umbExtensionsRegistry.registerMany(extensions);
-  }
-
-  firstUpdated() {
-    setTimeout(() => {
-      requestAnimationFrame(() => {
-        this.#initializeForm();
-      });
-    }, 100);
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this._usernameLayoutItem?.remove();
-    this._passwordLayoutItem?.remove();
-    this._usernameLabel?.remove();
-    this._usernameInput?.remove();
-    this._passwordLabel?.remove();
-    this._passwordInput?.remove();
-  }
-
-  /**
-   * Creates the login form and adds it to the DOM in the default slot.
-   * This is done to avoid having to deal with the shadow DOM, which is not supported in Google Chrome for autocomplete/autofill.
-   *
-   * @see Track this intent-to-ship for Chrome https://groups.google.com/a/chromium.org/g/blink-dev/c/RY9leYMu5hI?pli=1
-   * @private
-   */
-  #initializeForm() {
-    const labelUsername = this.usernameIsEmail
-      ? this.localize.term('auth_email')
-      : this.localize.term('auth_username');
-    const labelPassword = this.localize.term('auth_password');
-    const requiredMessage = this.localize.term('auth_required');
-
-    this._usernameInput = createInput({
-      id: 'username-input',
-      type: 'text',
-      name: 'username',
-      autocomplete: 'username',
-      requiredMessage,
-      label: labelUsername,
-      inputmode: this.usernameIsEmail ? 'email' : '',
-    });
-    this._passwordInput = createInput({
-      id: 'password-input',
-      type: 'password',
-      name: 'password',
-      autocomplete: 'current-password',
-      requiredMessage,
-      label: labelPassword,
-      inputmode: '',
-    });
-    this._usernameLabel = createLabel({
-      forId: 'username-input',
-      localizeAlias: this.usernameIsEmail ? 'auth_email' : 'auth_username',
-      localizeFallback: this.usernameIsEmail ? 'Email' : 'Username',
-    });
-    this._passwordLabel = createLabel({forId: 'password-input', localizeAlias: 'auth_password', localizeFallback: 'Password'});
-
-    this._usernameLayoutItem = createFormLayoutItem(this._usernameLabel, this._usernameInput);
-    this._passwordLayoutItem = createFormLayoutItem(this._passwordLabel, this._passwordInput);
-
-    this._form = createForm([this._usernameLayoutItem, this._passwordLayoutItem]);
-
-    this.insertAdjacentElement('beforeend', this._form);
   }
 
   render() {
@@ -266,7 +132,6 @@ export default class UmbAuthElement extends UmbLitElement {
           <umb-login-page
             ?allow-password-reset=${this.allowPasswordReset}
             ?username-is-email=${this.usernameIsEmail}>
-            <slot></slot>
             <slot name="subheadline" slot="subheadline"></slot>
           </umb-login-page>`;
     }
