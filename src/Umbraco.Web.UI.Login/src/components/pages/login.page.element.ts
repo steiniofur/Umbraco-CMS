@@ -9,9 +9,6 @@ export default class UmbLoginPageElement extends UmbLitElement {
   @property({type: Boolean, attribute: 'username-is-email'})
   usernameIsEmail = false;
 
-  @queryAssignedElements({flatten: true})
-  protected slottedElements?: HTMLFormElement[];
-
   @property({type: Boolean, attribute: 'allow-password-reset'})
   allowPasswordReset = false;
 
@@ -26,8 +23,6 @@ export default class UmbLoginPageElement extends UmbLitElement {
 
   @state()
   supportPersistLogin = false;
-
-  #formElement?: HTMLFormElement;
 
   #authContext?: typeof UMB_AUTH_CONTEXT.TYPE;
 
@@ -47,7 +42,7 @@ export default class UmbLoginPageElement extends UmbLitElement {
     }
   }
 
-  #handleSubmit = async (e: SubmitEvent) => {
+  async #handleSubmit(e: SubmitEvent){
     e.preventDefault();
 
     if (!this.#authContext) return;
@@ -62,7 +57,6 @@ export default class UmbLoginPageElement extends UmbLitElement {
     const persist = formData.has('persist');
 
     if (!username || !password) {
-      this._loginError = this.localize.term('auth_userFailedLogin');
       this._loginState = 'failed';
       return;
     }
@@ -118,11 +112,9 @@ export default class UmbLoginPageElement extends UmbLitElement {
     ][new Date().getDay()];
   }
 
-  #onSubmitClick = () => {
-    this.#formElement?.requestSubmit();
-  };
-
   render() {
+    const usernameLabel = this.usernameIsEmail ? 'auth_email' : 'auth_username';
+    const usernameLabelFallback = this.usernameIsEmail ? 'Username' : 'E-mail';
     return html`
       <header id="header">
         <h1 id="greeting">
@@ -130,7 +122,37 @@ export default class UmbLoginPageElement extends UmbLitElement {
         </h1>
         <slot name="subheadline"></slot>
       </header>
-      <slot @slotchange=${this.#onSlotChanged}></slot>
+      <uui-form>
+        <form @submit=${this.#handleSubmit}>
+          <uui-form-layout-item>
+            <uui-label slot="label" for="username" required>
+              <umb-localize key=${usernameLabel}>${usernameLabelFallback}</umb-localize>
+            </uui-label>
+            <uui-input
+              required
+              type="text"
+              id="username"
+              name="username"
+              .label=${this.localize.term(usernameLabel)}
+              autocomplete="username"
+              .value=${this._loginHint}
+              ?readonly=${this._loginHint !== ''}
+              style="width:100%"
+              .requiredMessage=${this.localize.term('auth_required')}></uui-input>
+          </uui-form-layout-item>
+          <uui-form-layout-item>
+            <uui-label slot="label" for="password" required>
+              <umb-localize key="auth_password">Password</umb-localize>
+            </uui-label>
+            <uui-input-password
+              required
+              id="password"
+              name="password"
+              autocomplete="current-password"
+              .label=${this.localize.term('auth_password')}
+              style="width:100%"
+              .requiredMessage=${this.localize.term('auth_required')}></uui-input-password>
+          </uui-form-layout-item>
       <div id="secondary-actions">
         ${when(
           this.supportPersistLogin,
@@ -156,10 +178,10 @@ export default class UmbLoginPageElement extends UmbLitElement {
         type="submit"
         id="umb-login-button"
         look="primary"
-        @click=${this.#onSubmitClick}
         .label=${this.localize.term('auth_login')}
-        color="default"
         .state=${this._loginState}></uui-button>
+        </form>
+      </uui-form>
 
       ${this.#renderErrorMessage()}
     `;
