@@ -1,4 +1,4 @@
-﻿// Copyright (c) Umbraco.
+// Copyright (c) Umbraco.
 // See LICENSE for more details.
 
 using System.Reflection;
@@ -10,8 +10,8 @@ namespace Umbraco.Cms.Core.PropertyEditors.ValueConverters;
 
 internal abstract class BlockPropertyValueCreatorBase<TBlockModel, TBlockItemModel, TBlockLayoutItem, TBlockConfiguration, TBlockValue>
     where TBlockModel : BlockModelCollection<TBlockItemModel>
-    where TBlockItemModel : class, IBlockReference<IPublishedElement, IPublishedElement>
-    where TBlockLayoutItem : class, IBlockLayoutItem, new()
+    where TBlockItemModel : IBlockReference<IPublishedElement, IPublishedElement>
+    where TBlockLayoutItem : IBlockLayoutItem
     where TBlockConfiguration : IBlockConfiguration
     where TBlockValue : BlockValue<TBlockLayoutItem>, new()
 {
@@ -169,14 +169,14 @@ internal abstract class BlockPropertyValueCreatorBase<TBlockModel, TBlockItemMod
             if (contentGuidUdi is null ||
                 !contentPublishedElements.TryGetValue(contentGuidUdi.Guid, out IPublishedElement? contentData))
             {
-                return null;
+                return default;
             }
 
             if (!blockConfigMap.TryGetValue(
                     contentData.ContentType.Key,
                     out TBlockConfiguration? blockConfig))
             {
-                return null;
+                return default;
             }
 
             // Get the setting reference
@@ -199,7 +199,7 @@ internal abstract class BlockPropertyValueCreatorBase<TBlockModel, TBlockItemMod
             var blockItem = blockItemActivator.CreateInstance(blockConfig.ContentElementTypeKey, blockConfig.SettingsElementTypeKey, contentGuidUdi, contentData, settingGuidUdi, settingsData);
             if (blockItem == null)
             {
-                return null;
+                return default;
             }
 
             if (enrichBlockItem != null)

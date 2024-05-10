@@ -8,7 +8,7 @@ namespace Umbraco.Cms.Core.PropertyEditors;
 
 internal class BlockEditorValidator<TValue, TLayout> : BlockEditorValidatorBase<TValue, TLayout>
     where TValue : BlockValue<TLayout>, new()
-    where TLayout : class, IBlockLayoutItem, new()
+    where TLayout : IBlockLayoutItem
 {
     private readonly BlockEditorValues<TValue, TLayout> _blockEditorValues;
 

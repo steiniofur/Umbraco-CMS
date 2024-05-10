@@ -234,16 +234,15 @@ public static class EnumerableExtensions
     }
 
     /// <summary>
-    ///     Filters a sequence of values to ignore those which are null.
+    /// Filters a sequence of values to not contain <c>null</c> values.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="coll">The coll.</param>
-    /// <returns></returns>
-    /// <remarks></remarks>
-    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> coll)
-        where T : class
-        =>
-        coll.Where(x => x != null)!;
+    /// <typeparam name="T">The type of the elements of source.</typeparam>
+    /// <param name="source">An <see cref="IEnumerable{T}" /> to filter.</param>
+    /// <returns>
+    /// An <see cref="IEnumerable{T}" /> that contains elements from the input sequence that are not <c>null</c>.
+    /// </returns>
+    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source)
+        => source.Where(x => x is not null)!;
 
     public static IEnumerable<TBase> ForAllThatAre<TBase, TActual>(
         this IEnumerable<TBase> sequence,

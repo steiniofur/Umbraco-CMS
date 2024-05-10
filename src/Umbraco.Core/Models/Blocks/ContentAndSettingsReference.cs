@@ -5,9 +5,9 @@ namespace Umbraco.Cms.Core.Models.Blocks;
 
 public struct ContentAndSettingsReference : IEquatable<ContentAndSettingsReference>
 {
-    public ContentAndSettingsReference(Udi? contentUdi, Udi? settingsUdi)
+    public ContentAndSettingsReference(Udi contentUdi, Udi? settingsUdi)
     {
-        ContentUdi = contentUdi ?? throw new ArgumentNullException(nameof(contentUdi));
+        ContentUdi = contentUdi;
         SettingsUdi = settingsUdi;
     }
 
@@ -15,21 +15,20 @@ public struct ContentAndSettingsReference : IEquatable<ContentAndSettingsReferen
 
     public Udi? SettingsUdi { get; }
 
-    public static bool operator ==(ContentAndSettingsReference left, ContentAndSettingsReference right) =>
-        left.Equals(right);
+    public static bool operator ==(ContentAndSettingsReference left, ContentAndSettingsReference right)
+        => left.Equals(right);
 
-    public override bool Equals(object? obj) => obj is ContentAndSettingsReference reference && Equals(reference);
+    public static bool operator !=(ContentAndSettingsReference left, ContentAndSettingsReference right)
+        => !(left == right);
 
-    public bool Equals(ContentAndSettingsReference other) => other != null
-                                                             && EqualityComparer<Udi>.Default.Equals(
-                                                                 ContentUdi,
-                                                                 other.ContentUdi)
-                                                             && EqualityComparer<Udi>.Default.Equals(
-                                                                 SettingsUdi,
-                                                                 other.SettingsUdi);
+    public override bool Equals(object? obj)
+        => obj is ContentAndSettingsReference reference &&
+        Equals(reference);
 
-    public override int GetHashCode() => (ContentUdi, SettingsUdi).GetHashCode();
+    public bool Equals(ContentAndSettingsReference other)
+        => EqualityComparer<Udi>.Default.Equals(ContentUdi, other.ContentUdi) &&
+        EqualityComparer<Udi>.Default.Equals(SettingsUdi, other.SettingsUdi);
 
-    public static bool operator !=(ContentAndSettingsReference left, ContentAndSettingsReference right) =>
-        !(left == right);
+    public override int GetHashCode()
+        => (ContentUdi, SettingsUdi).GetHashCode();
 }

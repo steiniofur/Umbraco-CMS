@@ -12,7 +12,7 @@ namespace Umbraco.Cms.Core.PropertyEditors;
 
 internal abstract class BlockValuePropertyValueEditorBase<TValue, TLayout> : DataValueEditor, IDataValueReference, IDataValueTags
     where TValue : BlockValue<TLayout>, new()
-    where TLayout : class, IBlockLayoutItem, new()
+    where TLayout : IBlockLayoutItem
 {
     private readonly IDataTypeConfigurationCache _dataTypeConfigurationCache;
     private readonly PropertyEditorCollection _propertyEditors;

@@ -7,12 +7,10 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 namespace Umbraco.Cms.Core.Models.Blocks;
 
 public abstract class BlockModelCollection<T> : ReadOnlyCollection<T>
-    where T : class, IBlockReference<IPublishedElement, IPublishedElement>
+    where T : IBlockReference<IPublishedElement, IPublishedElement>
 {
     protected BlockModelCollection(IList<T> list) : base(list)
-    {
-    }
-
+    { }
 
     /// <summary>
     ///     Gets the <see cref="BlockListItem" /> with the specified content key.
@@ -38,5 +36,5 @@ public abstract class BlockModelCollection<T> : ReadOnlyCollection<T>
     /// </returns>
     public T? this[Udi contentUdi] => contentUdi is GuidUdi guidUdi
         ? this.FirstOrDefault(x => x.Content.Key == guidUdi.Guid)
-        : null;
+        : default;
 }

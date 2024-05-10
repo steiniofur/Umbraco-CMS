@@ -1,6 +1,8 @@
 // Copyright (c) Umbraco.
 // See LICENSE for more details.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Umbraco.Cms.Core.Models.Blocks;
 
 /// <summary>
@@ -8,7 +10,7 @@ namespace Umbraco.Cms.Core.Models.Blocks;
 /// </summary>
 public class BlockGridLayoutItem : IBlockLayoutItem
 {
-    public Udi? ContentUdi { get; set; }
+    public required Udi ContentUdi { get; set; }
 
     public Udi? SettingsUdi { get; set; }
 
@@ -16,14 +18,16 @@ public class BlockGridLayoutItem : IBlockLayoutItem
 
     public int? RowSpan { get; set; }
 
-    public BlockGridLayoutAreaItem[] Areas { get; set; } = Array.Empty<BlockGridLayoutAreaItem>();
+    public BlockGridLayoutAreaItem[] Areas { get; set; } = [];
 
     public BlockGridLayoutItem()
     { }
 
+    [SetsRequiredMembers]
     public BlockGridLayoutItem(Udi contentUdi)
         => ContentUdi = contentUdi;
 
+    [SetsRequiredMembers]
     public BlockGridLayoutItem(Udi contentUdi, Udi settingsUdi)
         : this(contentUdi)
         => SettingsUdi = settingsUdi;

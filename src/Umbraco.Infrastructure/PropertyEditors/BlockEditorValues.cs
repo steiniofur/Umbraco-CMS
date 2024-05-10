@@ -14,7 +14,7 @@ namespace Umbraco.Cms.Core.PropertyEditors;
 /// </summary>
 internal class BlockEditorValues<TValue, TLayout>
     where TValue : BlockValue<TLayout>, new()
-    where TLayout : class, IBlockLayoutItem, new()
+    where TLayout : IBlockLayoutItem
 {
     private readonly IContentTypeService _contentTypeService;
     private readonly BlockEditorDataConverter<TValue, TLayout> _dataConverter;

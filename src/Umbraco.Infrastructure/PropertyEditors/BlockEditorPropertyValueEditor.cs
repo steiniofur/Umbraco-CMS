@@ -15,7 +15,7 @@ namespace Umbraco.Cms.Core.PropertyEditors;
 
 internal abstract class BlockEditorPropertyValueEditor<TValue, TLayout> : BlockValuePropertyValueEditorBase<TValue, TLayout>
     where TValue : BlockValue<TLayout>, new()
-    where TLayout : class, IBlockLayoutItem, new()
+    where TLayout : IBlockLayoutItem
 {
     private readonly IJsonSerializer _jsonSerializer;
     private BlockEditorValues<TValue, TLayout>? _blockEditorValues;

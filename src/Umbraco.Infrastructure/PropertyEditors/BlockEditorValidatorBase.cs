@@ -1,4 +1,4 @@
-﻿using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
@@ -7,7 +7,7 @@ namespace Umbraco.Cms.Core.PropertyEditors;
 
 internal abstract class BlockEditorValidatorBase<TValue, TLayout> : ComplexEditorValidator
     where TValue : BlockValue<TLayout>, new()
-    where TLayout : class, IBlockLayoutItem, new()
+    where TLayout : IBlockLayoutItem
 {
     private readonly IContentTypeService _contentTypeService;
 
