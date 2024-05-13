@@ -22,7 +22,7 @@ public class ContentVersionDto
     [Index(IndexTypes.NonClustered, Name = "IX_" + TableName + "_NodeId", ForColumns = "nodeId,current", IncludeColumns = "id,versionDate,text,userId,preventCleanup")]
     public int NodeId { get; set; }
 
-    [Column("versionDate")] // TODO: db rename to 'updateDate'
+    [Column("versionDate", ForceToUtc = false)] // TODO: db rename to 'updateDate'
     [Constraint(Default = SystemMethods.CurrentDateTime)]
     public DateTime VersionDate { get; set; }
 
@@ -39,7 +39,7 @@ public class ContentVersionDto
     // there is nothing in the DB that guarantees that there will be one, and exactly one, current version per content item.
     // that would require circular FKs that are impossible (well, it is possible to create them, but not to insert).
     // we could use a content.currentVersionId FK that would need to be nullable, or (better?) an additional table
-    // linking a content itemt to its current version (nodeId, versionId) - that would guarantee uniqueness BUT it would
+    // linking a content item to its current version (nodeId, versionId) - that would guarantee uniqueness BUT it would
     // not guarantee existence - so, really... we are trusting our code to manage 'current' correctly.
     [Column("text")]
     [NullSetting(NullSetting = NullSettings.Null)]

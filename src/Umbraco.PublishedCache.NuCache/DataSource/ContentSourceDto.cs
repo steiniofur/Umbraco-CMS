@@ -1,3 +1,4 @@
+using NPoco;
 using Umbraco.Cms.Core.Models;
 
 namespace Umbraco.Cms.Infrastructure.PublishedCache.DataSource
@@ -23,6 +24,7 @@ namespace Umbraco.Cms.Infrastructure.PublishedCache.DataSource
 
         public bool Edited { get; set; }
 
+        [Column(ForceToUtc = false)]
         public DateTime CreateDate { get; set; }
 
         public int CreatorId { get; set; }
@@ -32,6 +34,7 @@ namespace Umbraco.Cms.Infrastructure.PublishedCache.DataSource
 
         public string? EditName { get; set; }
 
+        [Column(ForceToUtc = false)]
         public DateTime EditVersionDate { get; set; }
 
         public int EditWriterId { get; set; }
@@ -47,6 +50,7 @@ namespace Umbraco.Cms.Infrastructure.PublishedCache.DataSource
 
         public string? PubName { get; set; }
 
+        [Column(ForceToUtc = false)]
         public DateTime PubVersionDate { get; set; }
 
         public int PubWriterId { get; set; }
