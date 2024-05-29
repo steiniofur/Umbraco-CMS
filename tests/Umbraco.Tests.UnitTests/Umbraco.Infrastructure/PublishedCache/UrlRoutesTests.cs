@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Infrastructure.PublishedCache;
+using Umbraco.Cms.Tests.Common.Builders;
+using Umbraco.Cms.Tests.Common.Builders.Extensions;
 using Umbraco.Cms.Tests.Common.Published;
 using Umbraco.Cms.Tests.UnitTests.TestHelpers;
 
@@ -12,58 +15,6 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Infrastructure.PublishedCache;
 // the quirks due to hideTopLevelFromPath and backward compatibility.
 public class UrlRoutesTests : PublishedSnapshotServiceTestBase
 {
-    private static string GetXmlContent(int templateId)
-        => @"<?xml version=""1.0"" encoding=""utf-8""?>
-<!DOCTYPE root[
-<!ELEMENT Doc ANY>
-<!ATTLIST Doc id ID #REQUIRED>
-]>
-<root id=""-1"">
-    <Doc id=""1000"" parentID=""-1"" level=""1"" path=""-1,1000"" nodeName=""A"" urlName=""a"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-06-12T14:13:17"" updateDate=""2012-07-20T18:50:43"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-        <Doc id=""1001"" parentID=""1000"" level=""2"" path=""-1,1000,1001"" nodeName=""B"" urlName=""b"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-07-20T18:06:45"" updateDate=""2012-07-20T19:07:31"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-            <Doc id=""1002"" parentID=""1001"" level=""3"" path=""-1,1000,1001,1002"" nodeName=""C"" urlName=""c"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-07-20T18:06:45"" updateDate=""2012-07-20T19:07:31"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-                <Doc id=""1003"" parentID=""1002"" level=""4"" path=""-1,1000,1001,1002,1003"" nodeName=""D"" urlName=""d"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-07-20T18:06:45"" updateDate=""2012-07-20T19:07:31"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-                </Doc>
-            </Doc>
-        </Doc>
-    </Doc>
-    <Doc id=""2000"" parentID=""-1"" level=""1"" path=""-1,2000"" nodeName=""X"" urlName=""x"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-06-12T14:13:17"" updateDate=""2012-07-20T18:50:43"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-        <Doc id=""2001"" parentID=""2000"" level=""2"" path=""-1,2000,2001"" nodeName=""Y"" urlName=""y"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-06-12T14:13:17"" updateDate=""2012-07-20T18:50:43"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-            <Doc id=""2002"" parentID=""2001"" level=""3"" path=""-1,2000,2001,2002"" nodeName=""Z"" urlName=""z"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-06-12T14:13:17"" updateDate=""2012-07-20T18:50:43"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-            </Doc>
-        </Doc>
-        <Doc id=""2003"" parentID=""2000"" level=""2"" path=""-1,2000,2003"" nodeName=""A"" urlName=""a"" sortOrder=""2"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-06-12T14:13:17"" updateDate=""2012-07-20T18:50:43"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-        </Doc>
-        <Doc id=""2004"" parentID=""2000"" level=""2"" path=""-1,2000,2004"" nodeName=""B"" urlName=""b"" sortOrder=""3"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-06-12T14:13:17"" updateDate=""2012-07-20T18:50:43"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-            <Doc id=""2005"" parentID=""2004"" level=""3"" path=""-1,2000,2004,2005"" nodeName=""C"" urlName=""c"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-06-12T14:13:17"" updateDate=""2012-07-20T18:50:43"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-            </Doc>
-            <Doc id=""2006"" parentID=""2004"" level=""3"" path=""-1,2000,2004,2006"" nodeName=""E"" urlName=""e"" sortOrder=""1"" writerID=""0"" creatorID=""0"" nodeType=""1044"" template=""" +
-           templateId +
-           @""" createDate=""2012-06-12T14:13:17"" updateDate=""2012-07-20T18:50:43"" writerName=""admin"" creatorName=""admin"" isDoc="""">
-            </Doc>
-        </Doc>
-    </Doc>
-</root>";
 
     /*
      * Just so it's documented somewhere, as of jan. 2017, routes obey the following pseudo-code:
@@ -200,15 +151,8 @@ return route
     {
         GlobalSettings.HideTopLevelNodeFromPath = hide;
 
-        var xml = GetXmlContent(1234);
-
-        IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
-            xml,
-            TestHelper.ShortStringHelper,
-            out var contentTypes,
-            out var dataTypes).ToList();
-
-        InitializedCache(kits, contentTypes, dataTypes);
+        // InitializedCache(kits, contentTypes, dataTypes);
+        InitializeCacheWithPsuedoCodeStructure();
 
         var cache = GetPublishedSnapshot().Content;
 
@@ -231,15 +175,16 @@ return route
     {
         GlobalSettings.HideTopLevelNodeFromPath = hide;
 
-        var xml = GetXmlContent(1234);
-
-        IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
-            xml,
-            TestHelper.ShortStringHelper,
-            out var contentTypes,
-            out var dataTypes).ToList();
-
-        InitializedCache(kits, contentTypes, dataTypes);
+        // var xml = GetXmlContent(1234);
+        //
+        // IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
+        //     xml,
+        //     TestHelper.ShortStringHelper,
+        //     out var contentTypes,
+        //     out var dataTypes).ToList();
+        //
+        // InitializedCache(kits, contentTypes, dataTypes);
+        InitializeCacheWithPsuedoCodeStructure();
 
         var cache = GetPublishedSnapshot().Content;
 
@@ -252,15 +197,16 @@ return route
     {
         GlobalSettings.HideTopLevelNodeFromPath = false;
 
-        var xml = GetXmlContent(1234);
-
-        IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
-            xml,
-            TestHelper.ShortStringHelper,
-            out var contentTypes,
-            out var dataTypes).ToList();
-
-        InitializedCache(kits, contentTypes, dataTypes);
+        // var xml = GetXmlContent(1234);
+        //
+        // IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
+        //     xml,
+        //     TestHelper.ShortStringHelper,
+        //     out var contentTypes,
+        //     out var dataTypes).ToList();
+        //
+        // InitializedCache(kits, contentTypes, dataTypes);
+        InitializeCacheWithPsuedoCodeStructure();
 
         var cache = GetPublishedSnapshot().Content;
 
@@ -278,15 +224,16 @@ return route
     {
         GlobalSettings.HideTopLevelNodeFromPath = hide;
 
-        var xml = GetXmlContent(1234);
-
-        IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
-            xml,
-            TestHelper.ShortStringHelper,
-            out var contentTypes,
-            out var dataTypes).ToList();
-
-        InitializedCache(kits, contentTypes, dataTypes);
+        // var xml = GetXmlContent(1234);
+        //
+        // IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
+        //     xml,
+        //     TestHelper.ShortStringHelper,
+        //     out var contentTypes,
+        //     out var dataTypes).ToList();
+        //
+        // InitializedCache(kits, contentTypes, dataTypes);
+        InitializeCacheWithPsuedoCodeStructure();
 
         var cache = GetPublishedSnapshot().Content;
 
@@ -316,15 +263,16 @@ return route
     {
         GlobalSettings.HideTopLevelNodeFromPath = hide;
 
-        var xml = GetXmlContent(1234);
-
-        IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
-            xml,
-            TestHelper.ShortStringHelper,
-            out var contentTypes,
-            out var dataTypes).ToList();
-
-        InitializedCache(kits, contentTypes, dataTypes);
+        // var xml = GetXmlContent(1234);
+        //
+        // IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
+        //     xml,
+        //     TestHelper.ShortStringHelper,
+        //     out var contentTypes,
+        //     out var dataTypes).ToList();
+        //
+        // InitializedCache(kits, contentTypes, dataTypes);
+        InitializeCacheWithPsuedoCodeStructure();
 
         var cache = GetPublishedSnapshot().Content;
 
@@ -346,20 +294,142 @@ return route
     {
         GlobalSettings.HideTopLevelNodeFromPath = false;
 
-        var xml = GetXmlContent(1234);
-
-        IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
-            xml,
-            TestHelper.ShortStringHelper,
-            out var contentTypes,
-            out var dataTypes).ToList();
-
-        InitializedCache(kits, contentTypes, dataTypes);
+        // var xml = GetXmlContent(1234);
+        //
+        // IEnumerable<ContentNodeKit> kits = PublishedContentXmlAdapter.GetContentNodeKits(
+        //     xml,
+        //     TestHelper.ShortStringHelper,
+        //     out var contentTypes,
+        //     out var dataTypes).ToList();
+        //
+        // InitializedCache(kits, contentTypes, dataTypes);
+        InitializeCacheWithPsuedoCodeStructure();
 
         var cache = GetPublishedSnapshot().Content;
 
         var content = cache.GetByRoute(false, "/a/b/c");
         Assert.IsNotNull(content);
         Assert.AreEqual(1002, content.Id);
+    }
+
+    private void InitializeCacheWithPsuedoCodeStructure()
+    {
+        var dataTypes = GetDefaultDataTypes().Select(dt => dt as IDataType).ToArray();
+        var propertyDataTypes = new Dictionary<string, IDataType>
+        {
+            // we only have one data type for this test which will be resolved with string empty.
+            [string.Empty] = dataTypes[0],
+        };
+
+        var contentType = new ContentType(ShortStringHelper, -1)
+        {
+            Alias = "doc",
+            Name = "Doc"
+        };
+
+        var aData = new ContentDataBuilder()
+            .WithName("A")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var bData = new ContentDataBuilder()
+            .WithName("B")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var cData = new ContentDataBuilder()
+            .WithName("C")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var dData = new ContentDataBuilder()
+            .WithName("D")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var xData = new ContentDataBuilder()
+            .WithName("X")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var yData = new ContentDataBuilder()
+            .WithName("Y")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var zData = new ContentDataBuilder()
+            .WithName("Z")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var a2Data = new ContentDataBuilder()
+            .WithName("A")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var b2Data = new ContentDataBuilder()
+            .WithName("B")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var c2Data = new ContentDataBuilder()
+            .WithName("C")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+        var eData = new ContentDataBuilder()
+            .WithName("E")
+            .Build(ShortStringHelper, propertyDataTypes, contentType, contentType.Alias);
+
+        var contentKits = new List<ContentNodeKit>
+        {
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                1000,
+                "-1,1000",
+                draftData: aData,
+                publishedData: aData),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                1001,
+                "-1,1000,1001",
+                draftData: bData,
+                publishedData: bData),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                1002,
+                "-1,1000,1001,1002",
+                draftData: cData,
+                publishedData: cData),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                1003,
+                "-1,1000,1001,1002,1003",
+                draftData: dData,
+                publishedData: dData),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                2000,
+                "-1,2000",
+                draftData: xData,
+                publishedData: xData),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                2001,
+                "-1,2000,2001",
+                draftData: yData,
+                publishedData: yData),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                2002,
+                "-1,2000,2001,2002",
+                draftData: zData,
+                publishedData: zData),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                2003,
+                "-1,2000,2003",
+                draftData: a2Data,
+                publishedData: a2Data),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                2004,
+                "-1,2000,2004",
+                draftData: b2Data,
+                publishedData: b2Data),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                2005,
+                "-1,2000,2004,2005",
+                draftData: c2Data,
+                publishedData: c2Data),
+            ContentNodeKitBuilder.CreateWithContent(
+                contentType.Id,
+                2006,
+                "-1,2000,2004,2006",
+                draftData: eData,
+                publishedData: eData)
+        };
+        InitializedCache(contentKits, [contentType], dataTypes);
     }
 }
