@@ -68,7 +68,7 @@ for (const dataTypeName of dataTypeNames) {
       // Arrange
       const customDataTypeName = 'CustomDatePicker';
       const customDateFormat = dataTypeName === 'Date Picker' ? 'DD-MM-YYYY' : "DD-MM-YYYY hh:mm:ss";
-      const expectedCustomDate = dataTypeName === 'Date Picker' ? '24-12-2024' : '24-12-2024 10:00:59';
+      const expectedCustomDate = dataTypeName === 'Date Picker' ? '2024-12-24' : '2024-12-24 10:00:59';
       const customDataTypeId = await umbracoApi.dataType.createDatePickerDataType(customDataTypeName, customDateFormat);
       await umbracoApi.documentType.createDocumentTypeWithPropertyEditor(documentTypeName, customDataTypeName, customDataTypeId);
       await umbracoUi.content.goToSection(ConstantHelper.sections.content);
