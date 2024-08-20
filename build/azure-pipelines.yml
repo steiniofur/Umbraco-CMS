@@ -519,6 +519,7 @@ stages:
           # Test
           - ${{ if eq(parameters.isNightly, true) }}:
               pwsh: npm run test --ignore-certificate-errors
+              cancelTimeoutInMinutes: 120
             ${{ else }}:
               pwsh: npm run smokeTest --ignore-certificate-errors
             displayName: Run Playwright tests
