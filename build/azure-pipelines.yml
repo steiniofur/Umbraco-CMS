@@ -423,6 +423,7 @@ stages:
     jobs:
       # E2E Tests
       - job:
+        timeoutInMinutes: 120
         displayName: E2E Tests (SQLite)
         variables:
           # Connection string
@@ -519,7 +520,7 @@ stages:
           # Test
           - ${{ if eq(parameters.isNightly, true) }}:
               pwsh: npm run test --ignore-certificate-errors
-              cancelTimeoutInMinutes: 120
+              timeoutInMinutes: 120
             ${{ else }}:
               pwsh: npm run smokeTest --ignore-certificate-errors
             displayName: Run Playwright tests
@@ -557,6 +558,7 @@ stages:
 
       - job:
         displayName: E2E Tests (SQL Server)
+        timeoutInMinutes: 120
         # condition: or(eq(stageDependencies.Build.A.outputs['build.NBGV_PublicRelease'], 'True'), ${{parameters.sqlServerAcceptanceTests}}) # Outcommented due to timeouts
         condition: eq(${{parameters.sqlServerAcceptanceTests}}, True)
         variables:
@@ -663,6 +665,7 @@ stages:
           # Test
           - ${{ if eq(parameters.isNightly, true) }}:
               pwsh: npm run test --ignore-certificate-errors
+              timeoutInMinutes: 120
             ${{ else }}:
               pwsh: npm run smokeTest --ignore-certificate-errors
             displayName: Run Playwright tests
