@@ -32,7 +32,7 @@ public static partial class Constants
 
         public static class DataTypes
         {
-            public const string ListViewPrefix = "List View - ";
+            public const string ListViewPrefix = "Collection - ";
         }
 
         /// <summary>

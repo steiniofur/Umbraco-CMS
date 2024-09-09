@@ -651,7 +651,7 @@ internal class DatabaseDataCreator
                 UniqueId = Constants.DataTypes.Guids.ListViewContentGuid,
                 Text = Constants.Conventions.DataTypes.ListViewPrefix + "Content",
                 NodeObjectType = Constants.ObjectTypes.DataType,
-                CreateDate = DateTime.Now,
+                CreateDate = DateTime.Now
             },
             Constants.DatabaseSchema.Tables.Node,
             "id");
@@ -727,7 +727,7 @@ internal class DatabaseDataCreator
                 Path = "-1,1046",
                 SortOrder = 2,
                 UniqueId = Constants.DataTypes.Guids.ContentPickerGuid,
-                Text = "Content Picker",
+                Text = "Document Picker",
                 NodeObjectType = Constants.ObjectTypes.DataType,
                 CreateDate = DateTime.Now,
             },
