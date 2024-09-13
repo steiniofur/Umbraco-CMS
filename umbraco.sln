@@ -190,7 +190,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.Cms.Api.Management"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.PublishedCache.HybridCache", "src\Umbraco.PublishedCache.HybridCache\Umbraco.PublishedCache.HybridCache.csproj", "{CB0B9817-EDBC-4D6D-B4D2-969019C4606D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.CMS.ModelsBuilder.InMemoryAuto", "src\Umbraco.CMS.ModelsBuilder.InMemoryAuto\Umbraco.CMS.ModelsBuilder.InMemoryAuto.csproj", "{81278CDD-8145-4A18-AC5E-E1EF3AB1DAF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.Cms.ModelsBuilder.InMemoryAuto", "src\Umbraco.Cms.ModelsBuilder.InMemoryAuto\Umbraco.Cms.ModelsBuilder.InMemoryAuto.csproj", "{81278CDD-8145-4A18-AC5E-E1EF3AB1DAF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

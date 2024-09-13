@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Title>Umbraco CMS - ModelsBuilder - InMemoryAuto</Title>
     <Description>Adds in memory moedels generation.</Description>
+    <RootNamespace>Umbraco.CMS.ModelsBuilder.InMemoryAuto</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
