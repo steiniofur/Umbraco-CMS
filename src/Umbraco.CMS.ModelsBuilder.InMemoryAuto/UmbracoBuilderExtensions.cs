@@ -7,8 +7,6 @@ using Umbraco.Extensions;
 
 namespace Umbraco.CMS.ModelsBuilder.InMemoryAuto;
 
-
-
 public static class UmbracoBuilderExtensions
 {
     public static IUmbracoBuilder AddInMemoryModelsRazorEngine(this IUmbracoBuilder builder)
@@ -26,6 +24,10 @@ public static class UmbracoBuilderExtensions
             builder.Services.AddSingleton<InMemoryModelFactory>();
             // Register the factory as IPublishedModelFactory
             builder.Services.AddSingleton<IPublishedModelFactory, InMemoryModelFactory>();
+
+            builder.RuntimeModeValidators()
+                .Add<InMemoryModelsBuilderModeValidator>();
+
             return builder;
         }
 
