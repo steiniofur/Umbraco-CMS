@@ -1,13 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Infrastructure.ModelsBuilder;
 using Umbraco.Cms.Infrastructure.ModelsBuilder.Building;
-using Umbraco.Extensions;
 
 namespace Umbraco.Cms.Api.Management.Controllers.ModelsBuilder;
 
@@ -38,7 +36,7 @@ public class BuildModelsBuilderController : ModelsBuilderControllerBase
     {
         try
         {
-            if (!_modelsBuilderSettings.ModelsMode.SupportsExplicitGeneration())
+            if ((_modelsBuilderSettings.ModelsMode is Constants.ModelsBuilder.ModelsModes.SourceCodeManual or Constants.ModelsBuilder.ModelsModes.SourceCodeAuto) is false)
             {
                 var problemDetailsModel = new ProblemDetails
                 {

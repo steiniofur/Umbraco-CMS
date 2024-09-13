@@ -22,7 +22,7 @@ public class ModelsBuilderSettings
     ///     Gets or sets a value for the models mode.
     /// </summary>
     [DefaultValue(StaticModelsMode)]
-    public ModelsMode ModelsMode { get; set; } = Enum.Parse<ModelsMode>(StaticModelsMode);
+    public string ModelsMode { get; set; } = StaticModelsMode;
 
     /// <summary>
     ///     Gets or sets a value for models namespace.
@@ -44,7 +44,7 @@ public class ModelsBuilderSettings
         get
         {
             // This is only relevant for SourceCodeManual, models are always up-to-date when auto generated.
-            if (ModelsMode != ModelsMode.SourceCodeManual)
+            if (ModelsMode != Constants.ModelsBuilder.ModelsModes.SourceCodeManual)
             {
                 return false;
 

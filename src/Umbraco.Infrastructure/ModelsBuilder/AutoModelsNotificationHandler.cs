@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Events;
@@ -48,7 +49,7 @@ public sealed class AutoModelsNotificationHandler : INotificationHandler<Umbraco
     }
 
     // we do not manage InMemory models here
-    internal bool IsEnabled => _config.ModelsMode == ModelsMode.SourceCodeAuto;
+    internal bool IsEnabled => _config.ModelsMode == Constants.ModelsBuilder.ModelsModes.SourceCodeAuto;
 
     public void Handle(ContentTypeCacheRefresherNotification notification) => RequestModelsGeneration();
 

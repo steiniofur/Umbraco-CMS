@@ -21,7 +21,7 @@ public class InMemoryModelsBuilderModeValidator : IRuntimeModeValidator
     public bool Validate(RuntimeMode runtimeMode, [NotNullWhen(false)] out string? validationErrorMessage)
     {
         if (runtimeMode != RuntimeMode.BackofficeDevelopment &&
-            _modelsBuilderSettings.CurrentValue.ModelsMode == ModelsMode.InMemoryAuto)
+            _modelsBuilderSettings.CurrentValue.ModelsMode == ModelsModeConstants.InMemoryAuto)
         {
             validationErrorMessage = "ModelsBuilder mode cannot be set to InMemoryAuto in development mode.";
             return false;

@@ -153,7 +153,14 @@ public abstract class Builder
         {
             foreach (PropertyModel xx in typeModel.Properties.Where(x => x.ClrName == typeModel.ClrName))
             {
-                if (Config.ModelsMode.SupportsExplicitGeneration())
+                if (Config.ModelsMode == Constants.ModelsBuilder.ModelsModes.SourceCodeManual
+                    || Config.ModelsMode == Constants.ModelsBuilder.ModelsModes.SourceCodeAuto)
+                {
+                    throw new InvalidOperationException(
+                        $"The model class for content type with alias \"{typeModel.Alias}\" is named \"{typeModel.ClrName}\"."
+                        + $" CSharp does not support using the same name for the property with alias \"{xx.Alias}\"."
+                        + " Consider using an attribute to assign a different name to the property.");
+                }
                 {
                     throw new InvalidOperationException(
                         $"The model class for content type with alias \"{typeModel.Alias}\" is named \"{xx.ClrName}\"."

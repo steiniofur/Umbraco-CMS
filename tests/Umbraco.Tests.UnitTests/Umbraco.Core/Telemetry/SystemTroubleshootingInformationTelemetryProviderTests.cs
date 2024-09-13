@@ -18,11 +18,11 @@ namespace Umbraco.Cms.Tests.UnitTests.Umbraco.Core.Telemetry;
 public class SystemTroubleshootingInformationTelemetryProviderTests
 {
     [Test]
-    [TestCase(ModelsMode.Nothing)]
-    [TestCase(ModelsMode.InMemoryAuto)]
-    [TestCase(ModelsMode.SourceCodeAuto)]
-    [TestCase(ModelsMode.SourceCodeManual)]
-    public void ReportsModelsModeCorrectly(ModelsMode modelsMode)
+    [TestCase(Constants.ModelsBuilder.ModelsModes.Nothing)]
+    [TestCase("InMemoryAuto")]
+    [TestCase(Constants.ModelsBuilder.ModelsModes.SourceCodeAuto)]
+    [TestCase(Constants.ModelsBuilder.ModelsModes.SourceCodeManual)]
+    public void ReportsModelsModeCorrectly(string modelsMode)
     {
         var telemetryProvider = CreateProvider(modelsMode);
         var usageInformation = telemetryProvider.GetInformation().ToArray();
@@ -93,7 +93,7 @@ public class SystemTroubleshootingInformationTelemetryProviderTests
     }
 
     private SystemTroubleshootingInformationTelemetryProvider CreateProvider(
-        ModelsMode modelsMode = ModelsMode.InMemoryAuto,
+        string modelsMode = "InMemoryAuto",
         bool isDebug = true,
         string environment = "",
         RuntimeMode runtimeMode = RuntimeMode.BackofficeDevelopment)

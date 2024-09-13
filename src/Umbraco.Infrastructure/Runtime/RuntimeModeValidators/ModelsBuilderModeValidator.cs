@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Configuration.Models;
 
@@ -23,9 +24,8 @@ public class ModelsBuilderModeValidator : IRuntimeModeValidator
     /// <inheritdoc />
     public bool Validate(RuntimeMode runtimeMode, [NotNullWhen(false)] out string? validationErrorMessage)
     {
-        ModelsMode modelsMode = _modelsBuilderSettings.CurrentValue.ModelsMode;
-
-        if (runtimeMode == RuntimeMode.Production && modelsMode != ModelsMode.Nothing)
+        if (runtimeMode == RuntimeMode.Production
+            && _modelsBuilderSettings.CurrentValue.ModelsMode != Constants.ModelsBuilder.ModelsModes.Nothing)
         {
             validationErrorMessage = "ModelsBuilder mode needs to be set to Nothing in production mode.";
             return false;

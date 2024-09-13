@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core;
-using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Hosting;
 using Umbraco.Cms.Core.Logging;
@@ -126,7 +125,7 @@ namespace Umbraco.CMS.ModelsBuilder.InMemoryAuto
         }
 
         /// <inheritdoc />
-        public bool Enabled => _config.ModelsMode == ModelsMode.InMemoryAuto;
+        public bool Enabled => _config.ModelsMode == ModelsModeConstants.InMemoryAuto;
 
         public IPublishedElement CreateModel(IPublishedElement element)
         {
