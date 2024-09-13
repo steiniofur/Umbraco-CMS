@@ -8,6 +8,7 @@
   <Import Project="..\Umbraco.Cms.Targets\buildTransitive\Umbraco.Cms.Targets.props" />
   <Import Project="..\Umbraco.Cms.Targets\buildTransitive\Umbraco.Cms.Targets.targets" />
   <ItemGroup>
+    <ProjectReference Include="..\Umbraco.CMS.ModelsBuilder.InMemoryAuto\Umbraco.CMS.ModelsBuilder.InMemoryAuto.csproj" />
     <ProjectReference Include="..\Umbraco.Cms\Umbraco.Cms.csproj" />
   </ItemGroup>
 

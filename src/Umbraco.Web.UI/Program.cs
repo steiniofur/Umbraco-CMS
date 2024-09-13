@@ -1,3 +1,5 @@
+using Umbraco.CMS.ModelsBuilder.InMemoryAuto;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.CreateUmbracoBuilder()
@@ -7,6 +9,7 @@ builder.CreateUmbracoBuilder()
     .AddDeliveryApi()
 #endif
     .AddComposers()
+    .AddInMemoryModels()
     .Build();
 
 WebApplication app = builder.Build();
