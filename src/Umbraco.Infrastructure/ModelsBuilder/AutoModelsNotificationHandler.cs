@@ -14,7 +14,7 @@ namespace Umbraco.Cms.Infrastructure.ModelsBuilder;
 ///     Notification handlers used by <see cref="ModelsMode.SourceCodeAuto" />.
 /// </summary>
 /// <remarks>
-///     supports <see cref="ModelsMode.SourceCodeAuto" /> mode but not <see cref="ModelsMode.InMemoryAuto" /> mode.
+///     supports <see cref="ModelsMode.SourceCodeAuto" />.
 /// </remarks>
 public sealed class AutoModelsNotificationHandler : INotificationHandler<UmbracoApplicationStartingNotification>,
     INotificationHandler<UmbracoRequestEndNotification>,
@@ -48,7 +48,7 @@ public sealed class AutoModelsNotificationHandler : INotificationHandler<Umbraco
     }
 
     // we do not manage InMemory models here
-    internal bool IsEnabled => _config.ModelsMode.IsAutoNotInMemory();
+    internal bool IsEnabled => _config.ModelsMode == ModelsMode.SourceCodeAuto;
 
     public void Handle(ContentTypeCacheRefresherNotification notification) => RequestModelsGeneration();
 
