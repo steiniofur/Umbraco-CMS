@@ -1,6 +1,6 @@
 using Umbraco.Cms.Core;
-using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Extensions;
 
 namespace Umbraco.Cms.Infrastructure.ModelsBuilder.Building;
 
@@ -122,8 +122,6 @@ public abstract class Builder
     {
         TypeModel.MapModelTypes(TypeModels, ModelsNamespace);
 
-        var isInMemoryMode = Config.ModelsMode == ModelsMode.InMemoryAuto;
-
         // for the first two of these two tests,
         //  always throw, even in InMemory mode: cannot happen unless ppl start fidling with attributes to rename
         //  things, and then they should pay attention to the generation error log - there's no magic here
@@ -155,7 +153,7 @@ public abstract class Builder
         {
             foreach (PropertyModel xx in typeModel.Properties.Where(x => x.ClrName == typeModel.ClrName))
             {
-                if (!isInMemoryMode)
+                if (Config.ModelsMode.SupportsExplicitGeneration())
                 {
                     throw new InvalidOperationException(
                         $"The model class for content type with alias \"{typeModel.Alias}\" is named \"{xx.ClrName}\"."
