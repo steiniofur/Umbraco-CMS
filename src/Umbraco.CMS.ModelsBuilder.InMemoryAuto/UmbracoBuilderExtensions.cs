@@ -9,7 +9,7 @@ namespace Umbraco.CMS.ModelsBuilder.InMemoryAuto;
 
 public static class UmbracoBuilderExtensions
 {
-    public static IUmbracoBuilder AddInMemoryModelsRazorEngine(this IUmbracoBuilder builder)
+    public static IUmbracoBuilder AddInMemoryModels(this IUmbracoBuilder builder)
     {
         // We should only add/replace these services when models builder is InMemory, otherwise we'll cause issues.
         // Since these services expect the ModelsMode to be InMemoryAuto
