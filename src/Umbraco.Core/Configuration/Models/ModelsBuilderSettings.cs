@@ -43,7 +43,8 @@ public class ModelsBuilderSettings
     {
         get
         {
-            if (ModelsMode == ModelsMode.Nothing ||ModelsMode.IsAuto())
+            // This is only relevant for SourceCodeManual, models are always up-to-date when auto generated.
+            if (ModelsMode != ModelsMode.SourceCodeManual)
             {
                 return false;
 

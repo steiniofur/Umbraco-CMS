@@ -10,6 +10,7 @@ public static class ModelsModeExtensions
     /// <summary>
     ///     Gets a value indicating whether the mode is *Auto.
     /// </summary>
+    [Obsolete("Check ModelsMode instead, scheduled for removal in v17")]
     public static bool IsAuto(this ModelsMode modelsMode)
         => modelsMode == ModelsMode.InMemoryAuto || modelsMode == ModelsMode.SourceCodeAuto;
 
