@@ -35,15 +35,7 @@ internal static class DocumentVariantStateHelper
 
         var isDraft = published is false ||
                       (culture != null && publishedCultures.Contains(culture) is false);
-        if (isDraft)
-        {
-            return DocumentVariantState.Draft;
-        }
 
-        var isEdited = culture != null
-            ? editedCultures.Contains(culture)
-            : edited;
-
-        return isEdited ? DocumentVariantState.PublishedPendingChanges : DocumentVariantState.Published;
+        return isDraft ? DocumentVariantState.Draft : DocumentVariantState.Published;
     }
 }

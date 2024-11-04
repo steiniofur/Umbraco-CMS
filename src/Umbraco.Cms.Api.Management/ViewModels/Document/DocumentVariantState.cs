@@ -23,5 +23,6 @@ public enum DocumentVariantState
     /// <summary>
     ///     The item is published and there are pending changes
     /// </summary>
+    [Obsolete("Scheduled for removal in v16")]
     PublishedPendingChanges = 4,
 }

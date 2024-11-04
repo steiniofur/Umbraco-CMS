@@ -14,7 +14,7 @@ public class DocumentVariantStateHelperTests
     [TestCase(false, false, DocumentVariantState.Draft)]
     [TestCase(false, true, DocumentVariantState.Published)]
     [TestCase(true, false, DocumentVariantState.Draft)]
-    [TestCase(true, true, DocumentVariantState.PublishedPendingChanges)]
+    [TestCase(true, true, DocumentVariantState.Published)]
     public void Culture_Invariant_Content_State(bool edited, bool published, DocumentVariantState expectedResult)
     {
         var content = Mock.Of<IContent>(c => c.Id == 1 && c.Published == published && c.Edited == edited);
@@ -34,7 +34,7 @@ public class DocumentVariantStateHelperTests
     [TestCase(false, false, DocumentVariantState.Draft)]
     [TestCase(false, true, DocumentVariantState.Published)]
     [TestCase(true, false, DocumentVariantState.Draft)]
-    [TestCase(true, true, DocumentVariantState.PublishedPendingChanges)]
+    [TestCase(true, true, DocumentVariantState.Published)]
     public void Culture_Variant_Content_Existing_Culture_State(bool edited, bool published, DocumentVariantState expectedResult)
     {
         const string culture = "en";
@@ -66,7 +66,7 @@ public class DocumentVariantStateHelperTests
     [TestCase(false, false, DocumentVariantState.Draft)]
     [TestCase(false, true, DocumentVariantState.Published)]
     [TestCase(true, false, DocumentVariantState.Draft)]
-    [TestCase(true, true, DocumentVariantState.PublishedPendingChanges)]
+    [TestCase(true, true, DocumentVariantState.Published)]
     public void Culture_Invariant_DocumentEntitySlim_State(bool edited, bool published, DocumentVariantState expectedResult)
     {
         var entity = Mock.Of<IDocumentEntitySlim>(c => c.Id == 1 && c.Published == published && c.Edited == edited && c.CultureNames == new Dictionary<string, string>());
@@ -86,7 +86,7 @@ public class DocumentVariantStateHelperTests
     [TestCase(false, false, DocumentVariantState.Draft)]
     [TestCase(false, true, DocumentVariantState.Published)]
     [TestCase(true, false, DocumentVariantState.Draft)]
-    [TestCase(true, true, DocumentVariantState.PublishedPendingChanges)]
+    [TestCase(true, true, DocumentVariantState.Published)]
     public void Culture_Variant_DocumentEntitySlim_Existing_Culture_State(bool edited, bool published, DocumentVariantState expectedResult)
     {
         const string culture = "en";
