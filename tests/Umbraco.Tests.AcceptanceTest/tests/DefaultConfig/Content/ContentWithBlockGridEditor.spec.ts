@@ -1,50 +1,88 @@
-import {ConstantHelper, test} from '@umbraco/playwright-testhelpers';
+import {ConstantHelper, NotificationConstantHelper, test} from '@umbraco/playwright-testhelpers';
 import {expect} from "@playwright/test";
 
 
-const documentName = 'TestContent';
-const documentTypeName = 'TestDocumentTypeForContent';
+const contentName = 'TestContent';
+const documentTypeName = 'TestDocumentType';
 const elementName = 'TestElement';
-const elementDataType = 'Textstring';
+const elementDataTypeName = 'Textstring';
 const blockGridName = 'TestBlockGridEditor';
+const propertyName = 'TextStringProperty'
+const propertyValue = 'This is a test';
 let textStringDataTypeId = '';
 let blockGridDataTypeId = '';
 let elementId = '';
 let documentTypeId = '';
-let documentId = '';
 
 test.beforeEach(async ({umbracoApi}) => {
   await umbracoApi.documentType.ensureNameNotExists(documentTypeName);
-  await umbracoApi.document.ensureNameNotExists(documentName);
+  await umbracoApi.document.ensureNameNotExists(contentName);
   await umbracoApi.dataType.ensureNameNotExists(blockGridName);
-
-  const textStringDataType = await umbracoApi.dataType.getByName(elementDataType);
+  const textStringDataType = await umbracoApi.dataType.getByName(elementDataTypeName);
   textStringDataTypeId = textStringDataType.id;
-  elementId = await umbracoApi.documentType.createDefaultElementType(elementName, 'testGroup', elementDataType, textStringDataTypeId);
-  blockGridDataTypeId = await umbracoApi.dataType.createBlockGridWithABlock(blockGridName, elementId);
+  elementId = await umbracoApi.documentType.createDefaultElementType(elementName, 'testGroup', propertyName, textStringDataTypeId);
 });
 
 test.afterEach(async ({umbracoApi}) => {
-  await umbracoApi.document.ensureNameNotExists(documentName);
+  await umbracoApi.document.ensureNameNotExists(contentName);
   await umbracoApi.documentType.ensureNameNotExists(documentTypeName);
   await umbracoApi.dataType.ensureNameNotExists(blockGridName);
 });
 
-test('can create content with block grid editor ', {tag: '@smoke'}, async ({page, umbracoApi, umbracoUi}) => {
+test('can create content with block grid editor', {tag: '@smoke'}, async ({umbracoApi, umbracoUi}) => {
   // Arrange
-  const expectedState = 'Draft';
-  documentTypeId = await umbracoApi.documentType.createDocumentTypeWithPropertyEditor(documentTypeName, blockGridName, blockGridDataTypeId);
-  documentId  = await umbracoApi.document.createDefaultDocument(documentName, documentTypeId);
+  blockGridDataTypeId = await umbracoApi.dataType.createBlockGridWithPermissions(blockGridName, elementId, true);
+  documentTypeId = await umbracoApi.documentType.createDocumentTypeWithPropertyEditor(documentTypeName, elementName, blockGridDataTypeId);
   await umbracoUi.goToBackOffice();
   await umbracoUi.content.goToSection(ConstantHelper.sections.content);
 
   // Act
-  await page.pause();
   await umbracoUi.content.clickActionsMenuAtRoot();
   await umbracoUi.content.clickCreateButton();
   await umbracoUi.content.chooseDocumentType(documentTypeName);
-  await umbracoUi.content.enterContentName(documentName);
+  await umbracoUi.content.enterContentName(contentName);
   await umbracoUi.content.clickSaveButton();
 
+  // Assert
+  await umbracoUi.content.isSuccessNotificationVisible();
+  expect(await umbracoApi.document.doesNameExist(contentName)).toBeTruthy();
 });
 
+test('can create content with block grid editor with a block', {tag: '@smoke'}, async ({umbracoApi, umbracoUi}) => {
+  // Arrange
+  blockGridDataTypeId = await umbracoApi.dataType.createBlockGridWithPermissions(blockGridName, elementId, true);
+  documentTypeId = await umbracoApi.documentType.createDocumentTypeWithPropertyEditor(documentTypeName, elementName, blockGridDataTypeId);
+  await umbracoApi.document.createDefaultDocument(contentName, documentTypeId);
+  await umbracoUi.goToBackOffice();
+  await umbracoUi.content.goToSection(ConstantHelper.sections.content);
+
+  // Act
+  await umbracoUi.content.goToContentWithName(contentName);
+  await umbracoUi.content.addBlockWithName(elementName);
+  await umbracoUi.content.clickExactLinkWithName(elementName);
+  await umbracoUi.content.enterTextForPropertyWithName(propertyName, propertyValue);
+  await umbracoUi.content.clickCreateButton();
+  await umbracoUi.content.clickSaveButton();
+
+  // Assert
+  await umbracoUi.content.doesSuccessNotificationHaveText(NotificationConstantHelper.success.saved);
+  expect(await umbracoApi.document.doesNameExist(contentName)).toBeTruthy();
+  // Checks if the block contains the correct value
+  await umbracoUi.reloadPage();
+  await umbracoUi.waitForTimeout(2000);
+  await umbracoUi.content.goToBlockWithName(elementName, true);
+  await umbracoUi.content.doesPropertyWithNameHaveText(propertyName, propertyValue);
+});
+
+//TODO: Missing builder for blockGrid in a document
+test.skip('can update content with block grid editor with a block', {tag: '@smoke'}, async ({umbracoApi, umbracoUi}) => {
+  // Arrange
+  blockGridDataTypeId = await umbracoApi.dataType.createBlockGridWithAllowAtRootAndInlineEditing(blockGridName, elementId, true, true);
+  documentTypeId = await umbracoApi.documentType.createDocumentTypeWithPropertyEditor(documentTypeName, elementName, blockGridDataTypeId);
+  await umbracoApi.document.createDefaultDocument(contentName, documentTypeId);
+  await umbracoUi.goToBackOffice();
+  await umbracoUi.content.goToSection(ConstantHelper.sections.content);
+
+  // Act
+  await umbracoUi.content.goToContentWithName(contentName);
+});
