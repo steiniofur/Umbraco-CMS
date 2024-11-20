@@ -191,7 +191,8 @@
 		"generate:tsconfig": "node ./devops/tsconfig/index.js",
 		"generate:manifest": "node ./devops/build/create-umbraco-package.js",
 		"package:validate": "node ./devops/package/validate-exports.js",
-		"generate:ui-api-docs": "typedoc --options typedoc.config.js"
+		"generate:ui-api-docs": "typedoc --options typedoc.config.js",
+		"generate:msw": "msw init"
 	},
 	"engines": {
 		"node": ">=20.9 <21",
@@ -290,7 +291,7 @@
 		"web-component-analyzer": "^2.0.0"
 	},
 	"msw": {
-		"workerDirectory": "public"
+		"workerDirectory": ["./", "./public"]
 	},
 	"publishConfig": {
 		"access": "public",
