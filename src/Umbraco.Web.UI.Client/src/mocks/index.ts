@@ -1,6 +1,7 @@
 const { setupWorker } = window.MockServiceWorker;
 import { handlers } from './browser-handlers.js';
-import type { MockedRequest, setupWorker as setupWorkType, rest, StartOptions } from 'msw';
+import type { setupWorker as setupWorkType, StartOptions } from 'msw/browser';
+import type { http } from 'msw';
 import { umbracoPath } from '@umbraco-cms/backoffice/utils';
 
 const worker = setupWorker(...handlers);
@@ -23,7 +24,7 @@ declare global {
 	interface Window {
 		MockServiceWorker: {
 			setupWorker: typeof setupWorkType;
-			rest: typeof rest;
+			http: typeof http;
 		};
 	}
 }
