@@ -32,9 +32,8 @@ public class CoreScope : ICoreScope
         _eventAggregator = eventAggregator;
         InstanceId = Guid.NewGuid();
         CreatedThreadId = Environment.CurrentManagedThreadId;
-        Locks = ParentScope is null
-            ? new LockingMechanism(distributedLockingMechanismFactory, loggerFactory.CreateLogger<LockingMechanism>())
-            : ResolveLockingMechanism();
+
+        Locks = new LockingMechanism(distributedLockingMechanismFactory, loggerFactory.CreateLogger<LockingMechanism>());
         _repositoryCacheMode = repositoryCacheMode;
         _shouldScopeFileSystems = shouldScopeFileSystems;
         _notificationPublisher = notificationPublisher;
@@ -73,7 +72,7 @@ public class CoreScope : ICoreScope
             return;
         }
 
-        Locks = parentScope.Locks;
+        Locks = new LockingMechanism(distributedLockingMechanismFactory, loggerFactory.CreateLogger<LockingMechanism>());
 
         // cannot specify a different mode!
         // TODO: means that it's OK to go from L2 to None for reading purposes, but writing would be BAD!

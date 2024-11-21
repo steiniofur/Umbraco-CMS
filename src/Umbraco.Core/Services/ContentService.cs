@@ -2362,13 +2362,13 @@ public class ContentService : RepositoryService, IContentService
                 return;
             }
 
+            scope.WriteLock(Constants.Locks.ContentTree);
             if (deletePriorVersions)
             {
-                IContent? content = GetVersion(versionId);
+                IContent? content = _documentRepository.GetVersion(versionId);
                 DeleteVersions(id, content?.UpdateDate ?? DateTime.Now, userId);
             }
 
-            scope.WriteLock(Constants.Locks.ContentTree);
             IContent? c = _documentRepository.Get(id);
 
             // don't delete the current or published version
