@@ -34,7 +34,7 @@ public static class UmbracoBuilderExtensions
             .Singleton<IDatabaseProviderMetadata, SqliteDatabaseProviderMetadata>());
 
         builder.Services.TryAddEnumerable(ServiceDescriptor
-            .Singleton<IDistributedLockingMechanism, SqliteDistributedLockingMechanism>());
+            .Singleton<IDistributedLockingMechanism, InProcessDistributedLockingMechanism>());
 
         builder.Services.TryAddEnumerable(ServiceDescriptor
             .Singleton<IProviderSpecificInterceptor, SqliteAddPreferDeferredInterceptor>());
