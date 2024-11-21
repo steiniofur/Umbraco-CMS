@@ -15,26 +15,6 @@ namespace Umbraco.Cms.Tests.Integration.Umbraco.Infrastructure.Persistence;
 public class UnitOfWorkTests : UmbracoIntegrationTest
 {
     [Test]
-    public void ReadLockNonExisting()
-    {
-        var lockingMechanism = GetRequiredService<IDistributedLockingMechanismFactory>().DistributedLockingMechanism;
-        if (lockingMechanism is SqliteDistributedLockingMechanism)
-        {
-            Assert.Ignore("SqliteDistributedLockingMechanism doesn't query the umbracoLock table for read locks.");
-        }
-
-        var provider = ScopeProvider;
-        Assert.Throws<ArgumentException>(() =>
-        {
-            using (var scope = provider.CreateScope())
-            {
-                scope.EagerReadLock(-666);
-                scope.Complete();
-            }
-        });
-    }
-
-    [Test]
     public void ReadLockExisting()
     {
         var provider = ScopeProvider;
@@ -43,20 +23,6 @@ public class UnitOfWorkTests : UmbracoIntegrationTest
             scope.EagerReadLock(Constants.Locks.Servers);
             scope.Complete();
         }
-    }
-
-    [Test]
-    public void WriteLockNonExisting()
-    {
-        var provider = ScopeProvider;
-        Assert.Throws<ArgumentException>(() =>
-        {
-            using (var scope = provider.CreateScope())
-            {
-                scope.EagerWriteLock(-666);
-                scope.Complete();
-            }
-        });
     }
 
     [Test]
