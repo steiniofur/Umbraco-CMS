@@ -1,15 +1,8 @@
-version: '3'
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        # [Choice] .NET version: 6.0, 3.1, 6.0-bullseye, 3.1-bullseye, 6.0-focal, 3.1-focal
-        VARIANT: 6.0-bullseye
-        # Options
-        NODE_VERSION: "lts/*"
 
     volumes:
       - ..:/workspace:cached
@@ -26,34 +19,37 @@ services:
     # DotNetCore ENV Variables
     # https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-5.0#environment-variables
     environment:
-    - ConnectionStrings__umbracoDbDSN=Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True
-    - ConnectionStrings__umbracoDbDSN_ProviderName=Microsoft.Data.Sqlite
-    - Umbraco__CMS__Unattended__InstallUnattended=true
-    - Umbraco__CMS__Unattended__UnattendedUserName=Admin
-    - Umbraco__CMS__Unattended__UnattendedUserEmail=test@umbraco.com
-    - Umbraco__CMS__Unattended__UnattendedUserPassword=password1234
-    - Umbraco__CMS__Global__Smtp__Host=smtp4dev
-    - Umbraco__CMS__Global__Smtp__Port=25
-    - Umbraco__CMS__Global__Smtp__From=noreply@umbraco.test
+      - ConnectionStrings__umbracoDbDSN=Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True
+      - ConnectionStrings__umbracoDbDSN_ProviderName=Microsoft.Data.Sqlite
+      - Umbraco__CMS__Unattended__InstallUnattended=true
+      - Umbraco__CMS__Unattended__UnattendedUserName=Admin
+      - Umbraco__CMS__Unattended__UnattendedUserEmail=test@umbraco.com
+      - Umbraco__CMS__Unattended__UnattendedUserPassword=password1234
+      - Umbraco__CMS__Global__Smtp__Host=smtp4dev
+      - Umbraco__CMS__Global__Smtp__Port=25
+      - Umbraco__CMS__Global__Smtp__From=noreply@umbraco.test
 
   smtp4dev:
     image: rnwood/smtp4dev:v3
     restart: always
     ports:
       # Change the number before : to the port the web interface should be accessible on
-      - '5000:80'
+      - "6000:80"
       # Change the number before : to the port the SMTP server should be accessible on
-      - '25:25'
+      - "25:25"
       # Change the number before : to the port the IMAP server should be accessible on
       # - '143:143'
     volumes:
       # This is where smtp4dev stores the database..
-        - smtp4dev-data:/smtp4dev
+      - smtp4dev-data:/smtp4dev
     environment:
       # Uncomment to customise these settings
 
       #Specifies the virtual path from web server root where SMTP4DEV web interface will be hosted. e.g. "/" or "/smtp4dev"
       #- ServerOptions__BasePath=/smtp4dev
+
+      #Specifies the URLs the web UI will use inside the container.
+      - ServerOptions__Urls=http://*:80
 
       #Specifies the server hostname. Used in auto-generated TLS certificate if enabled.
       - ServerOptions__HostName=smtp4dev
