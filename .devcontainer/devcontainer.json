@@ -4,11 +4,21 @@
   "name": "C# (.NET) Umbraco & SMTP4Dev",
 
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspace",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm",
 
-  // Features to add to the dev container. More info: https://containers.dev/features.
+  "containerEnv": {
+    "ConnectionStrings__umbracoDbDSN": "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True",
+    "ConnectionStrings__umbracoDbDSN_ProviderName": "Microsoft.Data.Sqlite",
+    "Umbraco__CMS__Security__BackOfficeHost": "https://127.0.0.1:44339",
+    "Umbraco__CMS__Unattended__InstallUnattended": "true",
+    "Umbraco__CMS__Unattended__UnattendedUserName": "Admin",
+    "Umbraco__CMS__Unattended__UnattendedUserEmail": "test@umbraco.com",
+    "Umbraco__CMS__Unattended__UnattendedUserPassword": "password1234",
+    "Umbraco__CMS__Global__Smtp__Host": "smtp4dev",
+    "Umbraco__CMS__Global__Smtp__Port": "25",
+    "Umbraco__CMS__Global__Smtp__From": "noreply@umbraco.test"
+  },
+
   "features": {
     // Adds SSH support to the container
     // Allowing the Github CLI `gh codespace ssh` to work
@@ -16,9 +26,23 @@
       "version": "latest"
     },
 
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts",
+      "pnpmVersion": "none",
+      "nvmVersion": "latest"
+    },
+
     // Adds SQLite feature from apt install
     // Also adds the SQLite VSCode extension
-    "ghcr.io/warrenbuckley/codespace-features/sqlite:1": {}
+    "ghcr.io/warrenbuckley/codespace-features/sqlite:1": {},
+
+    // Adds SMTP4Dev feature from apt install
+    "ghcr.io/warrenbuckley/codespace-features/smtp4dev:1": {
+      "autorun": true,
+      "webport": "5000",
+      "smtpport": "25",
+      "imapport": "143"
+    }
   },
 
   // This is used in the prebuilds - so dotnet build (nuget restore and node stuff) is done
