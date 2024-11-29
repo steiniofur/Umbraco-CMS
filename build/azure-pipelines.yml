@@ -99,7 +99,7 @@ stages:
               projects: $(solution)
               arguments: "--configuration $(buildConfiguration) --no-restore --property:ContinuousIntegrationBuild=true --property:GeneratePackageOnBuild=true --property:PackageOutputPath=$(Build.ArtifactStagingDirectory)/nupkg"
 
-          - script: |
+          - bash: |
               npmTag=latest
               if [ "$IS_PRERELEASE" = "True" ]; then
                 npmTag=prerelease
