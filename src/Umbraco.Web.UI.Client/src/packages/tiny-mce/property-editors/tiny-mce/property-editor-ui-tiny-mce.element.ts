@@ -12,13 +12,6 @@ export class UmbPropertyEditorUITinyMceElement extends UmbPropertyEditorUiRteEle
 	#onChange(event: CustomEvent & { target: UmbInputTinyMceElement }) {
 		const value = typeof event.target.value === 'string' ? event.target.value : '';
 
-		// If we don't get any markup clear the property editor value.
-		if (value === '') {
-			this.value = undefined;
-			this._fireChangeEvent();
-			return;
-		}
-
 		// Clone the DOM, to remove the classes and attributes on the original:
 		const div = document.createElement('div');
 		div.innerHTML = value;
@@ -43,26 +36,10 @@ export class UmbPropertyEditorUITinyMceElement extends UmbPropertyEditorUiRteEle
 		// Then get the content of the editor and update the value.
 		// maybe in this way doc.body.innerHTML;
 
-		this._latestMarkup = markup;
-
-		if (this.value) {
-			this.value = {
-				...this.value,
-				markup: this._latestMarkup,
-			};
-		} else {
-			this.value = {
-				markup: this._latestMarkup,
-				blocks: {
-					layout: {},
-					contentData: [],
-					settingsData: [],
-					expose: [],
-				},
-			};
+		if (markup !== this._latestMarkup) {
+			this._latestMarkup = markup;
+			this._handleValueUpdate();
 		}
-
-		this._fireChangeEvent();
 	}
 
 	override render() {

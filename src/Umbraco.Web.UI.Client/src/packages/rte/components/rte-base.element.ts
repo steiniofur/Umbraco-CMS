@@ -14,6 +14,7 @@ import {
 	type UmbBlockRteTypeModel,
 } from '@umbraco-cms/backoffice/block-rte';
 import { UMB_PROPERTY_CONTEXT, UMB_PROPERTY_DATASET_CONTEXT } from '@umbraco-cms/backoffice/property';
+import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
 import type { UmbBlockValueType } from '@umbraco-cms/backoffice/block';
 
 // eslint-disable-next-line local-rules/enforce-element-suffix-on-element-class-name
@@ -101,26 +102,6 @@ export abstract class UmbPropertyEditorUiRteElementBase extends UmbLitElement im
 		super();
 
 		this.consumeContext(UMB_PROPERTY_CONTEXT, (context) => {
-			// TODO: Implement validation translation for RTE Blocks:
-			/*
-			this.observe(
-				context.dataPath,
-				(dataPath) => {
-					// Translate paths for content/settings:
-					this.#contentDataPathTranslator?.destroy();
-					this.#settingsDataPathTranslator?.destroy();
-					if (dataPath) {
-						// Set the data path for the local validation context:
-						this.#validationContext.setDataPath(dataPath);
-
-						this.#contentDataPathTranslator = new UmbBlockElementDataValidationPathTranslator(this, 'contentData');
-						this.#settingsDataPathTranslator = new UmbBlockElementDataValidationPathTranslator(this, 'settingsData');
-					}
-				},
-				'observeDataPath',
-			);
-			*/
-
 			this.observe(
 				context?.alias,
 				(alias) => {
@@ -134,30 +115,29 @@ export abstract class UmbPropertyEditorUiRteElementBase extends UmbLitElement im
 				this.#managerContext.setLayouts(layouts);
 			});
 
-			// Observe the value of the property and update the editor value.
-			this.observe(this.#managerContext.layouts, (layouts) => {
-				const blocksValue =
-					this._value && layouts?.length > 0
-						? { ...this._value.blocks, layout: { [UMB_BLOCK_RTE_PROPERTY_EDITOR_SCHEMA_ALIAS]: layouts } }
-						: undefined;
+			this.observe(
+				observeMultiple([
+					this.#managerContext.layouts,
+					this.#managerContext.contents,
+					this.#managerContext.settings,
+					this.#managerContext.exposes,
+				]),
+				([layouts, contents, settings, exposes]) => {
+					const layoutsValue = layouts?.length > 0 ? { [UMB_BLOCK_RTE_PROPERTY_EDITOR_SCHEMA_ALIAS]: layouts } : {};
 
-				this.#setBlocksValue(blocksValue);
-			});
+					if (layouts.length > 0 || contents.length > 0 || settings.length > 0 || exposes.length > 0) {
+						const blocksValue = {
+							layout: layoutsValue,
+							contentData: contents,
+							settingsData: settings,
+							expose: exposes,
+						};
 
-			this.observe(this.#managerContext.contents, (contents) => {
-				const blocksValue = this._value ? { ...this._value.blocks, contentData: contents } : undefined;
-				this.#setBlocksValue(blocksValue);
-			});
-
-			this.observe(this.#managerContext.settings, (settings) => {
-				const blocksValue = this._value ? { ...this._value.blocks, settingsData: settings } : undefined;
-				this.#setBlocksValue(blocksValue);
-			});
-
-			this.observe(this.#managerContext.exposes, (exposes) => {
-				const blocksValue = this._value ? { ...this._value.blocks, expose: exposes } : undefined;
-				this.#setBlocksValue(blocksValue);
-			});
+						this._handleValueUpdate(blocksValue);
+					}
+				},
+				'motherObserver',
+			);
 		});
 
 		this.consumeContext(UMB_PROPERTY_DATASET_CONTEXT, (context) => {
@@ -181,15 +161,38 @@ export abstract class UmbPropertyEditorUiRteElementBase extends UmbLitElement im
 		});
 	}
 
-	#setBlocksValue(blocksValue?: UmbBlockValueType<UmbBlockRteLayoutModel>) {
-		if (!blocksValue || !this._value) {
-			return;
+	protected _handleValueUpdate(blocks?: UmbBlockValueType<UmbBlockRteLayoutModel>) {
+		const markup = this._latestMarkup;
+
+		if (!markup && !blocks) {
+			this._value = undefined;
 		}
 
-		this._value = {
-			...this._value,
-			blocks: blocksValue,
-		};
+		if (markup && !blocks) {
+			this._value = {
+				markup,
+				blocks: {
+					layout: {},
+					contentData: [],
+					settingsData: [],
+					expose: [],
+				},
+			};
+		}
+
+		if (!markup && blocks) {
+			this._value = {
+				markup: '',
+				blocks,
+			};
+		}
+
+		if (markup && blocks) {
+			this._value = {
+				markup,
+				blocks,
+			};
+		}
 
 		this._fireChangeEvent();
 	}
