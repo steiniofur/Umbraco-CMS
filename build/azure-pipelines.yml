@@ -81,13 +81,19 @@ stages:
             submodules: false
             lfs: false,
             fetchDepth: 500
-          - template: templates/backoffice-install.yml
+          - task: PowerShell@2
+            displayName: Debugging
+            inputs:
+              targetType: inline
+              script: |
+                ls 'C:\Program Files\dotnet\sdk'
           - task: UseDotNet@2
             displayName: Use .NET SDK from global.json
             inputs:
               useGlobalJson: true
               performMultiLevelLookup: true
               installationPath: 'C:\Program Files\dotnet\sdk'
+          - template: templates/backoffice-install.yml
           - task: DotNetCoreCLI@2
             displayName: Run dotnet restore
             inputs:
