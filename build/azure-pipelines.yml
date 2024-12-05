@@ -87,7 +87,6 @@ stages:
             inputs:
               useGlobalJson: true
               performMultiLevelLookup: true
-              installationPath: "C:\Program Files\dotnet"
           - task: DotNetCoreCLI@2
             displayName: Run dotnet restore
             inputs:
