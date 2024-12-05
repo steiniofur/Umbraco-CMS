@@ -86,7 +86,8 @@ stages:
             inputs:
               targetType: inline
               script: |
-                ls 'C:\Program Files\dotnet\sdk'
+                $version = '9.0.100'
+                ls 'C:\Program Files\dotnet\sdk' + $version
           - task: UseDotNet@2
             displayName: Use .NET SDK from global.json
             inputs:
